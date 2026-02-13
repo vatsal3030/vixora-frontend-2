@@ -1,0 +1,116 @@
+import { useState } from 'react'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { motion } from 'framer-motion'
+import { useSearchParams } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { videoService } from '../services/api'
+import { VideoCard } from '../components/video/VideoCard'
+import { Loader2, SearchX, Filter } from 'lucide-react'
+import { toast } from 'sonner'
+import { VideoCardSkeleton } from '../components/ui/Skeleton'
+import { Button } from '../components/ui/Button' // Added Button import
+
+export default function SearchPage() {
+    const [searchParams] = useSearchParams()
+    const query = searchParams.get('q') || ''
+    useDocumentTitle(query ? `Search: ${query} - Vixora` : 'Search - Vixora')
+
+    const [filter, setFilter] = useState('All') // All, Videos, Channels
+
+    // Using TanStack Query for Search
+    const { data: searchResults = {}, isLoading, error } = useQuery({
+        queryKey: ['search', query, filter],
+        queryFn: async () => {
+            if (!query) return {}
+            // Pass filter type to backend if supported, otherwise filter locally? 
+            // The prompt implies we need search filters. Let's assume standard params.
+            const params = { search: query }
+            if (filter !== 'All') params.type = filter.toLowerCase()
+
+            const response = await videoService.getVideos(params)
+            // NOTE: The backend API in videoService.getVideos might strictly return videos.
+            // If we need channels, we might need a separate service call or a unified search endpoint.
+            // Given the current api.js service, videoService.getVideos serves videos.
+            // For now, we will stick to searching videos, as channel search isn't explicitly in api.js 
+            // except via direct username or similar.
+
+            // Let's rely on standard response
+            return response.data.data
+        },
+        enabled: !!query,
+        staleTime: 1000 * 60 * 1,
+    })
+
+    // Normalize data
+    const videos = Array.isArray(searchResults) ? searchResults : (searchResults.docs || [])
+
+    if (error) {
+        toast.error('Search failed')
+        console.error("Search error:", error)
+    }
+
+    return (
+        <div className="py-2 min-h-[80vh]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
+                <p className="text-sm text-muted-foreground">
+                    Results for <span className="text-foreground font-medium">"{query}"</span>
+                </p>
+
+                {/* Filter Tabs */}
+                <div className="flex bg-secondary/30 p-1 rounded-lg">
+                    {['All', 'Videos', 'Channels'].map((tab) => (
+                        <button
+                            key={tab}
+                            onClick={() => setFilter(tab)}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${filter === tab
+                                ? 'bg-primary text-primary-foreground shadow-md'
+                                : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                                }`}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {isLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
+                    {Array.from({ length: 8 }).map((_, i) => (
+                        <VideoCardSkeleton key={i} />
+                    ))}
+                </div>
+            ) : videos.length === 0 ? (
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center justify-center py-20 text-center"
+                >
+                    <div className="w-24 h-24 bg-secondary/50 rounded-full flex items-center justify-center mb-6 ring-4 ring-secondary/20">
+                        <SearchX className="w-10 h-10 text-muted-foreground" />
+                    </div>
+                    <h2 className="text-2xl font-bold mb-3">No matches found</h2>
+                    <p className="text-muted-foreground max-w-md mx-auto mb-8">
+                        We couldn't find any videos matching "{query}". Try checking for typos or using different keywords.
+                    </p>
+                    <Button onClick={() => window.history.back()} variant="outline" className="glass hover:bg-white/5">
+                        <Loader2 className="w-4 h-4 mr-2" />
+                        Go Back
+                    </Button>
+                </motion.div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
+                    {videos.map((video, index) => (
+                        <motion.div
+                            key={video._id}
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}
+                        >
+                            <VideoCard video={video} />
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+        </div>
+    )
+}
