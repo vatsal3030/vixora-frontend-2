@@ -92,8 +92,8 @@ export default function NotificationDropdown() {
                     )}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-80 max-h-[500px] overflow-hidden flex flex-col notification-dropdown">
-                <DropdownMenuLabel className="flex justify-between items-center bg-popover z-10 py-3 px-4 border-b">
+            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-96 max-h-[500px] overflow-hidden flex flex-col notification-dropdown">
+                <DropdownMenuLabel className="flex justify-between items-center bg-popover/95 backdrop-blur-sm z-10 py-3 px-4 border-b border-white/10">
                     <span className="font-bold">Notifications</span>
                     {unreadCount > 0 && (
                         <Button
@@ -122,18 +122,18 @@ export default function NotificationDropdown() {
                         {notifications.map((notification) => (
                             <DropdownMenuItem
                                 key={notification._id}
-                                className={`flex flex-col items-start gap-1 p-3 cursor-pointer mb-1 mx-1 rounded-lg ${!notification.isRead ? 'bg-primary/5' : ''}`}
+                                className={`flex flex-col items-start gap-1.5 p-3 sm:p-3 cursor-pointer mb-1 mx-1 rounded-lg ${!notification.isRead ? 'bg-primary/5' : ''}`}
                                 onClick={() => !notification.isRead && markAsRead(notification._id)}
                             >
-                                <div className="flex justify-between w-full gap-2">
-                                    <p className="text-sm line-clamp-2 leading-snug">
+                                <div className="flex justify-between w-full gap-3">
+                                    <p className="text-sm line-clamp-2 leading-snug flex-1 min-w-0">
                                         <span className="font-semibold">{notification.sender?.username}</span> {notification.message}
                                     </p>
                                     <button
                                         onClick={(e) => deleteNotification(e, notification._id)}
                                         className="text-muted-foreground hover:text-destructive transition-colors shrink-0 p-1 rounded-md hover:bg-destructive/10"
                                     >
-                                        <Trash2 className="w-3 h-3" />
+                                        <Trash2 className="w-3.5 h-3.5" />
                                     </button>
                                 </div>
                                 <span className="text-[10px] text-muted-foreground font-medium">
@@ -144,7 +144,7 @@ export default function NotificationDropdown() {
                     </div>
                 )}
                 {notifications.length > 0 && (
-                    <div className="p-2 border-t sticky bottom-0 bg-popover text-center">
+                    <div className="p-2 border-t border-white/10 sticky bottom-0 bg-popover/95 backdrop-blur-sm text-center">
                         <Link to="/notifications" onClick={() => setIsOpen(false)}>
                             <Button variant="ghost" size="sm" className="w-full text-xs">
                                 View All Notifications

@@ -12,10 +12,12 @@ import {
     DropdownMenuSeparator,
 } from "../ui/DropdownMenu"
 import { toast } from 'sonner'
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo } from 'react'
 import { cn } from '../../lib/utils'
 
-export function VideoCard({ video, type = 'default', showEditButton = false, onDelete, onTogglePublish }) {
+const THUMBNAIL_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><polygon fill="#ffffff20" points="140,65 140,115 180,90"/></svg>')
+
+export const VideoCard = memo(function VideoCard({ video, type = 'default', showEditButton = false, onDelete, onTogglePublish }) {
     const [isHidden, setIsHidden] = useState(false)
     const [showPreview, setShowPreview] = useState(false)
     const [isMuted, setIsMuted] = useState(true)
@@ -161,6 +163,8 @@ export function VideoCard({ video, type = 'default', showEditButton = false, onD
                         alt={video.title}
                         className={`w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}
                         loading="lazy"
+                        decoding="async"
+                        onError={(e) => { e.target.src = THUMBNAIL_FALLBACK }}
                     />
 
                     {showPreview && (
@@ -230,6 +234,8 @@ export function VideoCard({ video, type = 'default', showEditButton = false, onD
                     alt={video.title}
                     className={`w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}
                     loading="lazy"
+                    decoding="async"
+                    onError={(e) => { e.target.src = THUMBNAIL_FALLBACK }}
                 />
 
                 {/* Video Preview */}
@@ -364,7 +370,11 @@ export function VideoCard({ video, type = 'default', showEditButton = false, onD
             </div>
         </div>
     )
-}
+}, (prev, next) => {
+    return (prev.video?._id || prev.video?.id) === (next.video?._id || next.video?.id)
+        && prev.type === next.type
+        && prev.showEditButton === next.showEditButton
+})
 
 function VideoMenu({ videoId, title, video, onNotInterested, onBlock, showEditButton, onDelete, onTogglePublish, trigger }) {
     if (showEditButton) {
