@@ -3,7 +3,7 @@ import { cn } from '../../lib/utils'
 export function Skeleton({ className, ...props }) {
     return (
         <div
-            className={cn('skeleton rounded-md', className)}
+            className={cn('skeleton glass-shimmer rounded-md', className)}
             {...props}
         />
     )
@@ -12,7 +12,7 @@ export function Skeleton({ className, ...props }) {
 // Video Card Skeleton
 export function VideoCardSkeleton() {
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 glass-card rounded-xl p-2">
             {/* Thumbnail */}
             <Skeleton className="aspect-video w-full rounded-xl" />
 

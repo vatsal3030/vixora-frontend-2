@@ -219,7 +219,7 @@ export function VideoCard({ video, type = 'default', showEditButton = false, onD
 
     return (
         <div
-            className="group flex flex-col gap-3 cursor-pointer relative"
+            className="group flex flex-col gap-3 cursor-pointer relative glass-card rounded-xl p-2"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
         >
@@ -339,7 +339,7 @@ export function VideoCard({ video, type = 'default', showEditButton = false, onD
                     </div>
 
                     <div className="text-sm text-muted-foreground mt-0.5">
-                        {formatViews(video.views)} views • {formatTimeAgo(video.createdAt)}
+                        {formatViews(video.views)} • {formatTimeAgo(video.createdAt)}
                     </div>
                 </div>
 
