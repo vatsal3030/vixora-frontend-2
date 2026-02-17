@@ -154,7 +154,7 @@ export default function LibraryPage() {
                                 to={`/playlist/${playlist._id}`}
                                 className="group flex-shrink-0 w-[140px] space-y-2"
                             >
-                                <div className="aspect-square rounded-xl bg-secondary/30 border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:border-primary/50 transition-all">
+                                <div className="aspect-square rounded-xl glass-card border border-white/5 flex items-center justify-center relative overflow-hidden group-hover:border-primary/50 transition-all">
                                     <List className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
                                     <span className="absolute bottom-2 right-2 text-xs font-medium text-white bg-black/50 px-1.5 py-0.5 rounded">
@@ -182,7 +182,7 @@ function LibraryCard({ icon, title, subtitle, count, to, colorClass }) {
     return (
         <Link
             to={to}
-            className="flex flex-col items-center justify-center p-4 rounded-xl bg-secondary/20 border border-white/5 hover:bg-secondary/40 hover:border-primary/20 hover:-translate-y-1 transition-all duration-300 text-center gap-3 group h-full"
+            className="flex flex-col items-center justify-center p-4 rounded-xl glass-card border border-white/5 hover:bg-white/10 hover:border-primary/20 hover:-translate-y-1 transition-all duration-300 text-center gap-3 group h-full"
         >
             <div className={cn("p-3 rounded-full transition-transform group-hover:scale-110 duration-300", colorClass)}>
                 {icon}

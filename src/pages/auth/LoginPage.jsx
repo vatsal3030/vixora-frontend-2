@@ -9,7 +9,7 @@ import { Video, Loader2, X, Eye, EyeOff } from 'lucide-react'
 import toast from '../../lib/toast'
 import { useState } from 'react'
 
-import { ThemeToggle } from '../../components/common/ThemeToggle'
+
 import { motion } from 'framer-motion'
 
 export default function LoginPage() {
@@ -64,9 +64,7 @@ export default function LoginPage() {
         <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background pointer-events-none" />
 
-            <div className="absolute top-4 right-4 z-50">
-                <ThemeToggle />
-            </div>
+
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -86,7 +84,7 @@ export default function LoginPage() {
                 </div>
 
                 <motion.div
-                    className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl p-6 shadow-2xl shadow-primary/5"
+                    className="glass-card rounded-2xl p-6 shadow-glass-heavy"
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 }}
@@ -102,7 +100,7 @@ export default function LoginPage() {
                                 {...register('identifier', {
                                     required: 'Email or username is required'
                                 })}
-                                className={errors.identifier ? 'border-destructive focus-visible:ring-destructive' : ''}
+                                className={errors.identifier ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
                             />
                             {errors.identifier && (
                                 <p className="text-xs text-destructive flex items-center gap-1">
@@ -129,7 +127,7 @@ export default function LoginPage() {
                                         required: 'Password is required',
                                         minLength: { value: 6, message: 'Password must be at least 6 characters' }
                                     })}
-                                    className={`pr-10 ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                                    className={`pr-10 glass-input ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                                 />
                                 <button
                                     type="button"

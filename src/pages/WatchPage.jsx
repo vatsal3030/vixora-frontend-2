@@ -176,7 +176,12 @@ export default function WatchPage() {
     if (videoError || !video) return <div className="p-10 pt-[80px] text-center text-xl">Video not found</div>
 
     return (
-        <div className={isTheaterMode ? "w-full min-h-screen bg-background" : "container mx-auto px-4 py-6 max-w-[1800px] min-h-screen bg-background"}>
+        <div className={isTheaterMode ? "w-full min-h-screen bg-background relative selection:bg-primary/30" : "container mx-auto px-4 py-6 max-w-[1800px] min-h-screen bg-background relative selection:bg-primary/30"}>
+            {/* Ambient Background Glow */}
+            <div className="fixed inset-0 pointer-events-none z-[-1]">
+                <div className="absolute top-[-10%] left-[20%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] opacity-20" />
+                <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px] opacity-20" />
+            </div>
 
             <div className={`grid gap-6 ${isTheaterMode ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3 xl:grid-cols-4'}`}>
 
@@ -271,7 +276,7 @@ export default function WatchPage() {
                                         <MoreHorizontal className="w-5 h-5" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56 bg-[#212121] border-white/10 text-white rounded-xl shadow-2xl">
+                                <DropdownMenuContent align="end" className="w-56 glass-panel border-white/5 text-white rounded-xl shadow-2xl">
                                     <AddToPlaylistDialog videoId={video._id}>
                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
                                             <Save className="w-4 h-4 mr-3" /> Save to Playlist
@@ -290,7 +295,7 @@ export default function WatchPage() {
 
                     {/* Description Box - Updated to match site theme */}
                     <div
-                        className={`bg-white/5 hover:bg-white/10 rounded-xl p-4 text-sm cursor-pointer transition-colors ${isDescriptionExpanded ? '' : 'overflow-hidden'}`}
+                        className={`glass-card rounded-xl p-4 text-sm cursor-pointer transition-colors ${isDescriptionExpanded ? '' : 'overflow-hidden'}`}
                         onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
                     >
                         <div className="font-semibold mb-2 text-white flex items-center gap-2">
@@ -331,7 +336,7 @@ export default function WatchPage() {
 
                             <div className="flex flex-col gap-3">
                                 {playlist ? (
-                                    <div className="bg-white/5 rounded-xl border border-white/10 overflow-hidden mb-4">
+                                    <div className="glass-card rounded-xl border-white/5 overflow-hidden mb-4">
                                         <div className="p-3 bg-white/5 border-b border-white/5">
                                             <h4 className="font-bold text-sm">{playlist.name}</h4>
                                             <p className="text-xs text-muted-foreground">{playlist.owner?.username} - {playlist.videos.length} videos</p>
@@ -377,7 +382,7 @@ export default function WatchPage() {
                                     Sort by
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="bg-[#212121] border-white/10 text-white rounded-xl">
+                            <DropdownMenuContent align="start" className="glass-panel border-white/5 text-white rounded-xl">
                                 <DropdownMenuItem className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-2">Top comments</DropdownMenuItem>
                                 <DropdownMenuItem className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-2">Newest first</DropdownMenuItem>
                             </DropdownMenuContent>
@@ -390,7 +395,7 @@ export default function WatchPage() {
                             <input
                                 type="text"
                                 placeholder="Add a comment..."
-                                className="w-full bg-transparent border-b border-white/20 focus:border-primary focus:outline-none py-2 text-sm transition-colors text-white placeholder-gray-500"
+                                className="w-full glass-input px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-primary/50"
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                             />

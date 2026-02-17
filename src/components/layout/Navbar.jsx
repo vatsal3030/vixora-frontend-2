@@ -6,8 +6,6 @@ import {
     User,
     Menu,
     X,
-    Sun,
-    Moon,
     LogOut,
     Video,
     Plus,
@@ -24,12 +22,11 @@ import { Avatar } from '../ui/Avatar'
 import { Button } from '../ui/Button'
 import { SidebarToggle } from './Sidebar'
 import NotificationDropdown from './NotificationDropdown'
-import { useTheme } from '../../context/ThemeContext'
+
 import { useAuth } from '../../context/AuthContext'
 import { toast } from 'sonner'
 
 export function Navbar({ onMenuClick, user }) {
-    const { toggleTheme } = useTheme()
     const { logout } = useAuth()
 
     const [searchQuery, setSearchQuery] = useState('')
@@ -63,13 +60,13 @@ export function Navbar({ onMenuClick, user }) {
     }, [])
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-colors duration-300">
+        <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-all duration-300">
             {/* Mobile Search Overlay */}
             {showMobileSearch && (
-                <div className="md:hidden absolute inset-0 z-50 glass-panel flex items-center px-2 gap-2 h-16">
+                <div className="md:hidden absolute inset-0 z-[60] glass-panel flex items-center px-4 gap-3 h-16 animate-in fade-in slide-in-from-top-2 duration-200">
                     <button
                         onClick={() => setShowMobileSearch(false)}
-                        className="p-2 hover:bg-secondary rounded-full transition-colors flex-shrink-0"
+                        className="p-2 hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
                     >
                         <ArrowLeft className="w-5 h-5 text-foreground" />
                     </button>
@@ -78,14 +75,14 @@ export function Navbar({ onMenuClick, user }) {
                             ref={mobileSearchRef}
                             type="text"
                             placeholder="Search videos..."
-                            className="w-full h-10 pl-4 pr-12 rounded-full glass-input text-sm text-foreground placeholder:text-muted-foreground"
+                            className="w-full h-10 pl-4 pr-12 rounded-full glass-input text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/50"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             autoComplete="off"
                         />
                         <button
                             type="submit"
-                            className="absolute right-0 top-0 h-10 px-4 rounded-r-full hover:bg-muted transition-colors flex items-center justify-center text-muted-foreground hover:text-foreground"
+                            className="absolute right-0 top-0 h-10 px-4 rounded-r-full hover:bg-white/10 transition-colors flex items-center justify-center text-muted-foreground hover:text-foreground"
                         >
                             <Search className="w-4 h-4" />
                         </button>
@@ -134,30 +131,18 @@ export function Navbar({ onMenuClick, user }) {
                     {/* Mobile Search Button */}
                     <button
                         onClick={() => setShowMobileSearch(true)}
-                        className="md:hidden p-2 hover:bg-secondary rounded-full transition-colors"
+                        className="md:hidden p-2 hover:bg-white/10 rounded-full transition-colors text-foreground"
                     >
-                        <Search className="w-5 h-5 text-foreground" />
+                        <Search className="w-5 h-5" />
                     </button>
 
                     {user ? (
                         <>
-                            {/* Theme Toggle */}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="rounded-full relative overflow-hidden hover:bg-primary/10 transition-colors duration-200"
-                                onClick={toggleTheme}
-                            >
-                                <Sun className="h-5 w-5 rotate-0 scale-100 transition-all duration-300 dark:-rotate-90 dark:scale-0 text-foreground" />
-                                <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100 text-foreground" />
-                                <span className="sr-only">Toggle theme</span>
-                            </Button>
-
-                            {/* Upload Button — hidden on mobile */}
-                            <Link to="/upload" className="hidden md:block">
-                                <Button variant="ghost" className="rounded-full gap-2 text-foreground font-medium hover:bg-secondary/80">
+                            {/* Upload Button - Always visible, glass style */}
+                            <Link to="/upload" className="flex items-center justify-center">
+                                <Button variant="ghost" size="icon" className="rounded-full text-foreground hover:bg-white/10 glass-btn border-0 w-10 h-10">
                                     <Upload className="w-5 h-5" />
-                                    <span className="hidden sm:inline">Upload</span>
+                                    <span className="sr-only">Upload</span>
                                 </Button>
                             </Link>
 
@@ -166,51 +151,51 @@ export function Navbar({ onMenuClick, user }) {
 
                             {/* User Menu */}
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
+                                <DropdownMenuTrigger className="outline-none focus:outline-none ring-0 focus:ring-0">
                                     <Avatar
                                         src={user?.avatar}
                                         alt={user?.fullName || user?.username}
                                         size="sm"
-                                        className="cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all select-none"
+                                        className="cursor-pointer transition-all hover:ring-2 hover:ring-white/20 select-none touch-manipulation"
                                     />
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-64 p-2">
-                                    <Link to={`/@${user?.username}`} className="flex items-center gap-3 p-2 mb-2 hover:bg-secondary/50 rounded-lg transition-colors">
+                                <DropdownMenuContent align="end" className="w-64 p-2 scale-100 animate-in fade-in zoom-in-95 duration-200 glass-panel border-white/10">
+                                    <Link to={user?.username ? `/@${user.username}` : '/profile'} className="flex items-center gap-3 p-3 mb-2 hover:bg-white/5 rounded-xl transition-colors group">
                                         <Avatar
                                             src={user?.avatar}
                                             alt={user?.username}
                                             size="md"
                                         />
                                         <div className="flex flex-col overflow-hidden">
-                                            <span className="font-semibold truncate text-sm">{user?.fullName || user?.username}</span>
+                                            <span className="font-semibold truncate text-sm text-foreground group-hover:text-white transition-colors">{user?.fullName || user?.username || 'User'}</span>
                                             <span className="text-xs text-muted-foreground truncate">{user?.email}</span>
                                         </div>
                                     </Link>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="cursor-pointer" asChild>
-                                        <Link to="/profile" className="flex items-center gap-2 w-full">
+                                    <DropdownMenuSeparator className="bg-white/10" />
+                                    <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 px-3" asChild>
+                                        <Link to="/profile" className="flex items-center gap-3 w-full py-2.5">
                                             <User className="w-4 h-4" />
                                             <span>Profile</span>
                                         </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem className="cursor-pointer" asChild>
-                                        <Link to={`/@${user?.username}`} className="flex items-center gap-2 w-full">
+                                    <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 px-3" asChild>
+                                        <Link to={`/@${user?.username}`} className="flex items-center gap-3 w-full py-2.5">
                                             <Video className="w-4 h-4" />
                                             <span>My Channel</span>
                                         </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="cursor-pointer text-muted-foreground" onClick={() => toast.info('Feature coming soon!')}>
-                                        <div className="flex items-center gap-2 w-full">
+
+                                    <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 text-muted-foreground px-3" onClick={() => toast.info('Feature coming soon!')}>
+                                        <div className="flex items-center gap-3 w-full py-2.5">
                                             <Plus className="w-4 h-4" />
                                             <span>Add Account</span>
                                         </div>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
-                                        className="cursor-pointer text-red-500 hover:text-red-500 focus:text-red-500 hover:bg-red-500/10 focus:bg-red-500/10 mt-1"
+                                        className="cursor-pointer rounded-lg text-red-400 hover:text-red-400 focus:text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 px-3"
                                         onClick={logout}
                                     >
-                                        <div className="flex items-center gap-2 w-full">
+                                        <div className="flex items-center gap-3 w-full py-2.5">
                                             <LogOut className="w-4 h-4" />
                                             <span>Log out</span>
                                         </div>
@@ -220,7 +205,7 @@ export function Navbar({ onMenuClick, user }) {
                         </>
                     ) : (
                         <Link to="/login">
-                            <Button variant="outline" size="sm" className="gap-2">
+                            <Button variant="outline" size="sm" className="gap-2 glass-btn border-white/10 hover:bg-white/10 rounded-full">
                                 <User className="w-4 h-4" />
                                 <span className="hidden sm:inline">Sign In</span>
                             </Button>

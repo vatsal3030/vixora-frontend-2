@@ -50,19 +50,19 @@ export function ShareDialog({ title, url, trigger, children }) {
         {
             name: 'WhatsApp',
             icon: MessageCircle,
-            color: 'bg-green-500 hover:bg-green-600',
+            color: 'hover:text-green-400 hover:border-green-500/30 hover:bg-green-500/10',
             url: `https://wa.me/?text=${encodeURIComponent(shareTitle + ' ' + shareUrl)}`
         },
         {
             name: 'Facebook',
             icon: Facebook,
-            color: 'bg-blue-600 hover:bg-blue-700',
+            color: 'hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-500/10',
             url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
         },
         {
             name: 'Twitter',
             icon: Twitter,
-            color: 'bg-sky-500 hover:bg-sky-600',
+            color: 'hover:text-sky-400 hover:border-sky-500/30 hover:bg-sky-500/10',
             url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareTitle)}`
         }
     ]
@@ -87,33 +87,32 @@ export function ShareDialog({ title, url, trigger, children }) {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            {trigger ? (
-                <div onClick={() => setOpen(true)}>
-                    {trigger}
-                </div>
-            ) : (
-                children && <div onClick={() => setOpen(true)}>{children}</div>
-            )}
+            {/* Trigger remains same, just ensure it doesn't break layout */}
+            <div onClick={() => setOpen(true)} className="contents">
+                {trigger || children}
+            </div>
 
-            <DialogContent className="sm:max-w-md bg-[#1f1f1f] border-white/10 text-white">
-                <DialogHeader>
-                    <DialogTitle>Share</DialogTitle>
-                    <DialogDescription className="text-gray-400">
-                        Share this video with others
+            <DialogContent className="sm:max-w-md glass-panel border-white/5 text-foreground shadow-2xl bg-black/40 backdrop-blur-xl p-0 overflow-hidden gap-0">
+                <DialogHeader className="p-6 pb-2">
+                    <DialogTitle className="text-xl font-bold font-display">Share</DialogTitle>
+                    <DialogDescription className="text-muted-foreground">
+                        Share this video with your friends and community.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-5 py-2">
+                <div className="p-6 space-y-6">
                     {/* Social Share Buttons */}
                     <div className="grid grid-cols-3 gap-3">
                         {shareOptions.map((option) => (
                             <button
                                 key={option.name}
                                 onClick={() => handleShare(option)}
-                                className={`${option.color} text-white p-4 rounded-xl flex flex-col items-center gap-2 transition-transform hover:scale-105 active:scale-95`}
+                                className={`glass-btn p-4 rounded-xl flex flex-col items-center gap-3 transition-all duration-300 group hover:scale-[1.02] border border-white/5 ${option.color}`}
                             >
-                                <option.icon className="w-6 h-6" />
-                                <span className="text-xs font-semibold">{option.name}</span>
+                                <div className="p-3 rounded-full bg-white/5 group-hover:bg-white/10 transition-colors">
+                                    <option.icon className="w-6 h-6 transition-transform group-hover:scale-110 duration-300" />
+                                </div>
+                                <span className="text-xs font-semibold tracking-wide">{option.name}</span>
                             </button>
                         ))}
                     </div>
@@ -123,7 +122,7 @@ export function ShareDialog({ title, url, trigger, children }) {
                         <Button
                             onClick={handleNativeShare}
                             variant="outline"
-                            className="w-full border-white/10 hover:bg-white/5 text-white"
+                            className="w-full glass-btn border-white/5 hover:bg-white/5 text-foreground h-12 rounded-xl"
                         >
                             <Link2 className="w-4 h-4 mr-2" />
                             More share options
@@ -131,23 +130,27 @@ export function ShareDialog({ title, url, trigger, children }) {
                     )}
 
                     {/* Copy Link */}
-                    <div className="group relative">
-                        <div className="flex items-center space-x-2 bg-black/40 border border-white/10 rounded-xl p-1.5 pl-4 focus-within:border-blue-500/50 transition-colors">
-                            <div className="flex-1 text-sm text-gray-300 truncate font-mono select-all">
+                    <div className="space-y-2">
+                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider ml-1">Page Link</label>
+                        <div className="flex items-center gap-2 glass-input rounded-xl p-1.5 pl-3 focus-within:ring-2 focus-within:ring-primary/20 transition-all border border-white/5 bg-white/5">
+                            <div className="flex-1 text-sm text-foreground/80 truncate font-mono select-all">
                                 {shareUrl}
                             </div>
                             <Button
                                 onClick={copyToClipboard}
                                 size="sm"
-                                className={`flex-shrink-0 rounded-lg px-4 transition-all duration-300 ${copied ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                                className={`flex-shrink-0 rounded-lg px-4 h-9 shadow-lg transition-all duration-300 ${copied ? 'bg-green-500/20 text-green-500 border border-green-500/20' : 'bg-primary text-primary-foreground shadow-primary/25'}`}
                             >
                                 {copied ? (
-                                    <Check className="w-4 h-4" />
+                                    <div className="flex items-center gap-2">
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span className="text-xs font-bold">Copied</span>
+                                    </div>
                                 ) : (
-                                    <>
-                                        <span className="font-medium mr-2">Copy</span>
-                                        <Copy className="w-4 h-4" />
-                                    </>
+                                    <div className="flex items-center gap-2">
+                                        <Copy className="w-3.5 h-3.5" />
+                                        <span className="text-xs font-bold">Copy</span>
+                                    </div>
                                 )}
                             </Button>
                         </div>

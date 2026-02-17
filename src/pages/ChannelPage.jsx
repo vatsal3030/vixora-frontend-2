@@ -8,7 +8,7 @@ import ChannelTabs from '../components/channel/ChannelTabs'
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { ChannelCardSkeleton } from '../components/ui/Skeleton'
-import { Loader2, ListVideo, MessageSquare } from 'lucide-react'
+import { Share2, Pencil, MoreVertical, Layout, Grid, Smartphone } from 'lucide-react'
 
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
@@ -22,10 +22,15 @@ const sanitizeUsername = (raw) => {
 }
 
 
+
 export default function ChannelPage() {
     const { username: rawUsername } = useParams()
     const username = sanitizeUsername(rawUsername)
     const [activeTab, setActiveTab] = useState('Videos')
+
+    // Handle case where username is 'null' (e.g. incomplete profile) - MOVED DOWN
+    const isInvalidProfile = username === 'null' || !username
+
 
     // 1. Fetch Channel Profile
     const { data: channel, isLoading: loadingChannel, error: channelError } = useQuery({
@@ -41,11 +46,14 @@ export default function ChannelPage() {
                 throw err
             }
         },
-        enabled: !!username,
+        enabled: !!username && !isInvalidProfile,
         retry: 1
     })
 
-    // 2. Fetch Channel Videos (Infinite)
+    // 2. Fetch Channel Videos or Shorts (Infinite)
+    const isShortsTab = activeTab === 'Shorts'
+    const isVideosTab = activeTab === 'Videos'
+
     const {
         data: videosData,
         fetchNextPage: fetchNextVideos,
@@ -53,12 +61,18 @@ export default function ChannelPage() {
         isFetchingNextPage: loadingMoreVideos,
         isLoading: loadingVideos
     } = useInfiniteQuery({
-        queryKey: ['channelVideos', channel?._id],
+        queryKey: ['channelVideos', channel?._id, activeTab], // Include activeTab in key
         queryFn: async ({ pageParam = 1 }) => {
-            const res = await videoService.getUserVideos(channel._id, { page: pageParam })
+            // If Shorts tab, fetch with isShort=true. If Videos tab, fetch with isShort=false (or filter client side if API doesn't support)
+            // Assuming API supports isShort param based on feedService usage
+            const params = { page: pageParam, limit: 12 }
+            if (isShortsTab) params.isShort = true
+            if (isVideosTab) params.isShort = false
+
+            const res = await videoService.getUserVideos(channel._id, params)
             return res.data.data
         },
-        enabled: !!channel?._id && activeTab === 'Videos',
+        enabled: !!channel?._id && (isVideosTab || isShortsTab),
         getNextPageParam: (lastPage) => lastPage?.hasNextPage ? lastPage.nextPage : undefined,
         initialPageParam: 1
     })
@@ -67,7 +81,7 @@ export default function ChannelPage() {
 
 
     // 3. Fetch Channel Playlists
-    const { data: playlists, isLoading: loadingPlaylists } = useQuery({
+    const { data: playlists = [], isLoading: loadingPlaylists } = useQuery({
         queryKey: ['channelPlaylists', channel?._id],
         queryFn: async () => {
             const res = await channelService.getChannelPlaylists(channel._id)
@@ -77,7 +91,7 @@ export default function ChannelPage() {
     })
 
     // 4. Fetch Channel Tweets/Community
-    const { data: tweets, isLoading: loadingTweets } = useQuery({
+    const { data: tweets = [], isLoading: loadingTweets } = useQuery({
         queryKey: ['channelTweets', channel?._id],
         queryFn: async () => {
             const res = await tweetService.getUserTweets(channel._id)
@@ -88,6 +102,20 @@ export default function ChannelPage() {
 
 
     useDocumentTitle(channel?.name ? `${channel.name} - Vixora` : 'Vixora')
+
+    if (isInvalidProfile) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center space-y-4">
+                    <h2 className="text-xl font-bold">Profile Incomplete</h2>
+                    <p className="text-muted-foreground">Please update your profile to set a username.</p>
+                    <Link to="/profile">
+                        <Button className="glass-btn">Go to Profile</Button>
+                    </Link>
+                </div>
+            </div>
+        )
+    }
 
     if (loadingChannel) {
         return (
@@ -123,27 +151,27 @@ export default function ChannelPage() {
             <ChannelTabs activeTab={activeTab} onChange={setActiveTab} />
 
             <div className="max-w-7xl mx-auto px-4 py-4">
-                {/* VIDEOS TAB */}
-                {activeTab === 'Videos' && (
+                {/* VIDEOS & SHORTS TAB */}
+                {(activeTab === 'Videos' || activeTab === 'Shorts') && (
                     <>
                         {loadingVideos ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
+                            <div className={`grid grid-cols-1 ${activeTab === 'Shorts' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-x-4 gap-y-6`}>
                                 {Array.from({ length: 8 }).map((_, i) => <VideoCardSkeleton key={i} />)}
                             </div>
                         ) : videos.length === 0 ? (
                             <div className="text-center py-20 text-muted-foreground">
-                                <p>This channel has no videos.</p>
+                                <p>This channel has no {activeTab.toLowerCase()}.</p>
                             </div>
                         ) : (
                             <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
+                                <div className={`grid grid-cols-1 ${activeTab === 'Shorts' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-x-4 gap-y-6`}>
                                     {videos.map((video, index) => (
                                         <div
                                             key={video._id}
                                             className="animate-in fade-in slide-in-from-bottom-4 duration-500"
                                             style={{ animationDelay: `${index * 50}ms` }}
                                         >
-                                            <VideoCard video={video} />
+                                            <VideoCard video={video} type={activeTab === 'Shorts' ? 'shorts' : 'standard'} />
                                         </div>
                                     ))}
                                 </div>
@@ -163,6 +191,38 @@ export default function ChannelPage() {
                     </>
                 )}
 
+                {/* SHORTS TAB */}
+                {activeTab === 'Shorts' && (
+                    videos.filter(v => v.isShorts || v.duration <= 60).length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-2xl border-white/5">
+                            <div className="bg-secondary/30 p-4 rounded-full mb-4">
+                                <Smartphone className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-xl font-semibold mb-2">No shorts yet</h3>
+                            <p className="text-muted-foreground max-w-sm">
+                                When {channel.username} uploads shorts, they will appear here.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            {videos.filter(v => v.isShorts || v.duration <= 60).map((video, idx) => (
+                                <Link to={`/watch/${video._id}`} key={video._id} className="group relative aspect-[9/16] rounded-xl overflow-hidden bg-black glass-card border-0">
+                                    <img
+                                        src={video.thumbnail}
+                                        alt={video.title}
+                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                                    <div className="absolute bottom-0 left-0 right-0 p-3">
+                                        <h3 className="text-white font-medium text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">{video.title}</h3>
+                                        <p className="text-xs text-white/70">{formatViews(video.views)}</p>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    )
+                )}
+
                 {/* PLAYLISTS TAB */}
                 {activeTab === 'Playlists' && (
                     <>
@@ -178,7 +238,7 @@ export default function ChannelPage() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
                                 {playlists.map((playlist) => (
                                     <Link to={`/playlist/${playlist._id}`} key={playlist._id} className="group cursor-pointer">
-                                        <div className="relative aspect-video rounded-xl overflow-hidden bg-muted mb-3 border border-border/50">
+                                        <div className="relative aspect-video rounded-xl overflow-hidden glass-card mb-3 border border-white/5">
                                             {playlist.thumbnail ? (
                                                 <img
                                                     src={playlist.thumbnail}
@@ -186,7 +246,7 @@ export default function ChannelPage() {
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                                 />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-secondary">
+                                                <div className="w-full h-full flex items-center justify-center bg-white/5">
                                                     <ListVideo className="w-12 h-12 text-muted-foreground/50" />
                                                 </div>
                                             )}
@@ -218,7 +278,7 @@ export default function ChannelPage() {
                             </div>
                         ) : (
                             tweets.map(tweet => (
-                                <div key={tweet.id || tweet._id} className="bg-card border border-border p-6 rounded-xl hover:bg-secondary/10 transition-colors">
+                                <div key={tweet.id || tweet._id} className="glass-card border-white/5 p-6 rounded-xl hover:bg-white/5 transition-colors">
                                     <div className="flex gap-4">
                                         <div className="shrink-0">
                                             <Avatar src={channel.avatar} alt={channel.username} size="md" />
@@ -227,6 +287,7 @@ export default function ChannelPage() {
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="font-semibold text-foreground">{channel.name}</span>
                                                 <span className="text-xs text-muted-foreground">{formatTimeAgo(tweet.createdAt)}</span>
+                                                {/* Add Like button logic here later if needed */}
                                             </div>
                                             <p className="text-foreground/90 whitespace-pre-wrap">{tweet.content}</p>
                                             <div className="flex items-center gap-6 mt-4 text-muted-foreground">
@@ -247,7 +308,7 @@ export default function ChannelPage() {
                 {/* ABOUT TAB */}
                 {activeTab === 'About' && (
                     <div className="max-w-3xl mx-auto">
-                        <div className="bg-card border border-border p-8 rounded-2xl">
+                        <div className="glass-panel border-white/5 p-8 rounded-2xl">
                             <h3 className="text-xl font-bold mb-6 font-display">About {channel.name}</h3>
                             <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap leading-relaxed">
                                 {channel.description || "No description provided."}

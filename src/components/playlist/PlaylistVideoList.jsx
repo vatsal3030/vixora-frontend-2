@@ -39,9 +39,9 @@ export function PlaylistVideoList({ videos, onReorder, onRemove }) {
 
     if (!videos || videos.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-border rounded-xl">
+            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-white/10 rounded-xl glass-panel">
                 <p className="text-muted-foreground mb-4">This playlist has no videos yet.</p>
-                <Button variant="outline">Browse Videos</Button>
+                <Button variant="outline" className="glass-btn border-white/10 hover:bg-white/10">Browse Videos</Button>
             </div>
         )
     }

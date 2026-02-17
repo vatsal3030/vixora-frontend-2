@@ -8,9 +8,12 @@ import { Link } from 'react-router-dom'
 export function DeletedItemCard({ item, type, isSelected, onSelect, onRestore, onDelete }) {
     // Calculate days remaining (Assuming 30 days retention policy, or 7 if strict)
     // User request mentioned "7 days remaining", let's calculate based on deletedAt if available
-    const deletedDate = item.deletedAt ? new Date(item.deletedAt) : new Date()
-    const expiryDate = new Date(deletedDate)
-    expiryDate.setDate(deletedDate.getDate() + 7) // 7-day policy per user request text
+    const deletedDate = item?.deletedAt ? new Date(item.deletedAt) : new Date()
+    // Fallback to now if date is invalid
+    const validDeletedDate = isNaN(deletedDate.getTime()) ? new Date() : deletedDate
+
+    const expiryDate = new Date(validDeletedDate)
+    expiryDate.setDate(validDeletedDate.getDate() + 7) // 7-day policy per user request text
 
     const now = new Date()
     const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24))

@@ -350,15 +350,15 @@ export default function CustomVideoPlayer({
             {/* Big Play Animation (Optional, simplified to standard center button when paused) */}
             {!isPlaying && !isBuffering && !isSettingsOpen && (
                 <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="p-5 bg-black/40 rounded-full backdrop-blur-sm border border-white/10 shadow-2xl animate-in zoom-in fade-in duration-300">
-                        {isEnded ? <Play className="w-10 h-10 text-white fill-white ml-1" /> : <Play className="w-10 h-10 text-white fill-white ml-1" />}
+                    <div className="p-6 bg-white/10 rounded-full backdrop-blur-md border border-white/20 shadow-[0_0_30px_rgba(239,68,68,0.3)] animate-in zoom-in fade-in duration-300 group-hover:scale-110 transition-transform">
+                        {isEnded ? <Play className="w-12 h-12 text-white fill-white ml-1" /> : <Play className="w-12 h-12 text-white fill-white ml-1" />}
                     </div>
                 </div>
             )}
 
             {/* Controls Overlay */}
             <div className={cn(
-                "absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end px-3 pb-3 pt-20 transition-opacity duration-300 z-30",
+                "absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end px-3 pb-3 pt-20 transition-opacity duration-300 z-30",
                 showControls || !isPlaying || isDragging ? "opacity-100" : "opacity-0 cursor-none"
             )}>
 

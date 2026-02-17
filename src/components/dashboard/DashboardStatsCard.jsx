@@ -72,7 +72,7 @@ export function DashboardStatsCard({ title, value, icon: Icon, trend, trendValue
     const sparkData = data.length > 0 ? data : defaultSparkData
 
     return (
-        <Card className={cn("overflow-hidden relative", className)}>
+        <Card className={cn("glass-card overflow-hidden relative border-white/5", className)}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2 z-10 relative p-3 sm:p-6">
                 <CardTitle className="text-xs sm:text-sm font-medium text-muted-foreground">{title}</CardTitle>
                 <div className={cn("p-1.5 sm:p-2 rounded-lg", activeColor.bg, activeColor.text)}>

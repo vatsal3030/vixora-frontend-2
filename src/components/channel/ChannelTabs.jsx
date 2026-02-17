@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion'
 import { cn } from '../../lib/utils'
 
-const TABS = ['Videos', 'Playlists', 'Tweets', 'About']
+const TABS = ['Videos', 'Shorts', 'Playlists', 'Tweets', 'About']
 
 export default function ChannelTabs({ activeTab, onChange }) {
     return (
-        <div className="border-b border-border sticky top-[56px] bg-background/95 backdrop-blur z-10 w-full overflow-x-auto scrollbar-hide">
+        <div className="border-b border-white/5 sticky top-[56px] glass-nav z-10 w-full overflow-x-auto scrollbar-hide">
             <div className="flex px-4 max-w-7xl mx-auto">
                 {TABS.map((tab) => (
                     <button

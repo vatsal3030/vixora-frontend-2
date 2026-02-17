@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
                 setUser(userData)
             }
         } catch (error) {
-            console.error('Auth check failed:', error)
+            // console.debug('Auth check failed (expected if not logged in):', error)
             setUser(null)
         } finally {
             setLoading(false)

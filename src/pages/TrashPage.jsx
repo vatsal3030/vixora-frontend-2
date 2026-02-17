@@ -1,57 +1,96 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { videoService, playlistService, tweetService } from '../services/api'
 import { DeletedItemCard } from '../components/trash/DeletedItemCard'
 import { BulkActionBar } from '../components/trash/BulkActionBar'
 import { Button } from '../components/ui/Button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs'
-import { Trash2, Film, PlaySquare, FileText, Search, Filter, Loader2, RefreshCcw } from 'lucide-react'
+import { Trash2, Film, PlaySquare, FileText, Search, RefreshCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { Checkbox } from '../components/ui/Checkbox'
 import { cn } from '../lib/utils'
+import { TrashSkeleton } from './TrashSkeleton'
+
+// --- Render Helpers ---
+const EmptyState = ({ label, icon: Icon }) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center justify-center py-20 text-center"
+    >
+        <div className="bg-secondary/30 p-4 rounded-full mb-4">
+            <Icon className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-xl font-semibold mb-2">No deleted {label}</h3>
+        <p className="text-muted-foreground max-w-sm">
+            Items you delete will appear here and be automatically removed after 7 days.
+        </p>
+    </motion.div>
+)
+
+const SectionHeader = ({ title, count, items, onSelectAll, selectedIds }) => (
+    <div className="flex items-center justify-between mb-4 mt-8">
+        <h2 className="text-lg font-semibold flex items-center gap-2">
+            {title} <span className="text-muted-foreground text-sm font-normal">({count})</span>
+        </h2>
+        {count > 0 && (
+            <div className="flex items-center gap-2">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onSelectAll(items)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                >
+                    {items.every(i => selectedIds.has(i._id || i.id)) ? 'Deselect All' : 'Select All'}
+                </Button>
+            </div>
+        )}
+    </div>
+)
 
 export default function TrashPage() {
     const queryClient = useQueryClient()
     const [selectedIds, setSelectedIds] = useState(new Set())
     const [searchQuery, setSearchQuery] = useState('')
-    const [filterType, setFilterType] = useState('all') // 'all', '7days', '30days'
 
     // --- Queries ---
-    const { data: videos = [], isLoading: videosLoading } = useQuery({
+    const { data: videos = [], isLoading: videosLoading, error: videoError } = useQuery({
         queryKey: ['trashVideos'],
-        queryFn: async () => (await videoService.getDeletedVideos({ limit: 100 })).data.data
+        queryFn: async () => {
+            try {
+                const res = await videoService.getDeletedVideos({ limit: 100 })
+                return res.data.data || []
+            } catch (e) {
+                console.warn("Failed to fetch trash videos", e)
+                return []
+            }
+        }
     })
 
     const { data: playlists = [], isLoading: playlistsLoading } = useQuery({
         queryKey: ['trashPlaylists'],
-        queryFn: async () => (await playlistService.getDeletedPlaylists()).data.data
+        queryFn: async () => (await playlistService.getDeletedPlaylists()).data.data || []
     })
 
     const { data: tweets = [], isLoading: tweetsLoading } = useQuery({
         queryKey: ['trashTweets'],
-        queryFn: async () => (await tweetService.getDeletedTweets()).data.data
+        queryFn: async () => (await tweetService.getDeletedTweets()).data.data || []
     })
 
     const isLoading = videosLoading || playlistsLoading || tweetsLoading
 
     // --- Derived State with Search & Filter ---
-    const filterItems = (items) => {
+    const filterItems = useCallback((items) => {
         return items.filter(item => {
-            const matchesSearch = (item.title || item.name || item.content || '').toLowerCase().includes(searchQuery.toLowerCase())
-
-            // Date filtering logic could go here
-            // const deletedDate = new Date(item.deletedAt)
-            // if (filterType === '7days') ...
-
-            return matchesSearch
+            return (item.title || item.name || item.content || '').toLowerCase().includes(searchQuery.toLowerCase())
         })
-    }
+    }, [searchQuery])
 
-    const deletedVideos = useMemo(() => filterItems(videos.filter(v => !v.isShorts && v.duration > 60)), [videos, searchQuery])
-    const deletedShorts = useMemo(() => filterItems(videos.filter(v => v.isShorts || v.duration <= 60)), [videos, searchQuery])
-    const deletedPlaylists = useMemo(() => filterItems(playlists), [playlists, searchQuery])
-    const deletedTweets = useMemo(() => filterItems(tweets), [tweets, searchQuery])
+    const deletedVideos = useMemo(() => filterItems(videos.filter(v => !v.isShorts && v.duration > 60)), [videos, searchQuery, filterItems])
+    const deletedShorts = useMemo(() => filterItems(videos.filter(v => v.isShorts || v.duration <= 60)), [videos, searchQuery, filterItems])
+    const deletedPlaylists = useMemo(() => filterItems(playlists), [playlists, searchQuery, filterItems])
+    const deletedTweets = useMemo(() => filterItems(tweets), [tweets, searchQuery, filterItems])
 
     // --- Bulk Selection Logic ---
     const handleSelect = (id, isSelected) => {
@@ -153,47 +192,10 @@ export default function TrashPage() {
         )
     }
 
-    // --- Render Helpers ---
-    const EmptyState = ({ label, icon: Icon }) => (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-center justify-center py-20 text-center"
-        >
-            <div className="bg-secondary/30 p-4 rounded-full mb-4">
-                <Icon className="w-8 h-8 text-muted-foreground" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">No deleted {label}</h3>
-            <p className="text-muted-foreground max-w-sm">
-                Items you delete will appear here and be automatically removed after 7 days.
-            </p>
-        </motion.div>
-    )
-
-    const SectionHeader = ({ title, count, items, onSelectAll }) => (
-        <div className="flex items-center justify-between mb-4 mt-8">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-                {title} <span className="text-muted-foreground text-sm font-normal">({count})</span>
-            </h2>
-            {count > 0 && (
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onSelectAll(items)}
-                        className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                        {items.every(i => selectedIds.has(i._id || i.id)) ? 'Deselect All' : 'Select All'}
-                    </Button>
-                </div>
-            )}
-        </div>
-    )
-
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center min-h-[60vh]">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="container mx-auto px-4 py-8 pb-32 max-w-7xl">
+                <TrashSkeleton />
             </div>
         )
     }
@@ -243,7 +245,7 @@ export default function TrashPage() {
 
                 {/* VIDEOS TAB */}
                 <TabsContent value="videos" className="focus-visible:outline-none">
-                    <SectionHeader title="Deleted Videos" count={deletedVideos.length} items={deletedVideos} onSelectAll={handleSelectAll} />
+                    <SectionHeader title="Deleted Videos" count={deletedVideos.length} items={deletedVideos} onSelectAll={handleSelectAll} selectedIds={selectedIds} />
 
                     {deletedVideos.length === 0 ? (
                         <EmptyState label="videos" icon={Film} />
@@ -266,7 +268,7 @@ export default function TrashPage() {
 
                 {/* SHORTS TAB */}
                 <TabsContent value="shorts" className="focus-visible:outline-none">
-                    <SectionHeader title="Deleted Shorts" count={deletedShorts.length} items={deletedShorts} onSelectAll={handleSelectAll} />
+                    <SectionHeader title="Deleted Shorts" count={deletedShorts.length} items={deletedShorts} onSelectAll={handleSelectAll} selectedIds={selectedIds} />
 
                     {deletedShorts.length === 0 ? (
                         <EmptyState label="shorts" icon={Film} />
@@ -289,7 +291,7 @@ export default function TrashPage() {
 
                 {/* PLAYLISTS TAB */}
                 <TabsContent value="playlists" className="focus-visible:outline-none">
-                    <SectionHeader title="Deleted Playlists" count={deletedPlaylists.length} items={deletedPlaylists} onSelectAll={handleSelectAll} />
+                    <SectionHeader title="Deleted Playlists" count={deletedPlaylists.length} items={deletedPlaylists} onSelectAll={handleSelectAll} selectedIds={selectedIds} />
 
                     {deletedPlaylists.length === 0 ? (
                         <EmptyState label="playlists" icon={PlaySquare} />
@@ -312,7 +314,7 @@ export default function TrashPage() {
 
                 {/* TWEETS TAB */}
                 <TabsContent value="tweets" className="focus-visible:outline-none">
-                    <SectionHeader title="Deleted Tweets" count={deletedTweets.length} items={deletedTweets} onSelectAll={handleSelectAll} />
+                    <SectionHeader title="Deleted Tweets" count={deletedTweets.length} items={deletedTweets} onSelectAll={handleSelectAll} selectedIds={selectedIds} />
 
                     {deletedTweets.length === 0 ? (
                         <EmptyState label="tweets" icon={FileText} />

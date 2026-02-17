@@ -221,25 +221,28 @@ export default function HistoryPage() {
         <div className="min-h-screen pb-10">
             {/* Header */}
             {/* Header */}
-            <div className="py-2 container mx-auto px-4">
-                <div className="flex flex-col gap-4">
+            <div className="py-6 container mx-auto px-4">
+                <div className="glass-panel p-6 rounded-2xl space-y-6">
                     <div className="flex items-center justify-between">
-                        <h1 className="text-xl font-bold flex items-center gap-2">
+                        <h1 className="text-2xl font-bold flex items-center gap-3">
+                            <div className="p-2 bg-white/5 rounded-xl">
+                                <History className="w-6 h-6 text-primary" />
+                            </div>
                             Watch History
-                            <span className="text-sm font-normal text-muted-foreground ml-2">
-                                {rawVideos.length} videos
+                            <span className="text-sm font-normal text-muted-foreground ml-2 px-2 py-0.5 bg-white/5 rounded-full">
+                                {rawVideos.length}
                             </span>
                         </h1>
 
                         <div className="flex items-center gap-2">
                             {/* Selection mode actions */}
                             {selectedVideos.size > 0 && (
-                                <div className="flex items-center gap-2 mr-2 px-3 py-1 bg-primary/10 rounded-full">
+                                <div className="flex items-center gap-2 mr-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
                                     <span className="text-xs font-medium text-primary hidden sm:inline">{selectedVideos.size} selected</span>
-                                    <Button variant="ghost" size="sm" onClick={handleRemoveSelected} className="h-7 px-2 text-destructive hover:text-destructive text-xs">
+                                    <Button variant="ghost" size="sm" onClick={handleRemoveSelected} className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10 text-xs rounded-full">
                                         Remove
                                     </Button>
-                                    <Button variant="ghost" size="sm" onClick={clearSelection} className="h-7 px-2 text-xs">
+                                    <Button variant="ghost" size="sm" onClick={clearSelection} className="h-7 px-2 text-xs rounded-full">
                                         Cancel
                                     </Button>
                                 </div>
@@ -249,34 +252,34 @@ export default function HistoryPage() {
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="h-8 text-destructive hover:bg-destructive/10"
+                                    className="h-9 text-destructive hover:bg-destructive/10 hover:text-destructive gap-2 rounded-full px-4"
                                     onClick={() => setShowClearDialog(true)}
                                 >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    <span className="hidden sm:inline">Clear All</span>
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Clear All History</span>
                                 </Button>
                             )}
                         </div>
                     </div>
 
                     {/* Filters Row - Compact */}
-                    <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-hide">
                         {/* Search - Compact Expandable or just smaller */}
-                        <div className="relative flex-1 min-w-[200px]">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                        <div className="relative flex-1 min-w-[240px]">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
                                 type="text"
-                                placeholder="Search history..."
+                                placeholder="Search watch history..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-9 pr-4 py-1.5 bg-secondary/50 border-0 rounded-lg text-sm focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/70"
+                                className="w-full pl-10 pr-4 py-2 glass-input border border-white/5 rounded-xl text-sm focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/70"
                             />
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
-                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-white/10 rounded-full"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-white/10 rounded-full text-muted-foreground hover:text-foreground transition-colors"
                                 >
-                                    <X className="w-3 h-3" />
+                                    <X className="w-3.5 h-3.5" />
                                 </button>
                             )}
                         </div>
@@ -284,14 +287,15 @@ export default function HistoryPage() {
                         {/* Dropdowns - Compact */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 bg-secondary/50 gap-1.5 px-3">
-                                    <Calendar className="w-3.5 h-3.5" />
-                                    <span className="hidden sm:inline whitespace-nowrap">
-                                        {dateFilter === 'all' ? 'Any time' : dateFilter}
+                                <Button variant="ghost" size="sm" className="h-10 glass-btn hover:bg-white/10 gap-2 px-4 border border-white/5 rounded-xl">
+                                    <Calendar className="w-4 h-4 text-muted-foreground" />
+                                    <span className="hidden sm:inline whitespace-nowrap text-sm font-medium">
+                                        {dateFilter === 'all' ? 'Any time' : dateFilter === 'today' ? 'Today' : dateFilter === 'week' ? 'This week' : 'This month'}
                                     </span>
+                                    <ChevronDown className="w-3 h-3 text-muted-foreground opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-[#212121] border-white/10">
+                            <DropdownMenuContent align="end" className="bg-[#1f1f1f]/95 backdrop-blur-xl border-white/10 p-1 rounded-xl shadow-2xl w-40">
                                 {[
                                     { value: 'all', label: 'All time' },
                                     { value: 'today', label: 'Today' },
@@ -301,7 +305,7 @@ export default function HistoryPage() {
                                     <DropdownMenuItem
                                         key={opt.value}
                                         onClick={() => setDateFilter(opt.value)}
-                                        className={cn("cursor-pointer", dateFilter === opt.value && "text-primary")}
+                                        className={cn("cursor-pointer rounded-lg text-sm mb-0.5", dateFilter === opt.value && "text-primary bg-primary/10")}
                                     >
                                         {opt.label}
                                     </DropdownMenuItem>
@@ -309,24 +313,26 @@ export default function HistoryPage() {
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <div className="flex bg-secondary/50 rounded-lg p-0.5 ml-auto">
+                        <div className="flex bg-black/20 rounded-xl p-1 ml-auto border border-white/5">
                             <button
                                 onClick={() => setViewMode('grid')}
                                 className={cn(
-                                    "p-1.5 rounded-md transition-all",
-                                    viewMode === 'grid' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                                    "p-2 rounded-lg transition-all",
+                                    viewMode === 'grid' ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                                 )}
+                                title="Grid View"
                             >
-                                <Grid3X3 className="w-3.5 h-3.5" />
+                                <Grid3X3 className="w-4 h-4" />
                             </button>
                             <button
                                 onClick={() => setViewMode('list')}
                                 className={cn(
-                                    "p-1.5 rounded-md transition-all",
-                                    viewMode === 'list' ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                                    "p-2 rounded-lg transition-all",
+                                    viewMode === 'list' ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                                 )}
+                                title="List View"
                             >
-                                <List className="w-3.5 h-3.5" />
+                                <List className="w-4 h-4" />
                             </button>
                         </div>
                     </div>

@@ -43,33 +43,7 @@ export default function ShortsPage() {
                 console.warn('[Shorts] /feed/shorts failed:', feedError.response?.status, feedError.message)
             }
 
-            // Strategy 2: Fallback - try fetching all videos and filter by short duration (< 60s)
-            if (newShorts.length === 0) {
-                try {
-                    console.log('[Shorts] Fallback: Trying /videos with type=short...')
-                    const { videoService } = await import('../services/api')
-                    const res = await videoService.getVideos({ page: pageNum, limit: 30, sortBy: 'createdAt', sortType: 'desc' })
-                    console.log('[Shorts] /videos response:', res.data)
 
-                    const data = res.data?.data
-                    const allVideos = Array.isArray(data) ? data : (Array.isArray(data?.docs) ? data.docs : [])
-
-                    // Filter for shorts: videos under 60 seconds
-                    newShorts = allVideos.filter(v => {
-                        const duration = v.duration || 0
-                        return duration > 0 && duration <= 60
-                    })
-                    console.log(`[Shorts] Filtered ${allVideos.length} videos → ${newShorts.length} shorts (≤60s)`)
-
-                    // If no short videos found, show them all as shorts anyway (some backends don't set duration)
-                    if (newShorts.length === 0 && allVideos.length > 0) {
-                        console.log('[Shorts] No duration-filtered shorts found. Using all videos as shorts.')
-                        newShorts = allVideos
-                    }
-                } catch (videoError) {
-                    console.error('[Shorts] /videos fallback failed:', videoError)
-                }
-            }
 
             console.log(`[Shorts] Final shorts count: ${newShorts.length}`, newShorts.slice(0, 2))
 

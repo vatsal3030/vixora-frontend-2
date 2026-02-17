@@ -1,8 +1,7 @@
-import { useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { dashboardService } from '../services/api'
-import { BarChart3, Users, Play, ThumbsUp, TrendingUp, Loader2, ArrowUpDown, ArrowUp, ArrowDown, Download, Video } from 'lucide-react'
+import { BarChart3, Users, Play, ThumbsUp, TrendingUp, ArrowUpDown, ArrowUp, ArrowDown, Download, Video } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { formatSubscribers, formatViews } from '../lib/utils'
 import { useQuery } from '@tanstack/react-query'
@@ -11,7 +10,8 @@ import { DashboardCharts } from '../components/dashboard/DashboardCharts'
 import { EmptyDashboardState } from '../components/dashboard/EmptyDashboardState'
 import { Button } from '../components/ui/Button'
 import { toast } from 'sonner'
-import { cn } from '../lib/utils'
+import { DashboardSkeleton } from '../components/dashboard/DashboardSkeleton'
+import { motion } from 'framer-motion'
 
 const PERIODS = [
     { value: '7d', label: 'Last 7 Days' },
@@ -19,6 +19,17 @@ const PERIODS = [
     { value: '90d', label: 'Last 90 Days' },
     { value: '1y', label: 'Last Year' }
 ]
+
+const DEMO_DATA = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date()
+    d.setDate(d.getDate() - (6 - i))
+    return {
+        date: d.toISOString(),
+        views: Math.floor(Math.random() * 5000) + 1000,
+        subscribers: Math.floor(Math.random() * 50) + 5,
+        likes: Math.floor(Math.random() * 500) + 50
+    }
+})
 
 export default function DashboardPage() {
     useDocumentTitle('Creator Dashboard - Vixora')
@@ -31,17 +42,26 @@ export default function DashboardPage() {
     const { data: overview, isLoading: overviewLoading } = useQuery({
         queryKey: ['dashboardOverview'],
         queryFn: async () => {
-            const res = await dashboardService.getOverview()
-            return res.data.data
-        }
+            try {
+                const res = await dashboardService.getOverview()
+                return res.data.data
+            } catch (error) {
+                return null
+            }
+        },
+        retry: 1
     })
 
     // Fetch Analytics Stats
     const { data: analytics, isLoading: analyticsLoading } = useQuery({
         queryKey: ['dashboardAnalytics', period],
         queryFn: async () => {
-            const res = await dashboardService.getAnalytics(period)
-            return res.data.data
+            try {
+                const res = await dashboardService.getAnalytics(period)
+                return res.data.data || {}
+            } catch (e) {
+                return {}
+            }
         }
     })
 
@@ -49,34 +69,25 @@ export default function DashboardPage() {
     const { data: topVideos = [], isLoading: videosLoading } = useQuery({
         queryKey: ['dashboardTopVideos'],
         queryFn: async () => {
-            const res = await dashboardService.getTopVideos()
-            return res.data.data || []
-        }
+            try {
+                const res = await dashboardService.getTopVideos()
+                return res.data.data || []
+            } catch (error) {
+                return [] // Fallback to empty to avoid crash
+            }
+        },
+        retry: 1
     })
 
     const loading = overviewLoading || analyticsLoading || videosLoading
 
     // Logic to determine if we should show empty state or demo data
     const hasData = overview?.videosCount > 0
-    const displayDemo = showDemoData || (hasData && false) // Logic: if user has data, don't force demo unless toggle (toggle logic below)
 
-    // Demo Data Generators
-    const generateDemoData = () => {
-        const dates = Array.from({ length: 7 }, (_, i) => {
-            const d = new Date()
-            d.setDate(d.getDate() - (6 - i))
-            return d.toISOString()
-        })
 
-        return dates.map(date => ({
-            date,
-            views: Math.floor(Math.random() * 5000) + 1000,
-            subscribers: Math.floor(Math.random() * 50) + 5,
-            likes: Math.floor(Math.random() * 500) + 50
-        }))
-    }
+    const demoAnalytics = DEMO_DATA
 
-    const demoAnalytics = useMemo(() => generateDemoData(), [])
+
 
     // Sorting Logic for Videos
     const handleSort = (field) => {
@@ -106,11 +117,7 @@ export default function DashboardPage() {
     }
 
     if (loading) {
-        return (
-            <div className="flex justify-center items-center min-h-[60vh]">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        )
+        return <DashboardSkeleton />
     }
 
     if (!hasData && !showDemoData) {
@@ -136,7 +143,15 @@ export default function DashboardPage() {
         recentSubscribers: 45,
         recentViews: 5200,
         recentLikes: 350
-    } : overview
+    } : {
+        subscribers: overview?.subscribers || 0,
+        views: overview?.views || 0,
+        likes: overview?.likes || 0,
+        videosCount: overview?.videosCount || 0,
+        recentSubscribers: overview?.recentSubscribers || 0,
+        recentViews: overview?.recentViews || 0,
+        recentLikes: overview?.recentLikes || 0
+    }
 
     const chartData = showDemoData ? demoAnalytics : (analytics?.viewsChart || [])
 
@@ -248,7 +263,7 @@ export default function DashboardPage() {
                     {/* Could add 'View All' link later */}
                 </div>
 
-                <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+                <div className="rounded-xl border border-white/5 glass-card overflow-hidden shadow-sm">
                     {/* Responsive Table Wrapper */}
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm">
@@ -301,9 +316,9 @@ export default function DashboardPage() {
                                             title: `Demo Video ${video}: Amazing Content`,
                                             thumbnail: `https://picsum.photos/seed/${index}/320/180`,
                                             createdAt: new Date().toISOString(),
-                                            views: Math.floor(Math.random() * 10000),
-                                            likesCount: Math.floor(Math.random() * 500),
-                                            commentsCount: Math.floor(Math.random() * 50)
+                                            views: (index + 1) * 1234,
+                                            likesCount: (index + 1) * 123,
+                                            commentsCount: (index + 1) * 12
                                         } : video
 
                                         return (

@@ -94,7 +94,7 @@ export const VideoCard = memo(function VideoCard({ video, type = 'default', show
     const handleMouseEnter = () => {
         hoverTimeoutRef.current = setTimeout(() => {
             setShowPreview(true)
-        }, 500) // 500ms delay as requested
+        }, 0) // Immediate hover effect for responsiveness
     }
 
     const handleMouseLeave = () => {

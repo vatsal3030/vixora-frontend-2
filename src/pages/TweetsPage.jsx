@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
-import { tweetService } from '../services/api'
+import { tweetService, videoService } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
 import { toast } from 'sonner'
-import { Loader2, Trash2, Heart, MessageSquare } from 'lucide-react'
+import { Loader2, Trash2, Heart, MessageSquare, Image, X } from 'lucide-react'
 import { formatTimeAgo } from '../lib/utils'
 
 export default function TweetsPage() {
@@ -13,6 +13,8 @@ export default function TweetsPage() {
     const [content, setContent] = useState('')
     const [loading, setLoading] = useState(true)
     const [createLoading, setCreateLoading] = useState(false)
+    const [imageFile, setImageFile] = useState(null)
+    const [imagePreview, setImagePreview] = useState(null)
 
     const fetchTweets = useCallback(async () => {
         setLoading(true)
@@ -35,16 +37,79 @@ export default function TweetsPage() {
         }
     }, [user, fetchTweets])
 
+    const handleImageSelect = (e) => {
+        const file = e.target.files[0]
+        if (file) {
+            setImageFile(file)
+            const reader = new FileReader()
+            reader.onloadend = () => {
+                setImagePreview(reader.result)
+            }
+            reader.readAsDataURL(file)
+        }
+    }
+
+    const removeImage = () => {
+        setImageFile(null)
+        setImagePreview(null)
+        // Reset file input if needed, but since we hide it and use label, it handles itself mostly.
+    }
+
+    // Generic direct upload helper
+    const uploadToCloudinary = async (file, signatureData) => {
+        const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${signatureData.resourceType}/upload`
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('api_key', signatureData.api_key)
+        formData.append('timestamp', signatureData.timestamp)
+        formData.append('signature', signatureData.signature)
+        formData.append('public_id', signatureData.publicId)
+
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', url)
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(JSON.parse(xhr.responseText))
+                } else {
+                    reject(new Error(`Cloudinary upload failed: ${xhr.statusText}`))
+                }
+            }
+            xhr.onerror = () => reject(new Error('Network error'))
+            xhr.send(formData)
+        })
+    }
+
     const handleCreateTweet = async (e) => {
         e.preventDefault()
-        if (!content.trim()) return
+        if (!content.trim() && !imageFile) return
 
         setCreateLoading(true)
         try {
-            const response = await tweetService.createTweet({ content })
+            let imagePublicId = null
+
+            if (imageFile) {
+                // 1. Get Signature
+                // Using 'post' as resourceType based on Handoff calling it "post" in signature mapping.
+                const sigRes = await videoService.getUploadSignature('post')
+                const sigData = sigRes.data.data
+
+                // 2. Upload
+                const cloudData = await uploadToCloudinary(imageFile, sigData)
+                imagePublicId = cloudData.public_id
+            }
+
+            const payload = { content }
+            if (imagePublicId) {
+                payload.imagePublicId = imagePublicId
+            }
+
+            const response = await tweetService.createTweet(payload)
+
             if (response.data.success) {
                 toast.success('Tweet posted')
                 setContent('')
+                removeImage()
                 fetchTweets() // Refresh list
             }
         } catch (error) {
@@ -85,8 +150,28 @@ export default function TweetsPage() {
                             placeholder="Share something with your community..."
                             className="w-full bg-secondary/50 border-none rounded-lg p-3 min-h-[100px] resize-none focus:ring-1 focus:ring-primary focus:outline-none mb-2"
                         />
-                        <div className="flex justify-end">
-                            <Button type="submit" disabled={!content.trim() || createLoading}>
+
+                        {imagePreview && (
+                            <div className="relative mb-4 inline-block">
+                                <img src={imagePreview} alt="Preview" className="max-h-60 rounded-lg border border-white/10" />
+                                <button
+                                    type="button"
+                                    onClick={removeImage}
+                                    className="absolute top-2 right-2 bg-black/50 p-1 rounded-full hover:bg-black/70 text-white transition-colors"
+                                >
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="flex justify-between items-center">
+                            <div className="flex gap-2">
+                                <label className="cursor-pointer p-2 hover:bg-white/5 rounded-full text-primary transition-colors">
+                                    <input type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                                    <Image className="w-5 h-5" />
+                                </label>
+                            </div>
+                            <Button type="submit" disabled={(!content.trim() && !imageFile) || createLoading}>
                                 {createLoading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                                 Post
                             </Button>
@@ -127,6 +212,12 @@ export default function TweetsPage() {
                                     </div>
 
                                     <p className="mt-2 text-sm whitespace-pre-wrap">{tweet.content}</p>
+
+                                    {tweet.image && (
+                                        <div className="mt-3 rounded-lg overflow-hidden border border-white/5">
+                                            <img src={tweet.image} alt="Tweet attachment" className="max-w-full max-h-[500px] object-cover" />
+                                        </div>
+                                    )}
 
                                     <div className="flex gap-4 mt-4">
                                         <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">

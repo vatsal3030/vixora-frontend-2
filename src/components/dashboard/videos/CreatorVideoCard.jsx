@@ -12,20 +12,22 @@ import {
     DropdownMenuSeparator,
 } from "../../../components/ui/DropdownMenu"
 
+const StatusBadge = ({ isPublished, isProcessing }) => {
+    if (isProcessing) return <div className="bg-yellow-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Processing</div>
+    if (isPublished) return <div className="bg-green-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1"><Globe className="w-3 h-3" /> Public</div>
+    return <div className="bg-red-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1"><Lock className="w-3 h-3" /> Private</div>
+}
+
 export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelect, onDelete, onTogglePublish }) {
     const isList = viewMode === 'list'
 
-    const StatusBadge = ({ isPublished, isProcessing }) => {
-        if (isProcessing) return <div className="bg-yellow-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1"><AlertCircle className="w-3 h-3" /> Processing</div>
-        if (isPublished) return <div className="bg-green-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1"><Globe className="w-3 h-3" /> Public</div>
-        return <div className="bg-red-500/90 text-white px-2 py-0.5 rounded text-[10px] font-bold flex items-center gap-1"><Lock className="w-3 h-3" /> Private</div>
-    }
+
 
     if (isList) {
         return (
             <div className={cn(
-                "group flex items-center gap-4 p-3 rounded-xl border bg-card transition-all hover:border-primary/50",
-                isSelected ? "border-primary bg-primary/5" : "border-border"
+                "group flex items-center gap-4 p-3 rounded-xl border transition-all hover:border-primary/50 glass-card",
+                isSelected ? "border-primary bg-primary/5" : "border-white/5"
             )}>
                 {/* Checkbox */}
                 <Checkbox
@@ -106,8 +108,8 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
     // GRID VIEW
     return (
         <div className={cn(
-            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-200 hover:shadow-lg",
-            isSelected ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
+            "group relative rounded-xl overflow-hidden glass-card border transition-all duration-200 hover:shadow-lg",
+            isSelected ? "border-primary ring-1 ring-primary" : "border-white/5 hover:border-primary/50"
         )}>
             {/* Selection Overlay */}
             <div className={cn(

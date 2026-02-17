@@ -39,8 +39,8 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
             ref={setNodeRef}
             style={style}
             className={cn(
-                "group flex rounded-xl p-2 hover:bg-secondary/50 transition-colors gap-3 items-center",
-                isDragging && "bg-secondary shadow-lg"
+                "group flex rounded-xl p-2 hover:bg-white/5 transition-colors gap-3 items-center",
+                isDragging && "glass-panel shadow-glass-glow"
             )}
         >
             {/* Index usually shown on youtube, replaced by drag handle on hover */}
@@ -53,7 +53,7 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
 
             {/* Thumbnail */}
             <Link to={`/watch/${video._id}`} className="relative h-[68px] w-[120px] rounded-lg overflow-hidden flex-shrink-0 cursor-pointer">
-                <img src={video.thumbnail} alt={video.title} className="bg-secondary object-cover w-full h-full" />
+                <img src={video.thumbnail} alt={video.title} className="bg-zinc-900 object-cover w-full h-full" />
                 <div className="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-[10px] text-white font-medium">
                     {formatDuration(video.duration)}
                 </div>

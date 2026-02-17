@@ -65,7 +65,7 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
                         <span>Updated {updatedAt ? formatDistanceToNow(new Date(updatedAt), { addSuffix: true }) : 'recently'}</span>
                     </div>
                     {isOwner && (
-                        <div className="flex items-center gap-2 mt-2 bg-secondary/30 w-fit px-3 py-1.5 rounded-full">
+                        <div className="flex items-center gap-2 mt-2 glass-badge px-3 py-1.5 rounded-full">
                             {privacyIcon[privacy]}
                             <span className="capitalize text-xs font-medium">{privacy}</span>
                         </div>
@@ -119,7 +119,7 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
                 {/* Description */}
                 {description && (
                     <div
-                        className={cn("text-sm text-muted-foreground bg-secondary/20 p-3 rounded-xl cursor-pointer hover:bg-secondary/30 transition-colors", !isDescExpanded && "line-clamp-3")}
+                        className={cn("text-sm text-muted-foreground glass-card p-4 rounded-xl cursor-pointer hover:bg-white/5 transition-colors", !isDescExpanded && "line-clamp-3")}
                         onClick={() => setIsDescExpanded(!isDescExpanded)}
                     >
                         <p>{description}</p>

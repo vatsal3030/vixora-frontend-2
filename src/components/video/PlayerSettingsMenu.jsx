@@ -7,7 +7,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 
 // Sub-components defined outside to prevent re-creation on render
 const SubMenuHeader = ({ title, onBack }) => (
-    <div className="flex items-center gap-2 px-3 py-2 border-b border-white/10 text-white mb-1">
+    <div className="flex items-center gap-2 px-3 py-2 border-b border-white/5 text-white mb-1">
         <button onClick={onBack} className="p-1 hover:bg-white/10 rounded-full transition-colors">
             <ChevronLeft className="w-4 h-4" />
         </button>
@@ -154,7 +154,7 @@ export function PlayerSettingsMenu({
                     exit={{ opacity: 0, scale: 0.95, y: 10 }}
                     transition={{ duration: 0.15 }}
                     // Positioned above the settings button
-                    className="absolute bottom-full right-0 mb-4 bg-black/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden min-w-[250px] z-[50] transform origin-bottom-right"
+                    className="absolute bottom-full right-0 mb-4 glass-card border border-white/10 shadow-glass-hover overflow-hidden min-w-[250px] z-[50] transform origin-bottom-right"
                 >
                     {!activeSubmenu && (
                         <MainMenu

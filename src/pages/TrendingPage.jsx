@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { motion } from 'framer-motion'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { VideoCard } from '../components/video/VideoCard'
-import VideoCardSkeleton from '../components/skeletons/VideoCardSkeleton'
+import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { feedService } from '../services/api'
 import { Flame, AlertCircle } from 'lucide-react'
 import { Button } from '../components/ui/Button'
@@ -21,7 +21,16 @@ export default function TrendingPage() {
     })
 
     return (
-        <div className="space-y-4 py-2">
+        <div className="space-y-6 py-6 container mx-auto px-4">
+            <div className="glass-panel p-6 rounded-2xl flex items-center gap-4">
+                <div className="p-3 bg-red-500/10 rounded-xl">
+                    <Flame className="w-8 h-8 text-red-500 fill-red-500/20" />
+                </div>
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Trending</h1>
+                    <p className="text-muted-foreground">See what's popular on Vixora right now</p>
+                </div>
+            </div>
 
             {error ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">

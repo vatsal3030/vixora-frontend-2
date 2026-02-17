@@ -4,7 +4,7 @@ export default function VideoPlayerSkeleton() {
     return (
         <div className="space-y-4">
             {/* Player Skeleton */}
-            <div className="relative w-full aspect-video bg-zinc-900 dark:bg-zinc-950 rounded-lg overflow-hidden">
+            <div className="relative w-full aspect-video glass-card rounded-lg overflow-hidden">
                 <Skeleton className="w-full h-full" />
 
                 {/* Play Button Skeleton */}

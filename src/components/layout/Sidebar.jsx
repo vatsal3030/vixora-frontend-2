@@ -57,8 +57,8 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
             {/* Sidebar */}
             <aside
                 className={cn(
-                    // Base Layout
-                    "fixed top-16 bottom-0 left-0 z-40 glass-panel border-r border-white/10 overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out",
+                    // Base Layout - Glass Panel
+                    "fixed top-16 bottom-0 left-0 z-40 glass-panel overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out shadow-2xl border-r border-white/5",
                     // Mobile: Slide in/out
                     isOpen ? "translate-x-0" : "-translate-x-full",
                     // Desktop: Always visible, width controlled by prop
@@ -69,7 +69,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                 {/* Mobile Close Button (Top Right of Sidebar) */}
                 <button
                     onClick={onClose}
-                    className="lg:hidden absolute top-4 right-4 p-2 hover:bg-secondary rounded-lg text-foreground"
+                    className="lg:hidden absolute top-4 right-4 p-2 hover:bg-white/10 rounded-lg text-foreground transition-colors"
                 >
                     <X className="w-5 h-5" />
                 </button>
@@ -84,8 +84,8 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 className={cn(
                                     "flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden",
                                     isActive(item.path)
-                                        ? "glass-badge active font-semibold"
-                                        : "hover:bg-[var(--glass-bg-hover)] text-muted-foreground hover:text-foreground",
+                                        ? "bg-white/10 font-semibold text-white shadow-inner"
+                                        : "hover:bg-white/5 text-muted-foreground hover:text-white",
                                     isCollapsed && "justify-center px-2"
                                 )}
                                 title={isCollapsed ? item.label : undefined}
@@ -93,21 +93,23 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                             >
                                 <item.icon className={cn(
                                     "w-5 h-5 flex-shrink-0 transition-all duration-300",
-                                    isActive(item.path) ? "text-foreground scale-110 drop-shadow-[0_0_6px_rgba(200,200,210,0.3)]" : "text-muted-foreground group-hover:text-foreground group-hover:scale-110"
+                                    isActive(item.path) ? "scale-110" : "group-hover:scale-110"
                                 )} />
                                 {!isCollapsed && <span className="">{item.label}</span>}
                                 {isActive(item.path) && !isCollapsed && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-foreground rounded-r-full shadow-[0_0_8px_rgba(200,200,210,0.2)]" />
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                 )}
                             </Link>
                         ))}
                     </nav>
 
-                    <div className="border-t border-[var(--glass-border)] pt-4">
+                    <div className="border-t border-white/5 pt-4">
                         {!isCollapsed && (
-                            <h3 className="px-4 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                                Library
-                            </h3>
+                            <Link to="/library" className="block px-4 mb-2">
+                                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:text-white transition-colors cursor-pointer">
+                                    Library
+                                </h3>
+                            </Link>
                         )}
                         <nav className="space-y-1">
                             {libraryItems.map((item) => (
@@ -117,8 +119,8 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     className={cn(
                                         "flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden",
                                         isActive(item.path)
-                                            ? "glass-badge active font-semibold"
-                                            : "hover:bg-[var(--glass-bg-hover)] text-muted-foreground hover:text-foreground",
+                                            ? "bg-white/10 font-semibold text-white shadow-inner"
+                                            : "hover:bg-white/5 text-muted-foreground hover:text-white",
                                         isCollapsed && "justify-center px-2"
                                     )}
                                     title={isCollapsed ? item.label : undefined}
@@ -126,11 +128,11 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 >
                                     <item.icon className={cn(
                                         "w-5 h-5 flex-shrink-0 transition-all",
-                                        isActive(item.path) ? "text-foreground drop-shadow-[0_0_6px_rgba(200,200,210,0.3)]" : "text-muted-foreground group-hover:text-foreground"
+                                        isActive(item.path) ? "text-white" : "group-hover:text-white"
                                     )} />
                                     {!isCollapsed && <span className="">{item.label}</span>}
                                     {isActive(item.path) && !isCollapsed && (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-foreground rounded-r-full shadow-[0_0_8px_rgba(200,200,210,0.2)]" />
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                     )}
                                 </Link>
                             ))}

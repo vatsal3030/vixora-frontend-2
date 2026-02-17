@@ -3,18 +3,18 @@ import { cn } from '../../lib/utils'
 
 const buttonVariants = {
     variant: {
-        primary: 'bg-gradient-to-r from-primary-500 to-primary-600 text-white hover:brightness-110 shadow-md hover:shadow-glow',
-        ghost: 'bg-transparent hover:bg-secondary text-foreground hover:text-foreground',
-        outline: 'bg-transparent border border-border hover:border-primary-500 hover:bg-primary/5 text-foreground',
-        danger: 'bg-danger hover:bg-red-600 text-white',
-        success: 'bg-success hover:bg-green-600 text-white',
-        glass: 'glass-btn text-foreground',
+        primary: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-brand-red-glow hover:-translate-y-0.5',
+        ghost: 'hover:bg-accent hover:text-accent-foreground',
+        outline: 'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground',
+        danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-red-900/20',
+        success: 'bg-green-600 text-white hover:bg-green-700 shadow-md',
+        glass: 'glass-btn hover:-translate-y-0.5',
     },
     size: {
-        sm: 'px-3 py-1.5 text-sm',
-        md: 'px-4 py-2 text-base',
-        lg: 'px-6 py-3 text-lg',
-        icon: 'p-2',
+        sm: 'h-9 px-3 rounded-lg text-sm',
+        md: 'h-11 px-6 rounded-xl text-sm font-medium',
+        lg: 'h-14 px-8 rounded-2xl text-base',
+        icon: 'h-11 w-11 rounded-xl',
     },
 }
 

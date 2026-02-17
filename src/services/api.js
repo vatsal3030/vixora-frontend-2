@@ -24,19 +24,29 @@ export const videoService = {
     getVideo: (videoId) => api.get(`/videos/${videoId}`),
     getMyVideos: (params = {}) => api.get('/videos/me', { params }),
     getDeletedVideos: (params = {}) => api.get('/videos/trash/me', { params }),
-    uploadVideo: (formData, onUploadProgress) => api.post('/videos', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress
-    }),
-    updateVideo: (videoId, data) => {
-        const isFormData = data instanceof FormData;
-        return api.patch(`/videos/${videoId}`, data, {
-            headers: isFormData ? { 'Content-Type': 'multipart/form-data' } : {}
-        })
-    },
-    deleteVideo: (videoId) => api.delete(`/videos/${videoId}`), // Backend soft-delete is standard delete
+
+    // --- New Direct Cloudinary Upload Flow ---
+    // 1. Create Session
+    createUploadSession: (data) => api.post('/upload/session', data),
+
+    // 2. Get Signatures (resourceType: 'video' | 'thumbnail' | 'avatar' | 'post')
+    getUploadSignature: (resourceType) => api.get('/upload/signature', { params: { resourceType } }),
+
+    // 3. Report Progress (optional)
+    reportProgress: (sessionId, uploadedBytes) => api.patch(`/upload/progress/${sessionId}`, { uploadedBytes }),
+
+    // 4. Finalize
+    finalizeUpload: (sessionId, data) => api.post(`/upload/finalize/${sessionId}`, data),
+
+    // 5. Processing & Publish
+    getProcessingStatus: (videoId) => api.get(`/videos/${videoId}/processing-status`),
+    publishVideo: (videoId) => api.patch(`/videos/${videoId}/publish`),
+    cancelProcessing: (videoId) => api.patch(`/videos/${videoId}/cancel-processing`),
+    // -----------------------------------------
+
+    updateVideo: (videoId, data) => api.patch(`/videos/${videoId}`, data),
+    deleteVideo: (videoId) => api.delete(`/videos/${videoId}`),
     restoreVideo: (videoId) => api.patch(`/videos/${videoId}/restore`),
-    togglePublish: (videoId) => api.patch(`/videos/${videoId}/publish`),
     getUserVideos: (userId, params = {}) => api.get(`/videos/user/${userId}`, { params })
 }
 
@@ -67,7 +77,6 @@ export const subscriptionService = {
 }
 
 // Channel Service
-// Channel Service
 export const channelService = {
     getChannel: (channelId) => api.get(`/channels/${channelId}`),
     getChannelByUsername: (username) => api.get(`/users/u/${username}`),
@@ -83,8 +92,11 @@ export const userService = {
     deleteAccount: (data) => api.delete('/users/delete-account', { data }),
     restoreAccountRequest: (data) => api.patch('/users/restore-account/request', data),
     restoreAccountConfirm: (data) => api.patch('/users/restore-account/confirm', data),
-    updateAvatar: (formData) => api.patch('/users/update-avatar', formData),
-    updateCoverImage: (formData) => api.patch('/users/update-coverImage', formData),
+
+    // Updated for direct upload flow - expects { avatarPublicId } or { coverImagePublicId }
+    updateAvatar: (data) => api.patch('/users/update-avatar', data),
+    updateCoverImage: (data) => api.patch('/users/update-coverImage', data),
+
     getWatchHistory: () => api.get('/users/History'),
     getUserChannelProfile: (username) => api.get(`/users/u/${username}`),
     updateChannelDescription: (data) => api.patch('/users/update-description', data),
@@ -96,7 +108,7 @@ export const feedService = {
     getHomeFeed: (params = {}) => api.get('/feed/home', { params }),
     getSubscriptionsFeed: (params = {}) => api.get('/feed/subscriptions', { params }),
     getTrendingFeed: (params = {}) => api.get('/feed/trending', { params }),
-    getShortsFeed: (params = {}) => api.get('/feed/shorts', { params })
+    getShortsFeed: (params = {}) => api.get('/feed/shorts', { params }) // Corrected endpoint based on handoff
 }
 
 // Playlist Service
@@ -120,9 +132,7 @@ export const playlistService = {
 
 // Tweet Service
 export const tweetService = {
-    createTweet: (data) => api.post('/tweets', data, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-    }),
+    createTweet: (data) => api.post('/tweets', data),
     getUserTweets: (userId, params = {}) => api.get(`/tweets/user/${userId}`, { params }),
     getTweetById: (tweetId) => api.get(`/tweets/${tweetId}`),
     updateTweet: (tweetId, content) => api.patch(`/tweets/${tweetId}`, { content }),

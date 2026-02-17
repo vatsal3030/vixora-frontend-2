@@ -25,16 +25,16 @@ export function SubscribedChannelsBar({ channels = [], isLoading, selectedChanne
                     className="flex flex-col items-center gap-1.5 min-w-[64px] snap-start group/item"
                 >
                     <div className={cn(
-                        "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 border-2",
+                        "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 border border-white/10",
                         !selectedChannelId
-                            ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/25 scale-105"
-                            : "bg-secondary/50 text-muted-foreground border-transparent hover:bg-secondary hover:border-primary/50"
+                            ? "bg-primary text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-105"
+                            : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:border-white/20"
                     )}>
                         <span className="font-bold text-sm">All</span>
                     </div>
                     <span className={cn(
                         "text-xs font-medium transition-colors line-clamp-1 max-w-[72px] text-center",
-                        !selectedChannelId ? "text-primary" : "text-muted-foreground group-hover/item:text-foreground"
+                        !selectedChannelId ? "text-primary drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" : "text-muted-foreground group-hover/item:text-foreground"
                     )}>
                         All
                     </span>
@@ -59,10 +59,10 @@ export function SubscribedChannelsBar({ channels = [], isLoading, selectedChanne
                             className="flex flex-col items-center gap-1.5 min-w-[64px] snap-start group/item"
                         >
                             <div className={cn(
-                                "relative w-14 h-14 rounded-full p-0.5 transition-all duration-300 border-2",
+                                "relative w-14 h-14 rounded-full p-0.5 transition-all duration-300 border border-transparent",
                                 isSelected
-                                    ? "border-primary shadow-lg shadow-primary/25 scale-105"
-                                    : "border-transparent hover:border-primary/50"
+                                    ? "ring-2 ring-primary ring-offset-2 ring-offset-black shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-105"
+                                    : "hover:ring-2 hover:ring-white/20 hover:ring-offset-2 hover:ring-offset-black"
                             )}>
                                 <Avatar
                                     src={channel.avatar}
@@ -75,7 +75,7 @@ export function SubscribedChannelsBar({ channels = [], isLoading, selectedChanne
                             </div>
                             <span className={cn(
                                 "text-xs font-medium transition-colors line-clamp-1 max-w-[72px] text-center",
-                                isSelected ? "text-primary" : "text-muted-foreground group-hover/item:text-foreground"
+                                isSelected ? "text-primary drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]" : "text-muted-foreground group-hover/item:text-foreground"
                             )}>
                                 {channel.username}
                             </span>

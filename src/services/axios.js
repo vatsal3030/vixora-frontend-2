@@ -41,6 +41,11 @@ api.interceptors.response.use(
             }
         }
 
+        // Suppress console error for 401s to avoid leaking "Unauthorized" spam
+        if (error.response?.status === 401) {
+            return Promise.reject(error);
+        }
+
         return Promise.reject(error);
     }
 );

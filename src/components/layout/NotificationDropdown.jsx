@@ -92,7 +92,7 @@ export default function NotificationDropdown() {
                     )}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-96 max-h-[500px] overflow-hidden flex flex-col notification-dropdown">
+            <DropdownMenuContent align="end" sideOffset={8} className="w-[90vw] sm:w-96 max-w-[380px] max-h-[500px] overflow-hidden flex flex-col notification-dropdown rounded-2xl border-white/10 shadow-2xl bg-black/80 backdrop-blur-xl mx-4 sm:mx-0">
                 <DropdownMenuLabel className="flex justify-between items-center bg-popover/95 backdrop-blur-sm z-10 py-3 px-4 border-b border-white/10">
                     <span className="font-bold">Notifications</span>
                     {unreadCount > 0 && (

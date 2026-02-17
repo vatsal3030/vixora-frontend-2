@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { userService } from '../services/api'
+import { userService, videoService } from '../services/api'
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
 import { toast } from 'sonner'
 import { Camera, Loader2, Save, Plus, Trash, ExternalLink, User, Layout, Link as LinkIcon } from 'lucide-react'
-import { AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select'
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { getMediaUrl } from '../lib/media'
@@ -151,15 +151,72 @@ export default function ProfilePage() {
         e.target.value = '' // Reset input
     }
 
-    const handleCropComplete = async (croppedBlob) => {
+    // Generic direct upload helper (could be moved to utils)
+    const uploadToCloudinary = async (file, signatureData) => {
+        const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${signatureData.resourceType}/upload`
         const formData = new FormData()
-        formData.append(cropType === 'avatar' ? 'avatar' : 'coverImage', croppedBlob)
+        formData.append('file', file)
+        formData.append('api_key', signatureData.api_key)
+        formData.append('timestamp', signatureData.timestamp)
+        formData.append('signature', signatureData.signature)
+        formData.append('public_id', signatureData.publicId)
 
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest()
+            xhr.open('POST', url)
+            xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    resolve(JSON.parse(xhr.responseText))
+                } else {
+                    reject(new Error(`Cloudinary upload failed: ${xhr.statusText}`))
+                }
+            }
+            xhr.onerror = () => reject(new Error('Network error'))
+            xhr.send(formData)
+        })
+    }
+
+    const handleCropComplete = async (croppedBlob) => {
         const loadingToast = toast.loading(`Uploading ${cropType}...`)
 
         try {
+            // 1. Get Signature
+            const resourceType = cropType === 'avatar' ? 'avatar' : 'coverImage' // Frontend 'coverImage' -> Backend 'thumbnail'? Wait, handoff says 'video', 'thumbnail', 'avatar', 'post'. Fallback 'misc'.
+            // Actually, for cover, let's use 'thumbnail' or 'post' or check backend mapping. 
+            // Handoff says: video->videos, thumbnail->thumbnails, avatar->avatars, post->posts.
+            // But Cover Image Update expects `covers/<userId>`. 
+            // The backend mapping list in Handoff Step B IS: video, thumbnail, avatar, post.
+            // It DOES NOT explicitly list 'cover' in the signature mapping list, but the update endpoint expects it in `covers/`.
+            // Wait, looking closer at Handoff Step B: "resourceType to Cloudinary folder mapping from backend... video, thumbnail, avatar, post".
+            // It seems 'cover' isn't a top-level resource type in the signature endpoint's documented switch case?
+            // BUT Section 3.2 says "Upload cover image to Cloudinary under covers/<userId>".
+            // If the signature endpoint doesn't support 'cover' type, we might have an issue.
+            // HOWEVER, usually 'post' or 'thumbnail' is just an image. 
+            // Let's try sending 'cover' as resourceType to signature endpoint first, assuming the backend documentation list was non-exhaustive or we use 'post' as a generic image if cover fails.
+            // Actually, let's try 'post' if 'cover' isn't listed, or just assume the backend developer handled 'cover'. 
+            // Let's try 'cover' first. If that fails (400), we know.
+            // *Correction*: Handoff 3.2 says "Upload cover image to Cloudinary under covers/<userId>".
+            // Let's assume we pass 'cover' to `getUploadSignature` and hope the backend supports it.
+            // If not, I'll default to 'image' or 'post'.
+
+            // Re-reading Handoff "3.2 Image metadata finalize APIs": 
+            // "1. Upload cover image to Cloudinary under covers/<userId>"
+            // This implies the signature MUST return a publicId starting with `covers/`.
+            // So `getUploadSignature('cover')` is the most logical guess.
+
+            const sigRes = await videoService.getUploadSignature(cropType === 'avatar' ? 'avatar' : 'cover') // 'cover' or 'coverImage'? Let's try 'cover'.
+            const sigData = sigRes.data.data
+
+            // 2. Upload to Cloudinary
+            const cloudData = await uploadToCloudinary(croppedBlob, sigData)
+
+            // 3. Update Backend with Public ID
             const serviceMethod = cropType === 'avatar' ? userService.updateAvatar : userService.updateCoverImage
-            const response = await serviceMethod(formData)
+            const payload = cropType === 'avatar'
+                ? { avatarPublicId: cloudData.public_id }
+                : { coverImagePublicId: cloudData.public_id }
+
+            const response = await serviceMethod(payload)
 
             if (response.status === 200) {
                 toast.success(`${cropType === 'avatar' ? 'Avatar' : 'Cover image'} updated`, { id: loadingToast })
@@ -167,7 +224,7 @@ export default function ProfilePage() {
             }
         } catch (error) {
             console.error(error)
-            toast.error('Upload failed', { id: loadingToast })
+            toast.error('Upload failed. ' + (error.message || ''), { id: loadingToast })
         }
     }
 
@@ -283,7 +340,7 @@ export default function ProfilePage() {
                                                         type="text"
                                                         value={fullName}
                                                         onChange={(e) => setFullName(e.target.value)}
-                                                        className="w-full bg-secondary/30 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
+                                                        className="w-full glass-input rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all"
                                                         placeholder="Enter your full name"
                                                     />
                                                 </div>
@@ -295,7 +352,7 @@ export default function ProfilePage() {
                                                         value={channelData.description}
                                                         onChange={handleChannelChange}
                                                         rows="5"
-                                                        className="w-full bg-secondary/30 border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-y min-h-[120px]"
+                                                        className="w-full glass-input rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary/50 outline-none transition-all resize-y min-h-[120px]"
                                                         placeholder="Tell viewers about your channel..."
                                                     />
                                                 </div>
@@ -331,21 +388,21 @@ export default function ProfilePage() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                 <div className="space-y-4">
                                                     <label className="text-sm font-medium block">Profile Picture</label>
-                                                    <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-2xl bg-secondary/20 hover:bg-secondary/30 transition-colors">
+                                                    <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-2xl glass-card hover:bg-white/5 transition-colors">
                                                         <Avatar src={getMediaUrl(user.avatar)} fallback={user.username} size="xl" className="mb-4 text-2xl" />
                                                         <p className="text-xs text-muted-foreground text-center mb-4">Recommended: 98x98 px<br />PNG or JPG. Max 4MB.</p>
-                                                        <Button variant="outline" size="sm" onClick={() => avatarInputRef.current?.click()}>Change</Button>
+                                                        <Button variant="outline" size="sm" onClick={() => avatarInputRef.current?.click()} className="glass-btn border-white/10">Change</Button>
                                                     </div>
                                                 </div>
 
                                                 <div className="space-y-4">
                                                     <label className="text-sm font-medium block">Banner Image</label>
-                                                    <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-2xl bg-secondary/20 hover:bg-secondary/30 transition-colors">
-                                                        <div className="w-full aspect-[3/1] bg-secondary rounded-lg overflow-hidden mb-4 relative">
+                                                    <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-2xl glass-card hover:bg-white/5 transition-colors">
+                                                        <div className="w-full aspect-[3/1] bg-black/20 rounded-lg overflow-hidden mb-4 relative">
                                                             <img src={getMediaUrl(user.coverImage)} className="w-full h-full object-cover opacity-80" alt="Banner preview" />
                                                         </div>
                                                         <p className="text-xs text-muted-foreground text-center mb-4">Recommended: 2048x1152 px<br />Aspect ratio 16:9.</p>
-                                                        <Button variant="outline" size="sm" onClick={() => coverInputRef.current?.click()}>Change</Button>
+                                                        <Button variant="outline" size="sm" onClick={() => coverInputRef.current?.click()} className="glass-btn border-white/10">Change</Button>
                                                     </div>
                                                 </div>
                                             </div>

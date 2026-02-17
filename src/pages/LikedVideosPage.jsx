@@ -69,7 +69,7 @@ export default function LikedVideosPage() {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-pink-500/10 rounded-xl">
-                                <ThumbsUp className="w-8 h-8 text-pink-500" />
+                                <ThumbsUp className="w-8 h-8 text-pink-500" style={{ shapeRendering: 'geometricPrecision' }} />
                             </div>
                             <div>
                                 <h1 className="text-3xl font-bold">Liked Videos</h1>
@@ -89,10 +89,10 @@ export default function LikedVideosPage() {
                                 placeholder="Search liked videos..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
+                                className="w-full pl-10 pr-4 py-2 glass-input border border-white/10 rounded-lg focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
                             />
                         </div>
-                        <div className="flex bg-white/5 rounded-lg p-1 border border-white/10 ml-auto">
+                        <div className="flex glass-panel rounded-lg p-1 border border-white/10 ml-auto">
                             <button
                                 onClick={() => setViewMode('grid')}
                                 className={cn(
@@ -133,7 +133,7 @@ export default function LikedVideosPage() {
 
                 {!isLoading && filteredVideos.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="p-6 bg-white/5 rounded-full mb-6">
+                        <div className="p-6 glass-card rounded-full mb-6">
                             <ThumbsUp className="w-16 h-16 text-muted-foreground opacity-50" />
                         </div>
                         <h3 className="text-xl font-semibold mb-2">No liked videos yet</h3>

@@ -71,7 +71,7 @@ export default function SubscriptionsPage() {
                     ))}
 
                     {!isLoading && filteredVideos.length === 0 && (
-                        <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground bg-secondary/20 rounded-xl border border-dashed border-border">
+                        <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground glass-panel rounded-xl border border-dashed border-white/10">
                             <Disc className="w-16 h-16 opacity-20 mb-4" />
                             <p className="text-lg font-medium">
                                 {selectedChannelId ? "No videos from this channel" : "No videos from your subscriptions yet"}

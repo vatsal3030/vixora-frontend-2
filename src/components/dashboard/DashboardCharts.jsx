@@ -50,7 +50,7 @@ export function DashboardCharts({ data = [], loading, className }) {
 
     const currentConfig = chartConfig[activeTab]
 
-    const CustomTooltip = ({ active, payload, label }) => {
+    const CustomTooltip = ({ active, payload, label, activeTab }) => {
         if (active && payload && payload.length) {
             return (
                 <div className="bg-background/95 backdrop-blur-sm border border-border p-3 rounded-lg shadow-xl">
@@ -72,7 +72,7 @@ export function DashboardCharts({ data = [], loading, className }) {
     }
 
     return (
-        <Card className={cn("col-span-1 lg:col-span-4", className)}>
+        <Card className={cn("col-span-1 lg:col-span-4 glass-card border-white/5", className)}>
             <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-border">
                 <div className="space-y-0.5 sm:space-y-1">
                     <CardTitle className="text-base sm:text-lg">Channel Analytics</CardTitle>
@@ -94,8 +94,8 @@ export function DashboardCharts({ data = [], loading, className }) {
                         <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                             <defs>
                                 <linearGradient id={`gradient-${activeTab}`} x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor={currentConfig.gradientStart} stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor={currentConfig.gradientEnd} stopOpacity={0} />
+                                    <stop offset="5%" stopColor={currentConfig?.gradientStart || "#3b82f6"} stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor={currentConfig?.gradientEnd || "#93c5fd"} stopOpacity={0} />
                                 </linearGradient>
                             </defs>
                             <XAxis
@@ -105,8 +105,9 @@ export function DashboardCharts({ data = [], loading, className }) {
                                 tickLine={false}
                                 axisLine={false}
                                 tickFormatter={(value) => {
+                                    if (!value) return '';
                                     const date = new Date(value);
-                                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                    return isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                                 }}
                             />
                             <YAxis
@@ -121,11 +122,11 @@ export function DashboardCharts({ data = [], loading, className }) {
                                 }}
                             />
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" className="opacity-30" />
-                            <Tooltip content={<CustomTooltip />} />
+                            <Tooltip content={<CustomTooltip activeTab={activeTab} />} />
                             <Area
                                 type="monotone"
-                                dataKey={currentConfig.dataKey}
-                                stroke={currentConfig.color}
+                                dataKey={currentConfig?.dataKey || "views"}
+                                stroke={currentConfig?.color || "#3b82f6"}
                                 fillOpacity={1}
                                 fill={`url(#gradient-${activeTab})`}
                                 strokeWidth={3}
