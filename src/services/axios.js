@@ -2,7 +2,7 @@ import axios from "axios";
 
 // Create axios instance with base URL from env
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:10000/api/v1",
+    baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:10000/api/v1",
     withCredentials: true, // Critical for HTTP-only cookies
     headers: {
         "Content-Type": "application/json",
@@ -24,7 +24,7 @@ api.interceptors.response.use(
             try {
                 // Attempt to refresh token
                 await axios.post(
-                    `${import.meta.env.VITE_API_URL || "http://localhost:10000/api/v1"}/users/refresh-token`,
+                    `${import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:10000/api/v1"}/users/refresh-token`,
                     {},
                     { withCredentials: true }
                 );

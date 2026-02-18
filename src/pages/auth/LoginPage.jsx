@@ -1,4 +1,4 @@
-import { Link, useNavigate, useLocation } from 'react-router-dom'
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../../context/AuthContext'
 
@@ -7,7 +7,7 @@ import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
 import { Video, Loader2, X, Eye, EyeOff } from 'lucide-react'
 import toast from '../../lib/toast'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 
 import { motion } from 'framer-motion'
@@ -19,6 +19,19 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false)
 
     const from = location.state?.from?.pathname || '/'
+    const [searchParams] = useSearchParams()
+
+    useEffect(() => {
+        const error = searchParams.get('error')
+        if (error === 'oauth_state_mismatch') {
+            toast.error('Google login expired or domain mismatch. Please try again.')
+            // Optional: Clean up the URL
+            window.history.replaceState({}, document.title, window.location.pathname)
+        } else if (error) {
+            toast.error('Authentication failed. Please try again.')
+            window.history.replaceState({}, document.title, window.location.pathname)
+        }
+    }, [searchParams])
 
     const {
         register,

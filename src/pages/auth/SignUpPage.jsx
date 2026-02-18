@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../../context/AuthContext'
 import { motion } from 'framer-motion'
@@ -20,6 +20,19 @@ export default function SignUpPage() {
 
     const { register: authRegister, getGoogleAuthUrl } = useAuth()
     const navigate = useNavigate()
+    const [searchParams] = useSearchParams()
+
+    useEffect(() => {
+        const error = searchParams.get('error')
+        if (error === 'oauth_state_mismatch') {
+            toast.error('Google login expired or domain mismatch. Please try again.')
+            // Optional: Clean up the URL
+            window.history.replaceState({}, document.title, window.location.pathname)
+        } else if (error) {
+            toast.error('Authentication failed. Please try again.')
+            window.history.replaceState({}, document.title, window.location.pathname)
+        }
+    }, [searchParams])
 
     const {
         register,
@@ -302,7 +315,7 @@ export default function SignUpPage() {
                         type="button"
                         variant="outline"
                         className="w-full flex items-center justify-center gap-2 hover:bg-white/10 transition-colors bg-white/5 border-white/10 text-white"
-                        onClick={() => window.location.href = useAuth().getGoogleAuthUrl()}
+                        onClick={() => window.location.href = getGoogleAuthUrl()}
                     >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">
                             <path
