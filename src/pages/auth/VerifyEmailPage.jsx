@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { authService } from '../../services/api'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Video, CheckCircle2, Loader2, Mail, RefreshCw, ArrowRight, AlertCircle, Clock } from 'lucide-react'
@@ -47,14 +47,18 @@ export default function VerifyEmailPage() {
             // Small delay to ensure render
             setTimeout(() => inputRefs[0].current?.focus(), 100)
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [step])
 
-    // Initialize countdown if we start at OTP step (assuming just sent)
+    // Initialize from location state if available
     useEffect(() => {
         if (location.state?.email) {
-            setCountdown(120) // 2 minutes
+            setIdentifier(location.state.email)
+            setStep('OTP_INPUT')
+            // Trigger OTP send if not already sent? 
+            // Usually landing here means we just signed up, so backend sent it.
         }
-    }, [])
+    }, [location.state])
 
     const handleGetOtp = async (e) => {
         e.preventDefault()
@@ -188,172 +192,167 @@ export default function VerifyEmailPage() {
     const formatTime = (seconds) => {
         const m = Math.floor(seconds / 60)
         const s = seconds % 60
-        return `${m}:${s < 10 ? '0' : ''}${s}`
+        return `${m}:${s < 10 ? '0' : ''}${s} `
     }
 
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-green-900/20 via-background to-background pointer-events-none" />
-
-            <div className="absolute top-4 right-4 z-50">
-                {/* Theme toggle could go here */}
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full space-y-8"
+        >
+            <div className="text-center space-y-2">
+                <Link to="/" className="inline-flex items-center gap-2 text-primary hover:text-green-500 transition-colors">
+                    <div className="p-2 bg-green-500/10 rounded-xl">
+                        <Video className="w-8 h-8" />
+                    </div>
+                    <span className="text-2xl font-display font-bold tracking-tight">Vixora</span>
+                </Link>
+                <div className="absolute top-0 right-0 p-4">
+                    {/* Theme toggle could go here */}
+                </div>
             </div>
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4 }}
-                className="w-full max-w-md space-y-8 relative z-10"
+                className="glass-card rounded-2xl p-6 sm:p-8 shadow-glass-heavy"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
             >
-                <div className="text-center space-y-2">
-                    <Link to="/" className="inline-flex items-center gap-2 text-primary hover:text-red-500 transition-colors">
-                        <div className="p-2 bg-red-500/10 rounded-xl">
-                            <Video className="w-8 h-8" />
-                        </div>
-                        <span className="text-2xl font-display font-bold tracking-tight">Vixora</span>
-                    </Link>
-                </div>
+                <AnimatePresence mode="wait">
+                    {step === 'IDENTIFIER_INPUT' ? (
+                        <motion.div
+                            key="identifier-step"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="space-y-6"
+                        >
+                            <div className="text-center">
+                                <h1 className="text-2xl font-bold mb-2">Verify Email</h1>
+                                <p className="text-sm text-muted-foreground">
+                                    Enter your email or username to receive a verification code.
+                                </p>
+                            </div>
 
-                <motion.div
-                    className="bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl p-6 sm:p-8 shadow-2xl"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.1 }}
-                >
-                    <AnimatePresence mode="wait">
-                        {step === 'IDENTIFIER_INPUT' ? (
-                            <motion.div
-                                key="identifier-step"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                className="space-y-6"
-                            >
-                                <div className="text-center">
-                                    <h1 className="text-2xl font-bold mb-2">Verify Email</h1>
-                                    <p className="text-sm text-muted-foreground">
-                                        Enter your email or username to receive a verification code.
-                                    </p>
-                                </div>
-
-                                <form onSubmit={handleGetOtp} className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-medium">Email or Username</label>
-                                        <Input
-                                            autoFocus
-                                            type="text"
-                                            placeholder="name@example.com"
-                                            value={identifier}
-                                            onChange={(e) => setIdentifier(e.target.value)}
-                                            disabled={loading}
-                                            className="h-11"
-                                        />
-                                    </div>
-                                    <Button
-                                        type="submit"
-                                        className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                            <form onSubmit={handleGetOtp} className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Email or Username</label>
+                                    <Input
+                                        autoFocus
+                                        type="text"
+                                        placeholder="name@example.com"
+                                        value={identifier}
+                                        onChange={(e) => setIdentifier(e.target.value)}
                                         disabled={loading}
-                                    >
-                                        {loading ? (
-                                            <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending OTP...</>
-                                        ) : (
-                                            <>Get OTP <ArrowRight className="w-4 h-4 ml-2" /></>
-                                        )}
-                                    </Button>
-                                </form>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="otp-step"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
-                            >
-                                <div className="text-center">
-                                    <h1 className="text-2xl font-bold mb-2">Enter Verification Code</h1>
-                                    <p className="text-sm text-muted-foreground">
-                                        We've sent a 6-digit code to <span className="font-semibold text-foreground">{identifier}</span>
-                                    </p>
-                                    <button
-                                        onClick={() => setStep('IDENTIFIER_INPUT')}
-                                        className="text-xs text-primary hover:underline mt-2"
-                                    >
-                                        Change email/username
-                                    </button>
+                                        className="h-11 glass-input"
+                                    />
                                 </div>
-
-                                <div className="space-y-4">
-                                    <div className="flex gap-2 justify-center" onPaste={handlePaste}>
-                                        {otp.map((digit, index) => (
-                                            <Input
-                                                key={index}
-                                                ref={inputRefs[index]}
-                                                type="text"
-                                                inputMode="numeric"
-                                                maxLength={1}
-                                                value={digit}
-                                                onChange={(e) => handleOtpChange(index, e.target.value)}
-                                                onKeyDown={(e) => handleKeyDown(index, e)}
-                                                className={`w-12 h-12 text-center text-lg font-semibold ${attempts > 0 ? 'border-destructive/50 ring-destructive/10' : ''
-                                                    }`}
-                                                disabled={loading}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    {/* Attempts & Status UI */}
-                                    <div className="flex flex-col items-center gap-2 text-sm">
-                                        {attempts > 0 && attempts < MAX_ATTEMPTS && (
-                                            <div className="flex items-center gap-2 text-destructive animate-pulse">
-                                                <AlertCircle className="w-4 h-4" />
-                                                <span>Incorrect OTP. {MAX_ATTEMPTS - attempts} attempts remaining.</span>
-                                            </div>
-                                        )}
-
-                                        {countdown > 0 ? (
-                                            <div className="flex items-center gap-2 text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full">
-                                                <Clock className="w-3 h-3" />
-                                                <span>Resend available in {formatTime(countdown)}</span>
-                                            </div>
-                                        ) : (
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                onClick={handleResendOtp}
-                                                className="text-primary hover:text-primary/80"
-                                                disabled={resendLoading}
-                                            >
-                                                {resendLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Resend OTP"}
-                                            </Button>
-                                        )}
-                                    </div>
-                                </div>
-
                                 <Button
-                                    onClick={() => handleVerify()}
-                                    className="w-full h-11 bg-green-600 hover:bg-green-700 text-white font-semibold"
-                                    disabled={loading || otp.some(d => d === '')}
+                                    type="submit"
+                                    className="w-full h-11 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold transition-all duration-300 shadow-lg shadow-green-600/25"
+                                    disabled={loading}
                                 >
                                     {loading ? (
-                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying...</>
+                                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Sending OTP...</>
                                     ) : (
-                                        <>Verify Email <CheckCircle2 className="w-4 h-4 ml-2" /></>
+                                        <>Get OTP <ArrowRight className="w-4 h-4 ml-2" /></>
                                     )}
                                 </Button>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </motion.div>
+                            </form>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="otp-step"
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            className="space-y-6"
+                        >
+                            <div className="text-center">
+                                <h1 className="text-2xl font-bold mb-2">Enter Verification Code</h1>
+                                <p className="text-sm text-muted-foreground">
+                                    We've sent a 6-digit code to <span className="font-semibold text-foreground">{identifier}</span>
+                                </p>
+                                <button
+                                    onClick={() => setStep('IDENTIFIER_INPUT')}
+                                    className="text-xs text-primary hover:underline mt-2 hover:text-primary/80 transition-colors"
+                                >
+                                    Change email/username
+                                </button>
+                            </div>
 
-                {/* Footer Links */}
-                <div className="text-center space-y-2">
-                    <Link to="/login" className="text-sm font-medium text-primary hover:underline">
-                        Back to Login
-                    </Link>
-                </div>
+                            <div className="space-y-4">
+                                <div className="flex gap-2 justify-center" onPaste={handlePaste}>
+                                    {otp.map((digit, index) => (
+                                        <Input
+                                            key={index}
+                                            ref={inputRefs[index]}
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength={1}
+                                            value={digit}
+                                            onChange={(e) => handleOtpChange(index, e.target.value)}
+                                            onKeyDown={(e) => handleKeyDown(index, e)}
+                                            className={`w-12 h-12 text-center text-lg font-semibold glass-input ${attempts > 0 ? 'border-destructive/50 ring-destructive/10' : ''
+                                                }`}
+                                            disabled={loading}
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* Attempts & Status UI */}
+                                <div className="flex flex-col items-center gap-2 text-sm">
+                                    {attempts > 0 && attempts < MAX_ATTEMPTS && (
+                                        <div className="flex items-center gap-2 text-destructive animate-pulse">
+                                            <AlertCircle className="w-4 h-4" />
+                                            <span>Incorrect OTP. {MAX_ATTEMPTS - attempts} attempts remaining.</span>
+                                        </div>
+                                    )}
+
+                                    {countdown > 0 ? (
+                                        <div className="flex items-center gap-2 text-muted-foreground bg-secondary/30 px-3 py-1 rounded-full glass-panel">
+                                            <Clock className="w-3 h-3" />
+                                            <span>Resend available in {formatTime(countdown)}</span>
+                                        </div>
+                                    ) : (
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={handleResendOtp}
+                                            className="text-primary hover:text-primary/80"
+                                            disabled={resendLoading}
+                                        >
+                                            {resendLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : "Resend OTP"}
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+
+                            <Button
+                                onClick={() => handleVerify()}
+                                className="w-full h-11 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold transition-all duration-300 shadow-lg shadow-green-600/25"
+                                disabled={loading || otp.some(d => d === '')}
+                            >
+                                {loading ? (
+                                    <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Verifying...</>
+                                ) : (
+                                    <>Verify Email <CheckCircle2 className="w-4 h-4 ml-2" /></>
+                                )}
+                            </Button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </motion.div>
-        </div>
+
+            {/* Footer Links */}
+            <div className="text-center space-y-2">
+                <Link to="/login" className="text-sm font-medium text-primary hover:underline hover:text-primary/80 transition-colors">
+                    Back to Login
+                </Link>
+            </div>
+        </motion.div>
     )
 }

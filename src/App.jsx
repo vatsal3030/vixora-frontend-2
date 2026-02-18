@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react'
 import Toaster from './components/common/Toaster'
 import { AuthProvider } from './context/AuthContext'
 import { Layout } from './components/layout'
+import { AuthLayout } from './components/layout/AuthLayout'
 import ProtectedRoute from './components/auth/ProtectedRoute'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { ThemeProvider } from './context/ThemeContext'
@@ -55,12 +56,14 @@ function App() {
             <Toaster />
             <Suspense fallback={<PageLoader />}>
               <Routes>
-                {/* Auth Routes */}
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/register" element={<SignUpPage />} />
-                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-                <Route path="/verify-email" element={<VerifyEmailPage />} />
-                <Route path="/restore-account" element={<RestoreAccountPage />} />
+                {/* Auth Routes - Wrapped in AuthLayout */}
+                <Route element={<AuthLayout />}>
+                  <Route path="/login" element={<LoginPage />} />
+                  <Route path="/register" element={<SignUpPage />} />
+                  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                  <Route path="/verify-email" element={<VerifyEmailPage />} />
+                  <Route path="/restore-account" element={<RestoreAccountPage />} />
+                </Route>
 
                 {/* Protected Routes - Main Layout */}
                 <Route path="/" element={
@@ -94,13 +97,14 @@ function App() {
 
                   {/* Channel Routes */}
                   <Route path="channel/:username" element={<ChannelPage />} />
-                  <Route path=":username" element={<ChannelPage />} />
+
 
                   <Route path="upload" element={<UploadPage />} />
                   <Route path="tweets" element={<TweetsPage />} />
                   <Route path="trash" element={<TrashPage />} />
                   <Route path="profile" element={<ProfilePage />} />
                   <Route path="settings" element={<SettingsPage />} />
+                  <Route path=":username" element={<ChannelPage />} />
 
                   {/* Catch All / 404 */}
                   <Route path="*" element={<NotFoundPage />} />

@@ -7,17 +7,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs'
 import { Trash2, Film, PlaySquare, FileText, Search, RefreshCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import { Checkbox } from '../components/ui/Checkbox'
 import { cn } from '../lib/utils'
 import { TrashSkeleton } from './TrashSkeleton'
 
 // --- Render Helpers ---
 const EmptyState = ({ label, icon: Icon }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col items-center justify-center py-20 text-center"
+    <div
+        className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in zoom-in duration-500"
     >
         <div className="bg-secondary/30 p-4 rounded-full mb-4">
             <Icon className="w-8 h-8 text-muted-foreground" />
@@ -26,7 +23,7 @@ const EmptyState = ({ label, icon: Icon }) => (
         <p className="text-muted-foreground max-w-sm">
             Items you delete will appear here and be automatically removed after 7 days.
         </p>
-    </motion.div>
+    </div>
 )
 
 const SectionHeader = ({ title, count, items, onSelectAll, selectedIds }) => (
@@ -55,7 +52,7 @@ export default function TrashPage() {
     const [searchQuery, setSearchQuery] = useState('')
 
     // --- Queries ---
-    const { data: videos = [], isLoading: videosLoading, error: videoError } = useQuery({
+    const { data: videos = [], isLoading: videosLoading } = useQuery({
         queryKey: ['trashVideos'],
         queryFn: async () => {
             try {
@@ -87,10 +84,10 @@ export default function TrashPage() {
         })
     }, [searchQuery])
 
-    const deletedVideos = useMemo(() => filterItems(videos.filter(v => !v.isShorts && v.duration > 60)), [videos, searchQuery, filterItems])
-    const deletedShorts = useMemo(() => filterItems(videos.filter(v => v.isShorts || v.duration <= 60)), [videos, searchQuery, filterItems])
-    const deletedPlaylists = useMemo(() => filterItems(playlists), [playlists, searchQuery, filterItems])
-    const deletedTweets = useMemo(() => filterItems(tweets), [tweets, searchQuery, filterItems])
+    const deletedVideos = useMemo(() => filterItems(videos.filter(v => !v.isShorts && v.duration > 60)), [videos, filterItems])
+    const deletedShorts = useMemo(() => filterItems(videos.filter(v => v.isShorts || v.duration <= 60)), [videos, filterItems])
+    const deletedPlaylists = useMemo(() => filterItems(playlists), [playlists, filterItems])
+    const deletedTweets = useMemo(() => filterItems(tweets), [tweets, filterItems])
 
     // --- Bulk Selection Logic ---
     const handleSelect = (id, isSelected) => {
@@ -324,26 +321,30 @@ export default function TrashPage() {
                                 <div
                                     key={tweet._id || tweet.id}
                                     className={cn(
-                                        "p-4 rounded-xl border bg-secondary/20 relative group transition-all",
-                                        selectedIds.has(tweet._id || tweet.id) ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
+                                        "p-5 rounded-xl border glass-card relative group transition-all hover:scale-[1.01]",
+                                        selectedIds.has(tweet._id || tweet.id) ? "border-primary ring-1 ring-primary" : "border-white/5 hover:border-white/10"
                                     )}
                                 >
-                                    <div className="absolute top-3 left-3 z-10">
+                                    <div className="absolute top-4 left-4 z-10">
                                         <Checkbox
                                             checked={selectedIds.has(tweet._id || tweet.id)}
                                             onCheckedChange={(checked) => handleSelect(tweet._id || tweet.id, checked)}
                                         />
                                     </div>
-                                    <div className="pl-8">
-                                        <p className="mb-2 line-clamp-3">{tweet.content}</p>
-                                        <div className="flex justify-between items-center text-xs text-muted-foreground mt-2">
-                                            <span>Deleted {new Date(tweet.updatedAt).toLocaleDateString()}</span>
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Button size="icon" variant="ghost" className="h-6 w-6 text-green-500" onClick={() => handleRestore(tweet._id || tweet.id, 'tweet')}>
-                                                    <RefreshCcw className="w-3 h-3" />
+                                    <div className="pl-10">
+                                        <p className="mb-3 text-base text-foreground/90 whitespace-pre-wrap leading-relaxed">{tweet.content}</p>
+                                        <div className="flex justify-between items-center pt-3 border-t border-white/5">
+                                            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
+                                                <FileText className="w-3.5 h-3.5" />
+                                                Deleted {new Date(tweet.updatedAt).toLocaleDateString()}
+                                            </span>
+                                            <div className="flex gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                <Button size="sm" variant="ghost" className="h-8 px-2 text-xs gap-1.5 hover:bg-green-500/10 hover:text-green-500 transition-colors" onClick={() => handleRestore(tweet._id || tweet.id, 'tweet')}>
+                                                    <RefreshCcw className="w-3.5 h-3.5" />
+                                                    Restore
                                                 </Button>
-                                                <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500" onClick={() => handleDelete(tweet._id || tweet.id, 'tweet')}>
-                                                    <Trash2 className="w-3 h-3" />
+                                                <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-colors" onClick={() => handleDelete(tweet._id || tweet.id, 'tweet')}>
+                                                    <Trash2 className="w-4 h-4" />
                                                 </Button>
                                             </div>
                                         </div>

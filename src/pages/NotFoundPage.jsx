@@ -5,9 +5,7 @@ import { Button } from '../components/ui/Button'
 export default function NotFoundPage() {
     return (
         <div className="min-h-screen w-full flex flex-col items-center justify-center relative overflow-hidden bg-background">
-            {/* Ambient Background Glows */}
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[128px] pointer-events-none" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[128px] pointer-events-none" />
+
 
             <div className="relative z-10 flex flex-col items-center text-center p-8 max-w-2xl animate-fade-in">
                 <h1 className="text-[150px] font-bold leading-none text-transparent bg-clip-text bg-gradient-to-b from-white/10 to-transparent select-none blur-sm absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">

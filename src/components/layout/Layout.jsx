@@ -35,7 +35,9 @@ export function Layout({ children }) {
     // Sidebar width calculation handled in style prop
 
     return (
-        <div className="min-h-screen bg-background dark:bg-black transition-colors duration-500 ease-in-out overflow-x-hidden">
+        <div className="min-h-screen relative overflow-x-hidden text-foreground selection:bg-primary/20">
+
+
             <Navbar
                 onMenuClick={handleMenuClick}
                 user={user}
@@ -50,14 +52,14 @@ export function Layout({ children }) {
 
                 <main
                     className={cn(
-                        "flex-1 min-h-screen transition-all duration-300 ease-in-out pt-2 w-full overflow-hidden",
+                        "flex-1 min-h-screen transition-all duration-300 ease-in-out pt-2 w-full",
                         "lg:ml-[var(--sidebar-width)]"
                     )}
                     style={{
                         '--sidebar-width': sidebarCollapsed ? '80px' : '256px'
                     }}
                 >
-                    <div className="px-3 sm:px-4 lg:px-6 pt-0 pb-20 md:pb-6">
+                    <div className="px-3 sm:px-4 lg:px-6 pt-0 pb-20 md:pb-6 relative z-10">
                         <PageTransition>
                             {children || <Outlet />}
                         </PageTransition>

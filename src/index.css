@@ -7,15 +7,15 @@
 @layer base {
   :root {
     /* === CORE PALETTE — Deep Space Black & Neon === */
-    --background: 240 10% 3.9%;
-    /* #0a0a0b */
+    --background: 0 0% 5%;
+    /* #0d0d0d */
     --foreground: 0 0% 98%;
     /* #fafafa */
 
-    --card: 240 10% 5%;
+    --card: 0 0% 7%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 5%;
+    --popover: 0 0% 7%;
     --popover-foreground: 0 0% 98%;
 
     /* Brand Primary - Neon Red/Orange - kept for accents but reduced usage */
@@ -23,91 +23,96 @@
     /* #ef4444 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 15%;
+    --secondary: 0 0% 15%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 5% 15%;
-    --muted-foreground: 240 5% 65%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 240 5% 20%;
+    --accent: 0 0% 20%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
     /* Borders & Inputs - Subtle Glassy White */
-    --border: 0 0% 100%;
-    --input: 240 5% 20%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
     --ring: 0 84% 60%;
 
     --radius: 1rem;
     /* More rounded for modern Apple feel */
 
-    /* === LIQUID GLASS TOKENS (Neutral Apple Style) === */
-    /* Backgrounds - Darker, more neutral */
-    --glass-bg: rgba(20, 20, 20, 0.6);
-    --glass-bg-hover: rgba(30, 30, 30, 0.7);
-    --glass-bg-active: rgba(40, 40, 40, 0.8);
+    /* === LIQUID GLASS TOKENS (Premium Apple Style) === */
+    /* Backgrounds */
+    --glass-bg: rgba(10, 10, 10, 0.65);
+    --glass-bg-hover: rgba(20, 20, 20, 0.75);
+    --glass-bg-active: rgba(30, 30, 30, 0.85);
 
     /* Borders - Ultra Subtle, almost invisible */
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-border-hover: rgba(255, 255, 255, 0.15);
 
     /* Blurs - Heavy Apple style */
-    --glass-blur: 20px;
-    --glass-blur-heavy: 40px;
+    --glass-blur: 24px;
+    --glass-blur-heavy: 48px;
 
-    /* Shadows & Glows - Neutralized (No Red Glow) */
-    /* Soft, diffuse shadow */
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    --glass-shadow-hover: 0 12px 48px 0 rgba(0, 0, 0, 0.4);
+    /* Shadows & Glows */
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
+    --glass-shadow-hover: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
 
     /* NEW: Ultra Soft Premium Shadows */
-    --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 20px rgba(255, 255, 255, 0.05);
+    --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.6);
+    --shadow-glow: 0 0 30px rgba(255, 255, 255, 0.08);
 
-    /* Subtle white ring instead of glow */
-    --glass-glow: 0 0 0 1px rgba(255, 255, 255, 0.05);
-    --glass-glow-strong: 0 0 0 1px rgba(255, 255, 255, 0.1);
+    /* Subtle white ring */
+    --glass-glow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+    --glass-glow-strong: 0 0 0 1px rgba(255, 255, 255, 0.15);
 
-    /* Brand Glow - COMPLETELY REMOVED RED GLOW */
-    --brand-red-glow: rgba(255, 255, 255, 0.0);
-  }
-
-  * {
-    @apply border-border;
-    box-sizing: border-box;
-  }
-
-  /* Fix for blurry icons/text in some browsers */
-  svg {
-    shape-rendering: geometricPrecision;
-    text-rendering: optimizeLegibility;
-  }
-
-  img {
-    /* Ensure images are crisp */
-    image-rendering: -webkit-optimize-contrast;
-  }
-
-  /* Smooth Theme Transition */
-  body {
-    @apply bg-background text-foreground font-sans;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
-    scrollbar-gutter: stable;
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    @apply font-display font-bold;
+    /* Liquid Gradient Background Colors - Neutral/Black */
+    --liquid-bg-1: #000000;
+    --liquid-bg-2: #121212;
+    --liquid-bg-3: #1a1a1a;
+    --liquid-accent: rgba(255, 255, 255, 0.03);
   }
 }
+
+
+
+* {
+  @apply border-border;
+  box-sizing: border-box;
+}
+
+/* Fix for blurry icons/text in some browsers */
+svg {
+  shape-rendering: geometricPrecision;
+  text-rendering: optimizeLegibility;
+}
+
+img {
+  /* Ensure images are crisp */
+  image-rendering: -webkit-optimize-contrast;
+}
+
+/* Smooth Theme Transition */
+body {
+  @apply bg-background text-foreground font-sans;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
+  scrollbar-gutter: stable;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @apply font-display font-bold;
+}
+
 
 @layer components {
 

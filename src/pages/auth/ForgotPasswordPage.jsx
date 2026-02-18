@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useMutation } from '@tanstack/react-query'
 import { authService } from '../../services/api'
 import { Button } from '../../components/ui/Button'
@@ -21,75 +21,80 @@ export default function ForgotPasswordPage() {
     const {
         register: registerEmail,
         handleSubmit: handleSubmitEmail,
-        formState: { errors: emailErrors, isSubmitting: emailSubmitting }
+        formState: { errors: emailErrors }
     } = useForm()
 
     const requestOtpMutation = useMutation({
         mutationFn: (data) => authService.forgotPassword(data.email),
-        onSuccess: (data, variables) => {
-            setEmail(variables.email)
-            toast.success('Reset code sent to your email')
+        onSuccess: () => {
             setStep(2)
+            toast.success("Reset code sent to your email")
         },
         onError: (error) => {
-            toast.error(error.response?.data?.message || 'Failed to send reset code')
+            toast.error(error.response?.data?.message || "Failed to send reset code")
         }
     })
 
-    const onEmailSubmit = (data) => requestOtpMutation.mutate(data)
+    const onEmailSubmit = (data) => {
+        setEmail(data.email)
+        requestOtpMutation.mutate({ email: data.email })
+    }
 
 
     // --- Step 2: Verify OTP ---
     const [otp, setOtp] = useState(['', '', '', '', '', ''])
-    const otpInputRefs = [useRef(null), useRef(null), useRef(null), useRef(null), useRef(null), useRef(null)]
+    const otpInputRefs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()]
 
     const verifyOtpMutation = useMutation({
-        mutationFn: (data) => authService.forgotPasswordVerify(data),
-        onSuccess: (response) => {
-            // Assuming the response contains the resetToken directly or in data
-            // Adjust based on actual API response structure. 
-            // Previous code used: response.data.data.resetToken
-            const token = response.data?.data?.resetToken || response.data?.resetToken
-            if (token) {
-                setResetToken(token)
-                setStep(3)
-                toast.success('Code verified successfully')
-            } else {
-                toast.error('Verification successful but no token received')
-            }
+        mutationFn: (data) => authService.verifyResetOtp(data.email, data.otp),
+        onSuccess: (data) => {
+            setResetToken(data.resetToken)
+            setStep(3)
+            toast.success("Code verified successfully")
         },
         onError: (error) => {
-            toast.error(error.response?.data?.message || 'Invalid code')
+            toast.error(error.response?.data?.message || "Invalid code")
             setOtp(['', '', '', '', '', ''])
             otpInputRefs[0].current?.focus()
         }
     })
 
     const handleOtpChange = (index, value) => {
-        if (value && !/^\d$/.test(value)) return
+        if (value.length > 1) {
+            value = value.slice(0, 1)
+        }
         const newOtp = [...otp]
         newOtp[index] = value
         setOtp(newOtp)
-        if (value && index < 5) otpInputRefs[index + 1].current?.focus()
+
+        if (value && index < 5) {
+            otpInputRefs[index + 1].current.focus()
+        }
         if (index === 5 && value && newOtp.every(d => d !== '')) {
             verifyOtpMutation.mutate({ email, otp: newOtp.join('') })
         }
     }
 
     const handleOtpKeyDown = (index, e) => {
-        if (e.key === 'Backspace' && !otp[index] && index > 0) otpInputRefs[index - 1].current?.focus()
+        if (e.key === 'Backspace' && !otp[index] && index > 0) {
+            otpInputRefs[index - 1].current.focus()
+        }
     }
 
     const handleOtpPaste = (e) => {
         e.preventDefault()
-        const pastedData = e.clipboardData.getData('text').trim()
-        if (/^\d{6}$/.test(pastedData)) {
-            const newOtp = pastedData.split('')
-            setOtp(newOtp)
-            otpInputRefs[5].current?.focus()
-            verifyOtpMutation.mutate({ email, otp: pastedData })
-        } else {
-            toast.error('Please paste a valid 6-digit code')
+        const pastedData = e.clipboardData.getData('text').slice(0, 6).split('')
+        const newOtp = [...otp]
+        pastedData.forEach((digit, index) => {
+            if (index < 6) newOtp[index] = digit
+        })
+        setOtp(newOtp)
+        if (pastedData.length > 0) {
+            const focusIndex = Math.min(pastedData.length, 5)
+            otpInputRefs[focusIndex].current.focus()
+        }
+        if (pastedData.length === 6 && newOtp.every(d => d !== '')) {
+            verifyOtpMutation.mutate({ email, otp: newOtp.join('') })
         }
     }
 
@@ -99,7 +104,7 @@ export default function ForgotPasswordPage() {
         register: registerPassword,
         handleSubmit: handleSubmitPassword,
         watch: watchPassword,
-        formState: { errors: passwordErrors, isSubmitting: passwordSubmitting }
+        formState: { errors: passwordErrors }
     } = useForm()
 
     const passwordValue = watchPassword('password', '')
@@ -144,37 +149,44 @@ export default function ForgotPasswordPage() {
 
 
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-blue-900/20 via-background to-background pointer-events-none" />
-
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="w-full max-w-md bg-card/50 backdrop-blur-xl border border-border/50 rounded-2xl p-8 shadow-2xl relative z-10"
-            >
-                <Link to="/login" className="inline-flex items-center text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="w-full space-y-8"
+        >
+            <div className="text-center space-y-2">
+                <Link to="/login" className="inline-flex items-center text-sm text-primary hover:text-primary/80 mb-6 transition-colors">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Login
                 </Link>
 
-                <div className="text-center space-y-2 mb-8">
-                    <div className="inline-flex p-3 bg-blue-500/10 rounded-xl mb-2">
-                        {step === 1 && <Mail className="w-8 h-8 text-blue-500" />}
-                        {step === 2 && <ShieldCheck className="w-8 h-8 text-blue-500" />}
-                        {step === 3 && <KeyRound className="w-8 h-8 text-blue-500" />}
+                <div className="flex justify-center mb-6">
+                    <div className="inline-flex p-4 bg-primary/10 rounded-2xl">
+                        {step === 1 && <Mail className="w-10 h-10 text-primary" />}
+                        {step === 2 && <ShieldCheck className="w-10 h-10 text-primary" />}
+                        {step === 3 && <KeyRound className="w-10 h-10 text-primary" />}
                     </div>
-                    <h1 className="text-2xl font-bold">
-                        {step === 1 && 'Forgot Password?'}
-                        {step === 2 && 'Verify Code'}
-                        {step === 3 && 'Set New Password'}
-                    </h1>
-                    <p className="text-muted-foreground text-sm">
-                        {step === 1 && 'Enter your email address and we\'ll send you a code to reset your password.'}
-                        {step === 2 && `Enter the 6-digit code sent to ${email}`}
-                        {step === 3 && 'Create a strong password for your account'}
-                    </p>
                 </div>
 
+                <h1 className="text-3xl font-bold tracking-tight">
+                    {step === 1 && 'Forgot Password?'}
+                    {step === 2 && 'Verify Code'}
+                    {step === 3 && 'Set New Password'}
+                </h1>
+                <p className="text-muted-foreground">
+                    {step === 1 && 'Enter your email address and we\'ll send you a code to reset your password.'}
+                    {step === 2 && `Enter the 6-digit code sent to ${email}`}
+                    {step === 3 && 'Create a strong password for your account'}
+                </p>
+            </div>
+
+            <motion.div
+                className="glass-card rounded-2xl p-6 sm:p-8 shadow-glass-heavy"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.1 }}
+            >
                 <AnimatePresence mode="wait">
                     {step === 1 && (
                         <motion.form
@@ -198,11 +210,20 @@ export default function ForgotPasswordPage() {
                                             message: 'Invalid email address'
                                         }
                                     })}
-                                    className={emailErrors.email ? 'border-red-500' : ''}
+                                    className={emailErrors.email ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
                                 />
-                                {emailErrors.email && <p className="text-xs text-red-500">{emailErrors.email.message}</p>}
+                                {emailErrors.email && (
+                                    <p className="text-xs text-destructive flex items-center gap-1">
+                                        <Loader2 className="w-3 h-3" />
+                                        {emailErrors.email.message}
+                                    </p>
+                                )}
                             </div>
-                            <Button type="submit" className="w-full" disabled={requestOtpMutation.isPending}>
+                            <Button
+                                type="submit"
+                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-300 shadow-lg shadow-primary/20"
+                                disabled={requestOtpMutation.isPending}
+                            >
                                 {requestOtpMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                 Send Reset Code
                             </Button>
@@ -225,14 +246,14 @@ export default function ForgotPasswordPage() {
                                         value={digit}
                                         onChange={(e) => handleOtpChange(index, e.target.value)}
                                         onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                                        className="w-12 h-12 text-center text-lg font-semibold"
+                                        className="w-12 h-12 text-center text-lg font-semibold glass-input"
                                         maxLength={1}
                                         disabled={verifyOtpMutation.isPending}
                                     />
                                 ))}
                             </div>
                             <Button
-                                className="w-full"
+                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-300 shadow-lg shadow-primary/20"
                                 onClick={() => verifyOtpMutation.mutate({ email, otp: otp.join('') })}
                                 disabled={verifyOtpMutation.isPending || otp.some(d => !d)}
                             >
@@ -243,7 +264,7 @@ export default function ForgotPasswordPage() {
                                 <button
                                     type="button"
                                     onClick={() => setStep(1)}
-                                    className="text-sm text-primary hover:underline"
+                                    className="text-sm text-primary hover:underline hover:text-primary/80 transition-colors"
                                 >
                                     Change Email
                                 </button>
@@ -270,17 +291,22 @@ export default function ForgotPasswordPage() {
                                         required: 'Password is required',
                                         minLength: { value: 8, message: 'At least 8 characters' }
                                     })}
-                                    className={passwordErrors.password ? 'border-red-500' : ''}
+                                    className={passwordErrors.password ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
                                 />
                                 {passwordValue && (
-                                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                                    <div className="h-1 w-full bg-muted/50 rounded-full overflow-hidden mt-2">
                                         <div
                                             className={`h-full ${getStrengthColor()} transition-all duration-300`}
                                             style={{ width: passwordStrength.strength === 'strong' ? '100%' : passwordStrength.strength === 'medium' ? '66%' : '33%' }}
                                         />
                                     </div>
                                 )}
-                                {passwordErrors.password && <p className="text-xs text-red-500">{passwordErrors.password.message}</p>}
+                                {passwordErrors.password && (
+                                    <p className="text-xs text-destructive flex items-center gap-1">
+                                        <Loader2 className="w-3 h-3" />
+                                        {passwordErrors.password.message}
+                                    </p>
+                                )}
                             </div>
 
                             <div className="space-y-2">
@@ -293,12 +319,21 @@ export default function ForgotPasswordPage() {
                                         required: 'Please confirm your password',
                                         validate: value => value === passwordValue || 'Passwords do not match'
                                     })}
-                                    className={passwordErrors.confirmPassword ? 'border-red-500' : ''}
+                                    className={passwordErrors.confirmPassword ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
                                 />
-                                {passwordErrors.confirmPassword && <p className="text-xs text-red-500">{passwordErrors.confirmPassword.message}</p>}
+                                {passwordErrors.confirmPassword && (
+                                    <p className="text-xs text-destructive flex items-center gap-1">
+                                        <Loader2 className="w-3 h-3" />
+                                        {passwordErrors.confirmPassword.message}
+                                    </p>
+                                )}
                             </div>
 
-                            <Button type="submit" className="w-full" disabled={resetPasswordMutation.isPending}>
+                            <Button
+                                type="submit"
+                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-300 shadow-lg shadow-primary/20"
+                                disabled={resetPasswordMutation.isPending}
+                            >
                                 {resetPasswordMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                                 Reset Password
                             </Button>
@@ -306,6 +341,6 @@ export default function ForgotPasswordPage() {
                     )}
                 </AnimatePresence>
             </motion.div>
-        </div>
+        </motion.div>
     )
 }

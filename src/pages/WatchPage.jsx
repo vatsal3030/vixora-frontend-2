@@ -177,11 +177,7 @@ export default function WatchPage() {
 
     return (
         <div className={isTheaterMode ? "w-full min-h-screen bg-background relative selection:bg-primary/30" : "container mx-auto px-4 py-6 max-w-[1800px] min-h-screen bg-background relative selection:bg-primary/30"}>
-            {/* Ambient Background Glow */}
-            <div className="fixed inset-0 pointer-events-none z-[-1]">
-                <div className="absolute top-[-10%] left-[20%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] opacity-20" />
-                <div className="absolute bottom-[10%] right-[10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px] opacity-20" />
-            </div>
+
 
             <div className={`grid gap-6 ${isTheaterMode ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3 xl:grid-cols-4'}`}>
 

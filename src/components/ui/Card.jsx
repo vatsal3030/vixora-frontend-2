@@ -14,7 +14,7 @@ import { cn } from '../../lib/utils'
  * @param {Function} props.onClick - Click handler
  */
 const Card = forwardRef(
-    ({ children, className, hoverable = true, clickable = false, glass = false, onClick, ...props }, ref) => {
+    ({ children, className, hoverable = true, clickable = false, glass = true, onClick, ...props }, ref) => {
         const Component = hoverable ? motion.div : 'div'
 
         return (
