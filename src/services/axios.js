@@ -1,8 +1,9 @@
 import axios from "axios";
+import { API_BASE_URL } from "../utils/config";
 
 // Create axios instance with base URL from env
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:10000/api/v1",
+    baseURL: API_BASE_URL,
     withCredentials: true, // Critical for HTTP-only cookies
     headers: {
         "Content-Type": "application/json",
@@ -24,7 +25,7 @@ api.interceptors.response.use(
             try {
                 // Attempt to refresh token
                 await axios.post(
-                    `${import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || "http://localhost:10000/api/v1"}/users/refresh-token`,
+                    `${API_BASE_URL}/users/refresh-token`,
                     {},
                     { withCredentials: true }
                 );
