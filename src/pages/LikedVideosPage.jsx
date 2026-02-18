@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
@@ -21,7 +21,7 @@ export default function LikedVideosPage() {
     const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
 
     // Fetch liked videos
-    const { data: responseData, isLoading, error } = useQuery({
+    const { data: responseData, isLoading } = useQuery({
         queryKey: ['likedVideos'],
         queryFn: async () => {
             const response = await likeService.getLikedVideos()
@@ -30,7 +30,7 @@ export default function LikedVideosPage() {
         }
     })
 
-    const rawVideos = Array.isArray(responseData) ? responseData : (responseData?.videos || [])
+
 
     // Unlike mutation
     const unlikeMutation = useMutation({
@@ -44,8 +44,10 @@ export default function LikedVideosPage() {
 
     // Filter videos
     const filteredVideos = useMemo(() => {
-        if (!rawVideos) return []
-        let result = [...rawVideos]
+        const videos = Array.isArray(responseData) ? responseData : (responseData?.videos || [])
+        if (!videos) return []
+
+        let result = [...videos]
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase()
@@ -59,7 +61,7 @@ export default function LikedVideosPage() {
             })
         }
         return result
-    }, [rawVideos, searchQuery])
+    }, [responseData, searchQuery])
 
     return (
         <div className="min-h-screen pb-10">
@@ -83,7 +85,6 @@ export default function LikedVideosPage() {
                     {/* Controls */}
                     <div className="flex items-center gap-4">
                         <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
                                 type="text"
                                 placeholder="Search liked videos..."
@@ -91,6 +92,7 @@ export default function LikedVideosPage() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 glass-input border border-white/10 rounded-lg focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
                             />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                         </div>
                         <div className="flex glass-panel rounded-lg p-1 border border-white/10 ml-auto">
                             <button

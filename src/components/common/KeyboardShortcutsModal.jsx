@@ -6,7 +6,7 @@ export function KeyboardShortcutsModal({ isOpen, onClose }) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
-            <div className="bg-[#0f0f0f] border border-white/10 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl transform transition-all scale-100">
+            <div className="bg-[#0f0f0f] border border-white/10 rounded-xl w-full max-w-2xl overflow-hidden shadow-premium transform transition-all scale-100">
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-white/10">
                     <h2 className="text-xl font-bold flex items-center gap-2">

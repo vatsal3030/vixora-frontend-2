@@ -266,7 +266,6 @@ export default function HistoryPage() {
                     <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-hide">
                         {/* Search - Compact Expandable or just smaller */}
                         <div className="relative flex-1 min-w-[240px]">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
                                 type="text"
                                 placeholder="Search watch history..."
@@ -274,6 +273,7 @@ export default function HistoryPage() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 glass-input border border-white/5 rounded-xl text-sm focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/70"
                             />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                             {searchQuery && (
                                 <button
                                     onClick={() => setSearchQuery('')}
@@ -295,7 +295,7 @@ export default function HistoryPage() {
                                     <ChevronDown className="w-3 h-3 text-muted-foreground opacity-50" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-[#1f1f1f]/95 backdrop-blur-xl border-white/10 p-1 rounded-xl shadow-2xl w-40">
+                            <DropdownMenuContent align="end" className="bg-[#1f1f1f]/95 backdrop-blur-xl border-white/10 p-1 rounded-xl shadow-premium w-40">
                                 {[
                                     { value: 'all', label: 'All time' },
                                     { value: 'today', label: 'Today' },

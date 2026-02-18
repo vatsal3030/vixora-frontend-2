@@ -92,7 +92,12 @@ export default function NotificationDropdown() {
                     )}
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={8} className="w-[90vw] sm:w-96 max-w-[380px] max-h-[500px] overflow-hidden flex flex-col notification-dropdown rounded-2xl border-white/10 shadow-2xl bg-black/80 backdrop-blur-xl mx-4 sm:mx-0">
+            <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                collisionPadding={16}
+                className="w-[380px] max-w-[calc(100vw-32px)] max-h-[500px] overflow-hidden flex flex-col notification-dropdown rounded-2xl border-white/10 shadow-premium bg-black/80 backdrop-blur-xl"
+            >
                 <DropdownMenuLabel className="flex justify-between items-center bg-popover/95 backdrop-blur-sm z-10 py-3 px-4 border-b border-white/10">
                     <span className="font-bold">Notifications</span>
                     {unreadCount > 0 && (
@@ -143,15 +148,13 @@ export default function NotificationDropdown() {
                         ))}
                     </div>
                 )}
-                {notifications.length > 0 && (
-                    <div className="p-2 border-t border-white/10 sticky bottom-0 bg-popover/95 backdrop-blur-sm text-center">
-                        <Link to="/notifications" onClick={() => setIsOpen(false)}>
-                            <Button variant="ghost" size="sm" className="w-full text-xs">
-                                View All Notifications
-                            </Button>
-                        </Link>
-                    </div>
-                )}
+                <div className="p-2 border-t border-white/10 sticky bottom-0 bg-popover/95 backdrop-blur-sm text-center">
+                    <Link to="/notifications" onClick={() => setIsOpen(false)}>
+                        <Button variant="ghost" size="sm" className="w-full text-xs">
+                            View All Notifications
+                        </Button>
+                    </Link>
+                </div>
             </DropdownMenuContent>
         </DropdownMenu>
     )

@@ -22,7 +22,7 @@ export default function WatchLaterPage() {
     const [sortBy, setSortBy] = useState('addedAt') // 'addedAt' | 'priority'
 
     // Fetch watch later videos
-    const { data: responseData, isLoading, error } = useQuery({
+    const { data: responseData, isLoading } = useQuery({
         queryKey: ['watchLater'],
         queryFn: async () => {
             const response = await playlistService.getWatchLater()
@@ -90,7 +90,6 @@ export default function WatchLaterPage() {
                     {/* Controls */}
                     <div className="flex items-center gap-4">
                         <div className="relative flex-1 max-w-md">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
                                 type="text"
                                 placeholder="Search watch later..."
@@ -98,6 +97,7 @@ export default function WatchLaterPage() {
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-full pl-10 pr-4 py-2 glass-input border border-white/10 rounded-lg focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
                             />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                         </div>
 
                         <Button variant="ghost" size="icon" onClick={() => setSortBy(prev => prev === 'addedAt' ? 'oldest' : 'addedAt')}>

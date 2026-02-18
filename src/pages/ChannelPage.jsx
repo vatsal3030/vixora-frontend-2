@@ -12,7 +12,7 @@ import { Share2, Pencil, MoreVertical, Layout, Grid, Smartphone } from 'lucide-r
 
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
-import { formatTimeAgo } from '../lib/utils'
+import { formatTimeAgo, formatViews } from '../lib/utils'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 // Helper to sanitize username from URL params
@@ -150,7 +150,7 @@ export default function ChannelPage() {
             <ChannelInfo channel={channel} />
             <ChannelTabs activeTab={activeTab} onChange={setActiveTab} />
 
-            <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
                 {/* VIDEOS & SHORTS TAB */}
                 {(activeTab === 'Videos' || activeTab === 'Shorts') && (
                     <>

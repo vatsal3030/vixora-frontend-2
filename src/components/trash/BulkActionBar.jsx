@@ -12,7 +12,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onRestore, onDe
                     initial={{ y: 100, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 100, opacity: 0 }}
-                    className="bg-card border border-primary/20 shadow-2xl shadow-primary/10 rounded-xl p-4 flex items-center justify-between gap-4 backdrop-blur-xl ring-1 ring-border"
+                    className="bg-card border border-primary/20 shadow-premium shadow-primary/10 rounded-xl p-4 flex items-center justify-between gap-4 backdrop-blur-xl ring-1 ring-border"
                 >
                     <div className="flex items-center gap-3 pl-2">
                         <div className="bg-primary/10 text-primary p-2 rounded-lg">

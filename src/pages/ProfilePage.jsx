@@ -274,7 +274,7 @@ export default function ProfilePage() {
 
                     {/* Avatar Container with Negative Margin */}
                     <div className="relative group shrink-0 mx-auto md:mx-0 -mt-16 md:-mt-20">
-                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[4px] border-background overflow-hidden bg-secondary shadow-2xl relative z-10">
+                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[4px] border-background overflow-hidden bg-secondary shadow-premium relative z-10">
                             <Avatar src={getMediaUrl(user.avatar)} fallback={user.username} size="w-full h-full text-5xl" className="rounded-none" />
                         </div>
                         <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20 cursor-pointer backdrop-blur-[2px] m-1" onClick={() => avatarInputRef.current?.click()}>

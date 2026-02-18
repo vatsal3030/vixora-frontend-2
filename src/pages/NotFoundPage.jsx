@@ -12,7 +12,7 @@ export default function NotFoundPage() {
                     404
                 </h1>
 
-                <div className="glass-card p-12 rounded-3xl border border-white/10 flex flex-col items-center backdrop-blur-xl shadow-2xl">
+                <div className="glass-card p-12 rounded-3xl border border-white/10 flex flex-col items-center backdrop-blur-xl shadow-premium">
                     <div className="w-24 h-24 mb-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-inner">
                         <Search className="w-10 h-10 text-muted-foreground" />
                     </div>

@@ -306,8 +306,9 @@ export default function CustomVideoPlayer({
     const handleMouseMove = () => {
         setShowControls(true)
         if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current)
-        if (isPlaying && !isDragging && !isSettingsOpen) {
-            controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000)
+        // Hide controls after inactivity, even if paused (YouTube style)
+        if (!isDragging && !isSettingsOpen) {
+            controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 2000)
         }
     }
 
@@ -315,7 +316,7 @@ export default function CustomVideoPlayer({
         <div
             ref={containerRef}
             className={cn(
-                "relative group bg-black rounded-xl overflow-hidden shadow-2xl transition-all duration-300 select-none outline-none",
+                "relative group bg-black rounded-xl overflow-hidden shadow-premium transition-all duration-300 select-none outline-none",
                 isTheaterMode && !isFullscreen ? "h-[75vh] w-full rounded-none" : "aspect-video",
                 isFullscreen ? "rounded-none w-full h-full" : "",
                 className
@@ -349,8 +350,11 @@ export default function CustomVideoPlayer({
 
             {/* Big Play Animation (Optional, simplified to standard center button when paused) */}
             {!isPlaying && !isBuffering && !isSettingsOpen && (
-                <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                    <div className="p-6 bg-white/10 rounded-full backdrop-blur-md border border-white/20 shadow-[0_0_30px_rgba(239,68,68,0.3)] animate-in zoom-in fade-in duration-300 group-hover:scale-110 transition-transform">
+                <div className={cn(
+                    "absolute inset-0 flex items-center justify-center z-10 pointer-events-none transition-opacity duration-300",
+                    showControls ? "opacity-100" : "opacity-0"
+                )}>
+                    <div className="p-6 bg-white/10 rounded-full backdrop-blur-md border border-white/20 animate-in zoom-in fade-in duration-300 group-hover:scale-110 transition-transform">
                         {isEnded ? <Play className="w-12 h-12 text-white fill-white ml-1" /> : <Play className="w-12 h-12 text-white fill-white ml-1" />}
                     </div>
                 </div>
@@ -359,7 +363,7 @@ export default function CustomVideoPlayer({
             {/* Controls Overlay */}
             <div className={cn(
                 "absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end px-3 pb-3 pt-20 transition-opacity duration-300 z-30",
-                showControls || !isPlaying || isDragging ? "opacity-100" : "opacity-0 cursor-none"
+                showControls || isDragging ? "opacity-100" : "opacity-0 cursor-none"
             )}>
 
                 {/* Progress Bar */}

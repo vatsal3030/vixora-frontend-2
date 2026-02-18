@@ -32,7 +32,7 @@ class ErrorBoundary extends React.Component {
                 <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/20 via-background to-background pointer-events-none" />
 
-                    <div className="max-w-md w-full text-center space-y-8 relative z-10 glass-panel p-8 rounded-2xl shadow-2xl border-white/10">
+                    <div className="max-w-md w-full text-center space-y-8 relative z-10 glass-panel p-8 rounded-2xl shadow-premium border-white/10">
                         <div className="flex justify-center">
                             <div className="p-4 bg-red-500/10 rounded-full text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
                                 <AlertTriangle className="w-12 h-12" />

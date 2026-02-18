@@ -49,25 +49,30 @@
     --glass-bg-hover: rgba(20, 20, 20, 0.75);
     --glass-bg-active: rgba(30, 30, 30, 0.85);
 
-    /* Borders - Ultra Subtle, almost invisible */
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-border-hover: rgba(255, 255, 255, 0.15);
+    /* Borders - Subtle Minimalistic White */
+    --glass-border: rgba(255, 255, 255, 0.05);
+    --glass-border-hover: rgba(255, 255, 255, 0.1);
 
     /* Blurs - Heavy Apple style */
     --glass-blur: 24px;
     --glass-blur-heavy: 48px;
 
-    /* Shadows & Glows */
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.36);
-    --glass-shadow-hover: 0 12px 48px 0 rgba(0, 0, 0, 0.5);
+    /* Shadows - Minimalistic, No Spread */
+    /* Shadows - Minimalistic, No Spread */
+    --glass-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+    /* Tight, small shadow */
+    --glass-shadow-hover: 0 4px 10px rgba(0, 0, 0, 0.2);
+    /* Slightly elevated but tight */
 
     /* NEW: Ultra Soft Premium Shadows */
-    --shadow-soft: 0 10px 40px -10px rgba(0, 0, 0, 0.6);
-    --shadow-glow: 0 0 30px rgba(255, 255, 255, 0.08);
+    --shadow-soft: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* Very subtle base shadow */
+    --shadow-glow: none;
+    /* Removed spread glow */
 
     /* Subtle white ring */
-    --glass-glow: 0 0 0 1px rgba(255, 255, 255, 0.08);
-    --glass-glow-strong: 0 0 0 1px rgba(255, 255, 255, 0.15);
+    --glass-glow: none;
+    --glass-glow-strong: none;
 
     /* Liquid Gradient Background Colors - Neutral/Black */
     --liquid-bg-1: #000000;
@@ -96,12 +101,24 @@ img {
 }
 
 /* Smooth Theme Transition */
+/* Smooth Theme Transition */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   @apply bg-background text-foreground font-sans;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
-  scrollbar-gutter: stable;
+  overflow-y: scroll;
+  /* Force scrollbar to always be visible as fallback */
+}
+
+/* Prevent layout shift from Radix UI adding padding-right */
+body[data-scroll-locked] {
+  padding-right: 0px !important;
+  margin-right: 0px !important;
 }
 
 h1,
@@ -145,7 +162,8 @@ h6 {
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    box-shadow: none;
+    /* Kept flat */
   }
 
   /* Glass Panel - Sidebars, Modals */
@@ -154,7 +172,8 @@ h6 {
     backdrop-filter: blur(var(--glass-blur-heavy));
     -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
     border-right: 1px solid var(--glass-border);
-    box-shadow: var(--glass-shadow);
+    box-shadow: none;
+    /* Kept flat */
   }
 
   /* Glass Nav - Headers */
@@ -163,7 +182,8 @@ h6 {
     backdrop-filter: blur(var(--glass-blur-heavy));
     -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
     border-bottom: 1px solid var(--glass-border);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
+    /* Kept flat */
   }
 
   /* Glass Card - Interactive Elements */
@@ -180,8 +200,11 @@ h6 {
   .glass-card:hover {
     background: var(--glass-bg-hover);
     border-color: var(--glass-border-hover);
-    box-shadow: var(--glass-shadow-hover), var(--shadow-glow);
+    /* Keep the border visible */
+    box-shadow: var(--glass-shadow-hover);
+    /* Subtle lift shadow, no glow spread */
     transform: translateY(-2px);
+    /* Minimalistic move */
   }
 
   /* Glass Input */
@@ -197,8 +220,9 @@ h6 {
 
   .glass-input:focus {
     background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.3);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+    /* No spread glow on focus either, just border color change */
     outline: none;
   }
 
@@ -217,6 +241,9 @@ h6 {
     background: var(--glass-bg-hover);
     border-color: var(--glass-border-hover);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    /* Tight shadow for depth */
+    transform: translateY(-1px);
+    /* Subtle lift */
   }
 
   .glass-btn:active {
@@ -244,7 +271,7 @@ h6 {
     background: var(--primary);
     border-color: var(--primary);
     color: var(--primary-foreground);
-    box-shadow: 0 0 15px var(--brand-red-glow);
+    box-shadow: none;
   }
 }
 
@@ -297,24 +324,7 @@ h6 {
   /* --- Mobile UI Fixes --- */
 
   /* 1. Notification Dropdown Mobile Fixes */
-  @media (max-width: 640px) {
-    .notification-dropdown {
-      position: fixed !important;
-      top: 60px !important;
-      right: 0.5rem !important;
-      left: 0.5rem !important;
-      width: auto !important;
-      max-width: none !important;
-      max-height: calc(100vh - 80px) !important;
-      border-radius: 16px !important;
-      transform: none !important;
-      /* Override potential framer motion transforms if needed */
-    }
-
-    .notification-list {
-      max-height: calc(100vh - 180px) !important;
-    }
-  }
+  /* REMOVED: Fixed positioning caused alignment issues. Relying on Radix UI anchor positioning. */
 
   /* 2. Avatar Border Fixes (Global) - NO BORDERS ALLOWED */
   .avatar,

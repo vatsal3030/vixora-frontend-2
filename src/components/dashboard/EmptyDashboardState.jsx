@@ -4,7 +4,7 @@ import { Card } from '../ui/Card'
 
 export function EmptyDashboardState({ onUpload, onDemo }) {
     return (
-        <Card className="flex flex-col items-center justify-center p-12 text-center space-y-6 min-h-[500px] border-dashed">
+        <Card className="flex flex-col items-center justify-center p-12 text-center space-y-6 min-h-[500px] glass border-0 bg-white/5">
             <div className="p-6 rounded-full bg-primary/10 relative group">
                 <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
                 <BarChart3 className="w-16 h-16 text-primary relative z-10" />
@@ -37,7 +37,7 @@ export function EmptyDashboardState({ onUpload, onDemo }) {
                 </div>
                 <div className="flex flex-col items-center gap-2">
                     <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
-                        <div className="w-4 h-4 font-bold h-4 text-xs flex items-center justify-center border border-current rounded-sm">S</div>
+                        <div className="w-4 h-4 font-bold text-xs flex items-center justify-center border border-current rounded-sm">S</div>
                     </div>
                     <span className="text-sm font-medium">Monitor Subs</span>
                 </div>

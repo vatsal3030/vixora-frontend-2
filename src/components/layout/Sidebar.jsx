@@ -58,7 +58,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
             <aside
                 className={cn(
                     // Base Layout - Glass Panel
-                    "fixed top-16 bottom-0 left-0 z-40 glass-panel overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out shadow-2xl border-r border-white/5",
+                    "fixed top-16 bottom-0 left-0 z-40 glass-panel overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out shadow-premium border-r border-white/5",
                     // Mobile: Slide in/out
                     isOpen ? "translate-x-0" : "-translate-x-full",
                     // Desktop: Always visible, width controlled by prop

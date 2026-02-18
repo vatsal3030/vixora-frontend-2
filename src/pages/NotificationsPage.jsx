@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button'
 import { toast } from 'sonner'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../components/ui/Avatar'
+import { NotificationSkeleton } from '../components/skeletons/NotificationSkeleton'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 export default function NotificationsPage() {
@@ -117,8 +118,10 @@ export default function NotificationsPage() {
             </div>
 
             {loading ? (
-                <div className="flex justify-center items-center py-20">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                <div className="space-y-4">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                        <NotificationSkeleton key={i} />
+                    ))}
                 </div>
             ) : notifications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-card rounded-2xl border border-border">

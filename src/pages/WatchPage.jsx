@@ -193,7 +193,7 @@ export default function WatchPage() {
                         isTheaterMode={isTheaterMode}
                         onToggleTheater={() => setIsTheaterMode(!isTheaterMode)}
                         onShowShortcuts={() => setShowShortcuts(true)}
-                        className={isTheaterMode ? "w-full h-[85vh]" : "w-full aspect-video shadow-2xl rounded-xl overflow-hidden"}
+                        className={isTheaterMode ? "w-full h-[85vh]" : "w-full aspect-video shadow-premium rounded-xl overflow-hidden"}
                     />
                 </div>
 
@@ -272,7 +272,7 @@ export default function WatchPage() {
                                         <MoreHorizontal className="w-5 h-5" />
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-56 glass-panel border-white/5 text-white rounded-xl shadow-2xl">
+                                <DropdownMenuContent align="end" className="w-56 glass-panel border-white/5 text-white rounded-xl shadow-premium">
                                     <AddToPlaylistDialog videoId={video._id}>
                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
                                             <Save className="w-4 h-4 mr-3" /> Save to Playlist

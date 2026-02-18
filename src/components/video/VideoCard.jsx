@@ -4,6 +4,7 @@ import { Avatar } from '../ui/Avatar'
 import { formatDuration, formatViews, formatTimeAgo } from '../../lib/utils'
 import { getMediaUrl } from '../../lib/media'
 import { AddToPlaylistDialog } from '../playlist/AddToPlaylistDialog'
+import { ShareDialog } from '../common/ShareDialog'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -14,16 +15,20 @@ import {
 import { toast } from 'sonner'
 import { useState, useRef, useEffect, memo } from 'react'
 import { cn } from '../../lib/utils'
+import { useVideoHover } from '../../context/VideoHoverContext'
 
 const THUMBNAIL_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><polygon fill="#ffffff20" points="140,65 140,115 180,90"/></svg>')
 
 export const VideoCard = memo(function VideoCard({ video, type = 'default', showEditButton = false, onDelete, onTogglePublish }) {
+    const { hoveredVideoId, onHover, onLeave } = useVideoHover()
     const [isHidden, setIsHidden] = useState(false)
-    const [showPreview, setShowPreview] = useState(false)
+    // const [showPreview, setShowPreview] = useState(false) // Managed globally
     const [isMuted, setIsMuted] = useState(true)
     const [isPlaying, setIsPlaying] = useState(false)
-    const hoverTimeoutRef = useRef(null)
     const videoRef = useRef(null)
+
+    const videoId = video?.id || video?._id
+    const showPreview = hoveredVideoId === videoId
 
     // Stable badges - computed once on mount using useState initializer
     const [isNew] = useState(() => {
@@ -33,74 +38,19 @@ export const VideoCard = memo(function VideoCard({ video, type = 'default', show
     })
     const progress = video?.watchProgress || 0 // Use actual progress if available
 
-    // Playback Logic
-    useEffect(() => {
-        let isCancelled = false
-
-        const playVideo = async () => {
-            if (showPreview && videoRef.current) {
-                try {
-                    videoRef.current.muted = true
-                    videoRef.current.volume = 0 // Extra safety measure
-
-                    // Resume from progress (if applicable)
-                    // We only set this if we are just starting to show preview
-                    if (progress > 0 && video.duration && !isPlaying) {
-                        const startTime = (progress / 100) * video.duration
-                        if (startTime < video.duration - 1) {
-                            videoRef.current.currentTime = startTime
-                        }
-                    }
-
-                    // Must use await to catch play() errors properly
-                    await videoRef.current.play()
-
-                    if (!isCancelled) {
-                        setIsPlaying(true)
-                    }
-                } catch (error) {
-                    if (!isCancelled) {
-                        // Ignore AbortError which happens on rapid hover/unhover
-                        if (error.name !== 'AbortError') {
-                            console.error("Autoplay failed:", error)
-                        }
-                        // Don't hide preview immediately on error to avoid flickering, 
-                        // just let the thumbnail stay visible (isPlaying remains false)
-                    }
-                }
-            } else if (!showPreview && videoRef.current) {
-                setIsPlaying(false) // Reset state immediately
-                videoRef.current.pause()
-                videoRef.current.currentTime = 0
-            }
-        }
-
-        playVideo()
-
-        return () => {
-            isCancelled = true
-        }
-    }, [showPreview, progress, video?.duration, isPlaying])
-
-
-
-    // Cleanup timeout on unmount
-    useEffect(() => {
-        return () => {
-            if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
-        }
-    }, [])
+    // Playback Logic - Simplified to use autoPlay prop
+    // We rely on the conditional rendering of the <video> tag when showPreview is true
+    // The video tag will have autoPlay, muted, loop attributes which browsers support well for this use case
 
     const handleMouseEnter = () => {
-        hoverTimeoutRef.current = setTimeout(() => {
-            setShowPreview(true)
-        }, 0) // Immediate hover effect for responsiveness
+        // Disable on touch devices
+        if (window.matchMedia && !window.matchMedia('(hover: hover)').matches) return
+        onHover(videoId)
     }
 
     const handleMouseLeave = () => {
         setIsPlaying(false)
-        setShowPreview(false)
-        if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current)
+        onLeave(videoId)
         if (videoRef.current) {
             videoRef.current.pause()
             videoRef.current.currentTime = 0
@@ -173,6 +123,7 @@ export const VideoCard = memo(function VideoCard({ video, type = 'default', show
                             src={getMediaUrl(video.videoUrl || video.videoFile)}
                             className="absolute inset-0 w-full h-full object-cover animate-in fade-in duration-300"
                             muted={true}
+                            autoPlay
                             playsInline
                             loop
                             preload="metadata"
@@ -245,6 +196,7 @@ export const VideoCard = memo(function VideoCard({ video, type = 'default', show
                         src={getMediaUrl(video.videoUrl || video.videoFile)}
                         className="absolute inset-0 w-full h-full object-cover animate-in fade-in duration-300"
                         muted={true}
+                        autoPlay
                         playsInline
                         loop
                         preload="metadata"
@@ -411,10 +363,12 @@ function VideoMenu({ videoId, title, video, onNotInterested, onBlock, showEditBu
                         </DropdownMenuItem>
                     )}
 
-                    <DropdownMenuItem onClick={() => navigator.share({ title: title, url: window.location.origin + '/watch/' + videoId }).catch(() => { })}>
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share
-                    </DropdownMenuItem>
+                    <ShareDialog title={title} url={`${window.location.origin}/watch/${videoId}`} trigger={
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <Share2 className="w-4 h-4 mr-2" />
+                            Share
+                        </DropdownMenuItem>
+                    } />
 
                     <DropdownMenuSeparator />
 
@@ -444,10 +398,12 @@ function VideoMenu({ videoId, title, video, onNotInterested, onBlock, showEditBu
                     </DropdownMenuItem>
                 </AddToPlaylistDialog>
 
-                <DropdownMenuItem onClick={() => navigator.share({ title: title, url: window.location.origin + '/watch/' + videoId }).catch(() => { })}>
-                    <Share2 className="w-4 h-4 mr-2" />
-                    Share
-                </DropdownMenuItem>
+                <ShareDialog title={title} url={`${window.location.origin}/watch/${videoId}`} trigger={
+                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                        <Share2 className="w-4 h-4 mr-2" />
+                        Share
+                    </DropdownMenuItem>
+                } />
                 <DropdownMenuItem onClick={() => toast.success("Added to Watch Later")}>
                     <Clock className="w-4 h-4 mr-2" />
                     Save to Watch Later
