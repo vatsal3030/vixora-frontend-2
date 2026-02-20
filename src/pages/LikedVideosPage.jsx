@@ -25,8 +25,7 @@ export default function LikedVideosPage() {
         queryKey: ['likedVideos'],
         queryFn: async () => {
             const response = await likeService.getLikedVideos()
-            // Backend might return { videos: [] } or just []
-            return response.data.data.videos || response.data.data || []
+            return response.data.data?.items || []
         }
     })
 
@@ -44,15 +43,14 @@ export default function LikedVideosPage() {
 
     // Filter videos
     const filteredVideos = useMemo(() => {
-        const videos = Array.isArray(responseData) ? responseData : (responseData?.videos || [])
-        if (!videos) return []
+        const videos = Array.isArray(responseData) ? responseData : []
 
         let result = [...videos]
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase()
             result = result.filter(item => {
-                const v = item.video || item // Handle potential structure diff
+                const v = item.video || item
                 if (!v) return false
                 return (
                     v.title?.toLowerCase().includes(query) ||

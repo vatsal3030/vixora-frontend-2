@@ -11,8 +11,7 @@ import { EmptyDashboardState } from '../components/dashboard/EmptyDashboardState
 import { Button } from '../components/ui/Button'
 import { toast } from 'sonner'
 import { DashboardSkeleton } from '../components/dashboard/DashboardSkeleton'
-import { motion } from 'framer-motion'
-
+import { motion } from 'framer-motion' // eslint-disable-line
 const PERIODS = [
     { value: '7d', label: 'Last 7 Days' },
     { value: '30d', label: 'Last 30 Days' },
@@ -38,14 +37,14 @@ export default function DashboardPage() {
     const [sortOrder, setSortOrder] = useState('desc')
     const [showDemoData, setShowDemoData] = useState(false)
 
-    // Fetch Overview Stats
+    // Fetch Overview Stats (reactive on period)
     const { data: overview, isLoading: overviewLoading } = useQuery({
-        queryKey: ['dashboardOverview'],
+        queryKey: ['dashboardOverview', period],
         queryFn: async () => {
             try {
-                const res = await dashboardService.getOverview()
+                const res = await dashboardService.getOverview(period)
                 return res.data.data
-            } catch (error) {
+            } catch {
                 return null
             }
         },
@@ -59,30 +58,33 @@ export default function DashboardPage() {
             try {
                 const res = await dashboardService.getAnalytics(period)
                 return res.data.data || {}
-            } catch (e) {
+            } catch {
                 return {}
             }
         }
     })
 
-    // Fetch Top Videos
-    const { data: topVideos = [], isLoading: videosLoading } = useQuery({
-        queryKey: ['dashboardTopVideos'],
+    // Fetch Top Videos (reactive on period)
+    const { data: topVideosRaw, isLoading: videosLoading } = useQuery({
+        queryKey: ['dashboardTopVideos', period],
         queryFn: async () => {
             try {
-                const res = await dashboardService.getTopVideos()
-                return res.data.data || []
-            } catch (error) {
-                return [] // Fallback to empty to avoid crash
+                const res = await dashboardService.getTopVideos({ period })
+                return res.data.data
+            } catch {
+                return null
             }
         },
         retry: 1
     })
 
+    const topVideos = topVideosRaw?.items || []
+
     const loading = overviewLoading || analyticsLoading || videosLoading
 
     // Logic to determine if we should show empty state or demo data
-    const hasData = overview?.videosCount > 0
+    // cards.videos.value is the authoritative field; fallback to legacy flat key
+    const hasData = (overview?.cards?.videos?.value ?? overview?.videosCount ?? 0) > 0
 
 
     const demoAnalytics = DEMO_DATA
@@ -99,10 +101,15 @@ export default function DashboardPage() {
         }
     }
 
-    const sortedVideos = [...(hasData ? topVideos : [])].sort((a, b) => { // Use real videos if data exists
-        const aVal = a[sortField] || 0
-        const bVal = b[sortField] || 0
-        return sortOrder === 'asc' ? aVal - bVal : bVal - aVal
+    const sortedVideos = [...topVideos].sort((a, b) => {
+        // metrics are nested under video.metrics.views etc.
+        const getVal = (v) => {
+            if (sortField === 'views') return v.metrics?.views || v.views || 0
+            if (sortField === 'likes') return v.metrics?.likes || v.likes || 0
+            if (sortField === 'comments') return v.metrics?.comments || v.comments || 0
+            return v[sortField] || 0
+        }
+        return sortOrder === 'asc' ? getVal(a) - getVal(b) : getVal(b) - getVal(a)
     })
 
     const renderSortIcon = (field) => {
@@ -144,16 +151,18 @@ export default function DashboardPage() {
         recentViews: 5200,
         recentLikes: 350
     } : {
-        subscribers: overview?.subscribers || 0,
-        views: overview?.views || 0,
-        likes: overview?.likes || 0,
-        videosCount: overview?.videosCount || 0,
-        recentSubscribers: overview?.recentSubscribers || 0,
-        recentViews: overview?.recentViews || 0,
-        recentLikes: overview?.recentLikes || 0
+        // Map from API shape: data.cards.subscribers.value etc. (with fallback to legacy flat keys)
+        subscribers: overview?.cards?.subscribers?.value ?? overview?.subscribers ?? 0,
+        views: overview?.cards?.views?.value ?? overview?.views ?? 0,
+        likes: overview?.cards?.likes?.value ?? overview?.likes ?? 0,
+        videosCount: overview?.cards?.videos?.value ?? overview?.videosCount ?? 0,
+        recentSubscribers: overview?.cards?.subscribers?.trend?.absChange ?? overview?.recentSubscribers ?? 0,
+        recentViews: overview?.cards?.views?.trend?.absChange ?? overview?.recentViews ?? 0,
+        recentLikes: overview?.cards?.likes?.trend?.absChange ?? overview?.recentLikes ?? 0
     }
 
-    const chartData = showDemoData ? demoAnalytics : (analytics?.viewsChart || [])
+    // analytics.chart is the merged timeline from backend (views, subscribers, likes series)
+    const chartData = showDemoData ? demoAnalytics : (analytics?.chart || analytics?.viewsChart || [])
 
     return (
         <motion.div

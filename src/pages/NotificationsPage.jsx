@@ -13,10 +13,10 @@ export default function NotificationsPage() {
 
     // Fetch Notifications
     const { data: notifications = [], isLoading: loading } = useQuery({
-        queryKey: ['notifications'],
+        queryKey: ['notifications', 'all'],
         queryFn: async () => {
             const res = await notificationService.getAllNotifications()
-            return res.data.data.notifications || []
+            return res.data.data?.items || []
         }
     })
 

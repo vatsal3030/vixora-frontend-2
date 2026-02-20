@@ -13,12 +13,12 @@ export default function SubscriptionsPage() {
     useDocumentTitle('Subscriptions - Vixora')
     const [selectedChannelId, setSelectedChannelId] = useState(null)
 
-    // Fetch Subscribed Videos (Feed)
+    // Fetch Subscribed Videos (Feed) - uses /feed/subscriptions
     const { data: videos = [], isLoading: loadingVideos, error: videosError } = useQuery({
         queryKey: ['subscriptionsFeed'],
         queryFn: async () => {
             const response = await subscriptionService.getSubscribedVideos()
-            return response.data.data.videos || []
+            return response.data.data?.items || []
         }
     })
 
@@ -27,15 +27,7 @@ export default function SubscriptionsPage() {
         queryKey: ['subscribedChannels'],
         queryFn: async () => {
             const response = await subscriptionService.getSubscriptions()
-            // Backend typically returns { data: { subscriptions: [], ... } } or similar
-            // Adjust based on actual API response structure if needed.
-            // Assuming response.data.data.channels based on similar patterns or just response.data.data
-            // Let's assume response.data.data is the array or contains it.
-            // Wait, api.js says `getSubscriptions: () => api.get('/subscriptions/u/subscriptions')`
-            // Let's assume it returns a list of channels.
-            const subs = response.data.data || []
-            // If response.data.data is { subscriptions: [...] } handle that
-            return Array.isArray(subs) ? subs : (subs.subscriptions || [])
+            return response.data.data?.items || []
         }
     })
 

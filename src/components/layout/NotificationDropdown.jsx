@@ -24,7 +24,7 @@ export default function NotificationDropdown() {
         queryKey: ['notifications'],
         queryFn: async () => {
             const res = await notificationService.getAllNotifications()
-            return res.data.data.notifications || []
+            return res.data.data?.items || []
         },
         enabled: isOpen // Only fetch when open
     })

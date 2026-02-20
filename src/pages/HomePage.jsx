@@ -5,7 +5,7 @@ import { useInView } from 'framer-motion'
 import { useRef } from 'react'
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
-import { videoService } from '../services/api'
+import { feedService } from '../services/api'
 import { Loader2, AlertCircle, RefreshCcw, Video } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -24,13 +24,12 @@ export default function HomePage() {
         status,
         refetch
     } = useInfiniteQuery({
-        queryKey: ['videos', 'home', activeCategory], // Add category to key
+        queryKey: ['feed', 'home', activeCategory],
         queryFn: async ({ pageParam = 1 }) => {
-            // Logic for tags: 'All' sends no tags, others send category name
             const tags = activeCategory === 'All' ? undefined : activeCategory
-            const response = await videoService.getVideos({
+            const response = await feedService.getHomeFeed({
                 page: pageParam,
-                limit: 20, // Explicitly request 20
+                limit: 20,
                 tags
             })
             return response.data
@@ -38,13 +37,13 @@ export default function HomePage() {
         getNextPageParam: (lastPage) => {
             const pagination = lastPage?.data?.pagination
             if (!pagination) return undefined
-
-            if (pagination.currentPage < pagination.totalPages) {
-                return pagination.currentPage + 1
+            if (pagination.hasNextPage) {
+                return (pagination.currentPage || pagination.page || 1) + 1
             }
             return undefined
         },
         staleTime: 1000 * 60 * 5,
+        initialPageParam: 1
     })
 
     // Infinite Scroll Trigger
@@ -74,7 +73,7 @@ export default function HomePage() {
         )
     }
 
-    const videos = data?.pages.flatMap(page => page.data?.videos || page.videos || []) || []
+    const videos = data?.pages.flatMap(page => page.data?.items || []) || []
 
     return (
         <div className="pb-10">

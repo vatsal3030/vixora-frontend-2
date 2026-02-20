@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Bell, Loader2, Flag, FileText, Save, Play, Heart } from 'lucide-react'
-import { videoService, likeService, subscriptionService, commentService, playlistService } from '../services/api'
+import { videoService, likeService, subscriptionService, commentService, playlistService, feedService } from '../services/api'
 import { ShareDialog } from '../components/common/ShareDialog'
 import { AddToPlaylistDialog } from '../components/playlist/AddToPlaylistDialog'
 import {
@@ -22,7 +22,7 @@ import { toast } from 'sonner'
 import VideoPlayerSkeleton from '../components/skeletons/VideoPlayerSkeleton'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { KeyboardShortcutsModal } from '../components/common/KeyboardShortcutsModal'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 
 export default function WatchPage() {
     const { videoId } = useParams()
@@ -60,16 +60,20 @@ export default function WatchPage() {
             return res.data.data
         },
         enabled: !!videoId,
-        getNextPageParam: (lastPage) => lastPage?.hasNextPage ? lastPage.nextPage : undefined
+        getNextPageParam: (lastPage) => {
+            const p = lastPage?.pagination
+            return p?.hasNextPage ? (p.currentPage || p.page || 1) + 1 : undefined
+        },
+        initialPageParam: 1
     })
 
-    const comments = commentsData?.pages.flatMap(page => page.docs || page) || []
+    const comments = commentsData?.pages.flatMap(page => page?.items || []) || []
 
     const { data: recommended } = useQuery({
         queryKey: ['recommendations', videoId],
         queryFn: async () => {
-            const res = await videoService.getVideos({ limit: 12 })
-            return res.data.data.docs || []
+            const res = await feedService.getHomeFeed({ limit: 12 })
+            return res.data.data?.items || []
         },
         enabled: !!videoId,
         staleTime: 1000 * 60 * 5

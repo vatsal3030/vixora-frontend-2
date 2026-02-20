@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
-import { channelService, tweetService, videoService } from '../services/api'
+import { channelService } from '../services/api'
 import ChannelBanner from '../components/channel/ChannelBanner'
 import ChannelInfo from '../components/channel/ChannelInfo'
 import ChannelTabs from '../components/channel/ChannelTabs'
@@ -50,10 +50,7 @@ export default function ChannelPage() {
         retry: 1
     })
 
-    // 2. Fetch Channel Videos or Shorts (Infinite)
-    const isShortsTab = activeTab === 'Shorts'
-    const isVideosTab = activeTab === 'Videos'
-
+    // 2. Fetch Channel Videos (Infinite)
     const {
         data: videosData,
         fetchNextPage: fetchNextVideos,
@@ -61,23 +58,39 @@ export default function ChannelPage() {
         isFetchingNextPage: loadingMoreVideos,
         isLoading: loadingVideos
     } = useInfiniteQuery({
-        queryKey: ['channelVideos', channel?._id, activeTab], // Include activeTab in key
+        queryKey: ['channelVideos', channel?._id],
         queryFn: async ({ pageParam = 1 }) => {
-            // If Shorts tab, fetch with isShort=true. If Videos tab, fetch with isShort=false (or filter client side if API doesn't support)
-            // Assuming API supports isShort param based on feedService usage
-            const params = { page: pageParam, limit: 12 }
-            if (isShortsTab) params.isShort = true
-            if (isVideosTab) params.isShort = false
-
-            const res = await videoService.getUserVideos(channel._id, params)
+            const res = await channelService.getChannelVideos(channel._id, { page: pageParam, limit: 12 })
             return res.data.data
         },
-        enabled: !!channel?._id && (isVideosTab || isShortsTab),
-        getNextPageParam: (lastPage) => lastPage?.hasNextPage ? lastPage.nextPage : undefined,
+        enabled: !!channel?._id && activeTab === 'Videos',
+        getNextPageParam: (lastPage) => {
+            const p = lastPage?.pagination
+            return p?.hasNextPage ? (p.currentPage || p.page) + 1 : undefined
+        },
         initialPageParam: 1
     })
 
-    const videos = videosData?.pages.flatMap(page => page.docs || page.videos || []) || []
+    // 2b. Fetch Channel Shorts (Infinite)
+    const {
+        data: shortsData,
+        isLoading: loadingShorts
+    } = useInfiniteQuery({
+        queryKey: ['channelShorts', channel?._id],
+        queryFn: async ({ pageParam = 1 }) => {
+            const res = await channelService.getChannelShorts(channel._id, { page: pageParam, limit: 20 })
+            return res.data.data
+        },
+        enabled: !!channel?._id && activeTab === 'Shorts',
+        getNextPageParam: (lastPage) => {
+            const p = lastPage?.pagination
+            return p?.hasNextPage ? (p.currentPage || p.page) + 1 : undefined
+        },
+        initialPageParam: 1
+    })
+
+    const videos = videosData?.pages.flatMap(page => page?.items || []) || []
+    const shorts = shortsData?.pages.flatMap(page => page?.items || []) || []
 
 
     // 3. Fetch Channel Playlists
@@ -85,7 +98,7 @@ export default function ChannelPage() {
         queryKey: ['channelPlaylists', channel?._id],
         queryFn: async () => {
             const res = await channelService.getChannelPlaylists(channel._id)
-            return res.data.data || []
+            return res.data.data?.items || []
         },
         enabled: !!channel?._id && activeTab === 'Playlists'
     })
@@ -94,8 +107,8 @@ export default function ChannelPage() {
     const { data: tweets = [], isLoading: loadingTweets } = useQuery({
         queryKey: ['channelTweets', channel?._id],
         queryFn: async () => {
-            const res = await tweetService.getUserTweets(channel._id)
-            return res.data.data || []
+            const res = await channelService.getChannelTweets(channel._id)
+            return res.data.data?.items || []
         },
         enabled: !!channel?._id && activeTab === 'Tweets'
     })
@@ -193,7 +206,11 @@ export default function ChannelPage() {
 
                 {/* SHORTS TAB */}
                 {activeTab === 'Shorts' && (
-                    videos.filter(v => v.isShorts || v.duration <= 60).length === 0 ? (
+                    loadingShorts ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            {Array.from({ length: 10 }).map((_, i) => <VideoCardSkeleton key={i} />)}
+                        </div>
+                    ) : shorts.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-2xl border-white/5">
                             <div className="bg-secondary/30 p-4 rounded-full mb-4">
                                 <Smartphone className="w-8 h-8 text-muted-foreground" />
@@ -205,7 +222,7 @@ export default function ChannelPage() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                            {videos.filter(v => v.isShorts || v.duration <= 60).map((video, idx) => (
+                            {shorts.map((video) => (
                                 <Link to={`/watch/${video._id}`} key={video._id} className="group relative aspect-[9/16] rounded-xl overflow-hidden bg-black glass-card border-0">
                                     <img
                                         src={video.thumbnail}

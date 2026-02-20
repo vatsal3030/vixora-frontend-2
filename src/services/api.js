@@ -72,15 +72,19 @@ export const subscriptionService = {
     setNotificationLevel: (channelId, level) => api.patch(`/subscriptions/c/${channelId}/notifications`, { level }),
     getSubscriptionStatus: (channelId) => api.get(`/subscriptions/c/${channelId}/status`),
     getSubscriberCount: (channelId) => api.get(`/subscriptions/c/${channelId}/subscribers/count`),
-    getSubscriptions: () => api.get('/subscriptions/u/subscriptions'),
-    getSubscribedVideos: () => api.get('/subscriptions')
+    getSubscriptions: (params = {}) => api.get('/subscriptions/u/subscriptions', { params }),
+    // Subscribed channel videos feed (uses /feed/subscriptions, not /subscriptions)
+    getSubscribedVideos: (params = {}) => api.get('/feed/subscriptions', { params })
 }
 
 // Channel Service
 export const channelService = {
     getChannel: (channelId) => api.get(`/channels/${channelId}`),
+    getChannelAbout: (channelId) => api.get(`/channels/${channelId}/about`),
     getChannelByUsername: (username) => api.get(`/users/u/${username}`),
-    getChannelVideos: (channelId, params = {}) => api.get(`/videos/user/${channelId}`, { params }),
+    // These use the correct /channels/:id/* endpoints (not /videos/user/:id)
+    getChannelVideos: (channelId, params = {}) => api.get(`/channels/${channelId}/videos`, { params }),
+    getChannelShorts: (channelId, params = {}) => api.get(`/channels/${channelId}/shorts`, { params }),
     getChannelPlaylists: (channelId, params = {}) => api.get(`/channels/${channelId}/playlists`, { params }),
     getChannelTweets: (channelId, params = {}) => api.get(`/channels/${channelId}/tweets`, { params })
 }
@@ -97,7 +101,7 @@ export const userService = {
     updateAvatar: (data) => api.patch('/users/update-avatar', data),
     updateCoverImage: (data) => api.patch('/users/update-coverImage', data),
 
-    getWatchHistory: () => api.get('/users/History'),
+    getWatchHistory: () => api.get('/watch-history'),
     getUserChannelProfile: (username) => api.get(`/users/u/${username}`),
     updateChannelDescription: (data) => api.patch('/users/update-description', data),
     getUserById: (userId) => api.get(`/users/id/${userId}`)
@@ -164,10 +168,12 @@ export const watchHistoryService = {
 
 // Dashboard Service
 export const dashboardService = {
-    getOverview: () => api.get('/dashboard/overview'),
+    // Single-call full dashboard (recommended)
+    getFullDashboard: (params = {}) => api.get('/dashboard/full', { params }),
+    getOverview: (period = '7d') => api.get('/dashboard/overview', { params: { period } }),
     getAnalytics: (period = '7d') => api.get('/dashboard/analytics', { params: { period } }),
     getTopVideos: (params = {}) => api.get('/dashboard/top-videos', { params }),
-    getGrowthStats: () => api.get('/dashboard/growth'),
+    getGrowthStats: (period = '7d') => api.get('/dashboard/growth', { params: { period } }),
     getInsights: () => api.get('/dashboard/insights')
 }
 

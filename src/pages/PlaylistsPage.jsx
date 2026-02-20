@@ -24,12 +24,12 @@ export default function PlaylistsPage() {
         queryKey: ['playlists', 'me'],
         queryFn: async () => {
             const res = await playlistService.getMyPlaylists()
-            return res.data.data
+            return res.data.data?.items || []
         }
     })
 
     // Prepare Tabs Data
-    const rawPlaylists = Array.isArray(playlists) ? playlists : (playlists?.docs || [])
+    const rawPlaylists = Array.isArray(playlists) ? playlists : []
     const sortedPlaylists = [...rawPlaylists]
         .filter(() => {
             if (activeTab === 'all') return true

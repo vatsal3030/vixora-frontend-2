@@ -90,8 +90,9 @@ export default function HistoryPage() {
     const { data: rawVideos = [], isLoading, error, refetch } = useQuery({
         queryKey: ['watchHistory'],
         queryFn: async () => {
-            const response = await watchHistoryService.getContinueWatching()
-            return response.data.data.videos || []
+            const response = await watchHistoryService.getHistory()
+            // Backend returns { data: { items: [], pagination: {} } }
+            return response.data.data?.items || []
         }
     })
 

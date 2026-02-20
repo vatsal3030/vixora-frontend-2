@@ -57,7 +57,7 @@ export default function TrashPage() {
         queryFn: async () => {
             try {
                 const res = await videoService.getDeletedVideos({ limit: 100 })
-                return res.data.data || []
+                return res.data.data?.items || []
             } catch (e) {
                 console.warn("Failed to fetch trash videos", e)
                 return []
@@ -67,12 +67,18 @@ export default function TrashPage() {
 
     const { data: playlists = [], isLoading: playlistsLoading } = useQuery({
         queryKey: ['trashPlaylists'],
-        queryFn: async () => (await playlistService.getDeletedPlaylists()).data.data || []
+        queryFn: async () => {
+            const res = await playlistService.getDeletedPlaylists()
+            return res.data.data?.items || []
+        }
     })
 
     const { data: tweets = [], isLoading: tweetsLoading } = useQuery({
         queryKey: ['trashTweets'],
-        queryFn: async () => (await tweetService.getDeletedTweets()).data.data || []
+        queryFn: async () => {
+            const res = await tweetService.getDeletedTweets()
+            return res.data.data?.items || []
+        }
     })
 
     const isLoading = videosLoading || playlistsLoading || tweetsLoading

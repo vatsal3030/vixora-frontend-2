@@ -1,21 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'framer-motion'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { feedService } from '../services/api'
 import { Flame, AlertCircle } from 'lucide-react'
 import { Button } from '../components/ui/Button'
+import { motion } from 'framer-motion' // eslint-disable-line
 
 export default function TrendingPage() {
     useDocumentTitle('Trending - Vixora')
     const { data: videos = [], isLoading, error, refetch } = useQuery({
         queryKey: ['trending'],
         queryFn: async () => {
-            const response = await feedService.getTrendingFeed()
-            const trendingData = response?.data?.data?.docs || response?.data?.data?.videos || response?.data?.data || []
-            // Handle both pagination response and direct array
-            return Array.isArray(trendingData) ? trendingData : []
+            const response = await feedService.getTrendingFeed({ limit: 24 })
+            return response?.data?.data?.items || []
         },
         staleTime: 1000 * 60 * 10 // 10 minutes
     })

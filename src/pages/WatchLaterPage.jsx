@@ -31,7 +31,6 @@ export default function WatchLaterPage() {
         }
     })
 
-    const rawVideos = responseData?.videos || []
 
     // Remove video mutation
     const removeMutation = useMutation({
@@ -43,6 +42,8 @@ export default function WatchLaterPage() {
         onError: () => toast.error('Failed to remove video')
     })
 
+    // Derive raw videos for count display
+    const rawVideos = useMemo(() => responseData?.items || [], [responseData])
 
     // Filter and sort videos
     const filteredVideos = useMemo(() => {
