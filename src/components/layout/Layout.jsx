@@ -6,6 +6,7 @@ import MobileBottomNav from './MobileBottomNav'
 import { PageTransition } from './PageTransition'
 import { useAuth } from '../../context/AuthContext'
 import { cn } from '../../lib/utils'
+import { useRealtimeNotifications } from '../../hooks/useRealtimeNotifications'
 
 export function Layout({ children }) {
     // Mobile Open State
@@ -18,6 +19,7 @@ export function Layout({ children }) {
     })
 
     const { user } = useAuth()
+    useRealtimeNotifications()
 
     // Persist collapsed state
     useEffect(() => {

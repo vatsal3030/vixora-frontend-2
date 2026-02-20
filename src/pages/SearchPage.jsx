@@ -42,7 +42,7 @@ export default function SearchPage() {
     })
 
     // Normalize data
-    const videos = Array.isArray(searchResults) ? searchResults : (searchResults.docs || [])
+    const videos = searchResults?.items || []
 
     if (error) {
         toast.error('Search failed')

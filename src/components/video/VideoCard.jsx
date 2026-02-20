@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom'
 import {
     MoreVertical, CheckCircle2, Ban, EyeOff, Save, Share2,
-    Pencil, Trash2, Eye, VolumeX, Volume2, Clock
+    Pencil, Trash2, Eye, VolumeX, Volume2, Clock, Flag
 } from 'lucide-react'
 import { Avatar } from '../ui/Avatar'
 import { formatDuration, formatViews, formatTimeAgo } from '../../lib/utils'
 import { getMediaUrl } from '../../lib/media'
 import { AddToPlaylistDialog } from '../playlist/AddToPlaylistDialog'
 import { ShareDialog } from '../common/ShareDialog'
+import { ReportDialog } from '../common/ReportDialog'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -17,7 +18,7 @@ import {
 } from "../ui/DropdownMenu"
 import { toast } from 'sonner'
 import { useState, useRef, useEffect, useCallback, memo } from 'react'
-import { videoService } from '../../services/api'
+import { videoService, feedbackService } from '../../services/api'
 
 const THUMBNAIL_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><polygon fill="#ffffff20" points="140,65 140,115 180,90"/></svg>'
@@ -128,13 +129,32 @@ export const VideoCard = memo(function VideoCard({
         setIsMuted(p => !p)
     }
 
-    const handleNotInterested = () => {
+    const handleNotInterested = async () => {
         setIsHidden(true)
-        toast.success("Video hidden", { description: "We'll tune your recommendations." })
+        toast.success('Video hidden', {
+            description: "Tap Undo to restore.",
+            action: {
+                label: 'Undo', onClick: async () => {
+                    setIsHidden(false)
+                    try { await feedbackService.removeNotInterested(videoId) } catch (err) { console.error(err) }
+                }
+            }
+        })
+        try { await feedbackService.markNotInterested(videoId) } catch (err) { console.error(err) }
     }
-    const handleBlockChannel = () => {
+    const handleBlockChannel = async () => {
         setIsHidden(true)
-        toast.success("Channel blocked", { description: `You won't see videos from ${video.owner?.username} again.` })
+        const channelId = video.owner?.id || video.owner?._id
+        toast.success('Channel hidden', {
+            description: `You won't see videos from ${video.owner?.username} again.`,
+            action: {
+                label: 'Undo', onClick: async () => {
+                    setIsHidden(false)
+                    try { if (channelId) await feedbackService.unblockChannel(channelId) } catch (err) { console.error(err) }
+                }
+            }
+        })
+        try { if (channelId) await feedbackService.blockChannel(channelId) } catch (err) { console.error(err) }
     }
 
     if (!video || isHidden) return null
@@ -319,6 +339,11 @@ function VideoMenu({ videoId, title, video, onNotInterested, onBlock, showEditBu
                 <DropdownMenuItem onClick={onBlock} className="text-destructive focus:text-destructive">
                     <Ban className="w-4 h-4 mr-2" />Block channel
                 </DropdownMenuItem>
+                <ReportDialog targetType="VIDEO" targetId={videoId} trigger={
+                    <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-orange-400 focus:text-orange-400">
+                        <Flag className="w-4 h-4 mr-2" />Report
+                    </DropdownMenuItem>
+                } />
             </DropdownMenuContent>
         </DropdownMenu>
     )

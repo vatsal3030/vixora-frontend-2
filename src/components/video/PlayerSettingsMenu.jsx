@@ -3,7 +3,7 @@ import {
     Gauge, Subtitles, MonitorPlay, Keyboard
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion' // eslint-disable-line
 
 // Sub-components defined outside to prevent re-creation on render
 const SubMenuHeader = ({ title, onBack }) => (
@@ -40,7 +40,9 @@ const MainMenu = ({ onNavigate, onToggleCaptions, onShowShortcuts, playbackSpeed
                 <span>Quality</span>
             </div>
             <div className="flex items-center gap-1 text-xs text-white/50">
-                {quality}
+                <span className="capitalize">
+                    {quality === 'auto' ? 'Auto' : quality}
+                </span>
                 <ChevronRight className="w-4 h-4" />
             </div>
         </button>
@@ -95,24 +97,49 @@ const SpeedMenu = ({ playbackSpeed, onSpeedChange, onBack }) => {
     )
 }
 
-const QualityMenu = ({ quality, onQualityChange, onBack }) => {
-    const qualities = ['Auto', '1080p', '720p', '480p', '360p']
+// Fallback list when API provides no qualities
+const FALLBACK_QUALITIES = ['auto', '1080p', '720p', '480p', '360p', '240p', '144p']
+
+const QualityMenu = ({ quality, onQualityChange, onBack, availableQualities }) => {
+    // Use API-provided list; fall back to hardcoded defaults
+    const qualities = availableQualities && availableQualities.length > 0
+        ? availableQualities.map(q => (typeof q === 'object' ? q.label || q.quality || q : q))
+        : FALLBACK_QUALITIES
+
+    const isHD = (q) => {
+        const n = parseInt(q)
+        return !isNaN(n) && n >= 1080
+    }
+    const isAuto = (q) => q?.toLowerCase() === 'auto'
+
     return (
         <div>
             <SubMenuHeader title="Quality" onBack={onBack} />
-            <div className="py-1">
-                {qualities.map(q => (
-                    <button
-                        key={q}
-                        className="w-full flex items-center gap-3 px-4 py-2 hover:bg-white/10 text-sm text-white/90 transition-colors"
-                        onClick={() => onQualityChange(q)}
-                    >
-                        {quality === q && <Check className="w-4 h-4 text-white" />}
-                        <span className={quality === q ? 'ml-0' : 'ml-7'}>
-                            {q}
-                        </span>
-                    </button>
-                ))}
+            <div className="py-1 max-h-[280px] overflow-y-auto scrollbar-thin">
+                {qualities.map(q => {
+                    const key = typeof q === 'string' ? q : String(q)
+                    const isActive = key.toLowerCase() === (quality || 'auto').toLowerCase()
+                    return (
+                        <button
+                            key={key}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/10 text-sm text-white/90 transition-colors"
+                            onClick={() => onQualityChange(key)}
+                        >
+                            {isActive
+                                ? <Check className="w-4 h-4 text-white flex-shrink-0" />
+                                : <span className="w-4 flex-shrink-0" />}
+                            <span className={isActive ? 'text-white font-medium' : ''}>
+                                {isAuto(key) ? 'Auto' : key}
+                            </span>
+                            {isAuto(key) && (
+                                <span className="ml-auto text-[10px] text-white/40 bg-white/10 px-1.5 py-0.5 rounded">Adaptive</span>
+                            )}
+                            {isHD(key) && (
+                                <span className="ml-auto text-[10px] text-yellow-400 bg-yellow-400/10 px-1.5 py-0.5 rounded font-bold">HD</span>
+                            )}
+                        </button>
+                    )
+                })}
             </div>
         </div>
     )
@@ -123,6 +150,7 @@ export function PlayerSettingsMenu({
     onSpeedChange,
     quality,
     onQualityChange,
+    availableQualities = [],
     showCaptions,
     onToggleCaptions,
     onShowShortcuts,
@@ -176,6 +204,7 @@ export function PlayerSettingsMenu({
                     {activeSubmenu === 'quality' && (
                         <QualityMenu
                             quality={quality}
+                            availableQualities={availableQualities}
                             onQualityChange={(q) => { onQualityChange(q); onClose(); setActiveSubmenu(null); }}
                             onBack={() => setActiveSubmenu(null)}
                         />

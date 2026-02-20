@@ -9,6 +9,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import { ThemeProvider } from './context/ThemeContext'
 import { AppSkeleton } from './components/skeletons/AppSkeleton'
 import { VideoHoverProvider } from './context/VideoHoverContext'
+import VixoraAI from './components/ai/VixoraAI'
 // import { PageLoader } from './components/common/LoadingComponents'
 
 // Lazy load auth pages
@@ -54,6 +55,7 @@ function App() {
         <VideoHoverProvider>
           <Router>
             <Toaster />
+            <VixoraAI />
             <Suspense fallback={<AppSkeleton />}>
               <Routes>
                 {/* Auth Routes - Wrapped in AuthLayout */}

@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Bell, Loader2, Flag, FileText, Save, Play, Heart } from 'lucide-react'
-import { videoService, likeService, subscriptionService, commentService, playlistService, feedService } from '../services/api'
+import { watchService, videoService, likeService, subscriptionService, commentService, playlistService, feedService, transcriptService } from '../services/api'
 import { ShareDialog } from '../components/common/ShareDialog'
+import { ReportDialog } from '../components/common/ReportDialog'
+import AISummaryCard from '../components/ai/AISummaryCard'
 import { AddToPlaylistDialog } from '../components/playlist/AddToPlaylistDialog'
 import {
     DropdownMenu,
@@ -17,12 +19,16 @@ import { CommentItem } from '../components/video/CommentItem'
 import { Avatar } from '../components/ui/Avatar'
 import { VideoCard } from '../components/video/VideoCard'
 import CustomVideoPlayer from '../components/video/CustomVideoPlayer'
-import { formatViews, formatTimeAgo, formatNumber, formatSubscribers } from '../lib/utils'
+import { formatViews, formatTimeAgo, formatNumber, formatSubscribers, cn } from '../lib/utils'
 import { toast } from 'sonner'
 import VideoPlayerSkeleton from '../components/skeletons/VideoPlayerSkeleton'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { KeyboardShortcutsModal } from '../components/common/KeyboardShortcutsModal'
-import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line
+import { motion, AnimatePresence } from 'framer-motion'
+import { getStoredQuality } from '../lib/media'
+import TranscriptPanel from '../components/video/TranscriptPanel'
+import ChaptersPanel from '../components/video/ChaptersPanel'
+import { cuesAsChapters } from '../lib/videoUtils'
 
 export default function WatchPage() {
     const { videoId } = useParams()
@@ -36,6 +42,9 @@ export default function WatchPage() {
     const [autoPlayNext, setAutoPlayNext] = useState(true)
     const [isTheaterMode, setIsTheaterMode] = useState(false)
     const [likeAnimation, setLikeAnimation] = useState(false)
+    const [activeTab, setActiveTab] = useState('next') // 'next' | 'transcript' | 'chapters'
+    const [currentTime, setCurrentTime] = useState(0)
+    const seekToRef = useRef(null)
     const navigate = useNavigate()
 
     // --- Queries ---
@@ -48,6 +57,27 @@ export default function WatchPage() {
         enabled: !!videoId,
         staleTime: 1000 * 60 * 5
     })
+
+    const { data: watchData } = useQuery({
+        queryKey: ['watch', videoId],
+        queryFn: async () => {
+            const quality = getStoredQuality()
+            const res = await watchService.watchVideo(videoId, quality)
+            return res.data.data
+        },
+        enabled: !!videoId,
+        staleTime: 1000 * 60 * 5,
+        retry: false,
+    })
+
+    const playbackUrl = (
+        watchData?.playbackUrl ||
+        watchData?.streaming?.selectedPlaybackUrl ||
+        video?.videoFile ||
+        video?.videoUrl
+    )
+
+    const availableQualities = watchData?.availableQualities || watchData?.streaming?.availableQualities || []
 
     const {
         data: commentsData,
@@ -69,7 +99,7 @@ export default function WatchPage() {
 
     const comments = commentsData?.pages.flatMap(page => page?.items || []) || []
 
-    const { data: recommended } = useQuery({
+    const { data: recommendedRaw } = useQuery({
         queryKey: ['recommendations', videoId],
         queryFn: async () => {
             const res = await feedService.getHomeFeed({ limit: 12 })
@@ -78,6 +108,8 @@ export default function WatchPage() {
         enabled: !!videoId,
         staleTime: 1000 * 60 * 5
     })
+
+    const recommended = recommendedRaw?.filter(v => v._id !== videoId) || []
 
     const { data: playlist } = useQuery({
         queryKey: ['playlist', playlistId],
@@ -88,17 +120,41 @@ export default function WatchPage() {
         enabled: !!playlistId
     })
 
+    const { data: transcriptData } = useQuery({
+        queryKey: ['transcript', videoId],
+        queryFn: async () => {
+            const res = await transcriptService.getWatchTranscript(videoId)
+            return res.data.data
+        },
+        enabled: !!videoId
+    })
+
     useDocumentTitle(video?.title || 'Vixora')
 
+    const transcriptItems = transcriptData?.items || transcriptData?.cues || []
+    const chapters = video?.chapters || cuesAsChapters(transcriptItems, 8, video?.thumbnail)
+
     const handleVideoEnd = () => {
-        if (autoPlayNext && recommended && recommended.length > 0) {
-            const nextVideo = recommended[0]
-            toast('Playing next: ' + nextVideo.title, { duration: 3000 })
-            setTimeout(() => navigate(`/watch/${nextVideo._id}`), 3000)
+        if (!autoPlayNext) return
+        let nextVideo = null
+        if (playlistId && playlist?.videos) {
+            const currentIndex = playlist.videos.findIndex(v => v._id === videoId)
+            if (currentIndex !== -1 && currentIndex < playlist.videos.length - 1) {
+                nextVideo = playlist.videos[currentIndex + 1]
+            }
+        }
+        if (!nextVideo && recommended.length > 0) {
+            nextVideo = recommended[0]
+        }
+        if (nextVideo?._id) {
+            toast('Playing next: ' + (nextVideo.title || 'Untitled Video'), { duration: 3000 })
+            const url = playlistId
+                ? `/watch/${nextVideo._id}?list=${playlistId}`
+                : `/watch/${nextVideo._id}`
+            setTimeout(() => navigate(url), 3000)
         }
     }
 
-    // Keyboard Shortcuts Listener for Help Modal
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === '?' && e.shiftKey) setShowShortcuts(prev => !prev)
@@ -155,7 +211,6 @@ export default function WatchPage() {
             setNewComment('')
             toast.success('Comment added')
             queryClient.invalidateQueries(['comments', videoId])
-            queryClient.invalidateQueries(['video', videoId])
         },
         onError: () => toast.error('Failed to post comment')
     })
@@ -181,33 +236,32 @@ export default function WatchPage() {
 
     return (
         <div className={isTheaterMode ? "w-full min-h-screen bg-background relative selection:bg-primary/30" : "container mx-auto px-4 py-6 max-w-[1800px] min-h-screen bg-background relative selection:bg-primary/30"}>
-
-
             <div className={`grid gap-6 ${isTheaterMode ? 'grid-cols-1' : 'grid-cols-1 lg:grid-cols-3 xl:grid-cols-4'}`}>
 
                 {/* 1. Video Player Section */}
                 <div className={`${isTheaterMode ? 'w-full' : 'lg:col-span-2 xl:col-span-3'} order-1`}>
                     <CustomVideoPlayer
-                        src={video.videoFile}
+                        src={playbackUrl}
                         poster={video.thumbnail}
-                        videoId={video._id}
+                        videoId={videoId}
                         autoPlay={true}
-                        defaultQuality={video.quality || 'Auto'}
                         onEnded={handleVideoEnd}
                         isTheaterMode={isTheaterMode}
                         onToggleTheater={() => setIsTheaterMode(!isTheaterMode)}
                         onShowShortcuts={() => setShowShortcuts(true)}
+                        selectedQuality={getStoredQuality()}
+                        availableQualities={availableQualities}
+                        onTimeUpdate={setCurrentTime}
+                        seekToRef={seekToRef}
                         className={isTheaterMode ? "w-full h-[85vh]" : "w-full aspect-video shadow-premium rounded-xl overflow-hidden"}
                     />
                 </div>
 
                 {/* 2. Video Info Section */}
                 <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : 'lg:col-span-2 xl:col-span-3'} order-2 space-y-4`}>
-
                     <h1 className="text-xl md:text-2xl font-bold line-clamp-2 mt-2">{video.title}</h1>
 
                     <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
-                        {/* Channel & Subscribe */}
                         <div className="flex items-center gap-4 w-full md:w-auto">
                             <Link to={`/@${video.owner.username}`} className="flex-shrink-0">
                                 <Avatar src={video.owner.avatar} fallback={video.owner.username} size="lg" className="w-10 h-10 md:w-12 md:h-12" />
@@ -235,7 +289,6 @@ export default function WatchPage() {
                             </Button>
                         </div>
 
-                        {/* Actions Row */}
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto scrollbar-hide">
                             <div className="flex bg-white/10 rounded-full overflow-hidden items-center shrink-0 h-9 md:h-10">
                                 <button
@@ -285,7 +338,7 @@ export default function WatchPage() {
                                     <DropdownMenuItem onClick={() => toast("Report received")} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
                                         <Flag className="w-4 h-4 mr-3" /> Report
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => toast("Opening transcript...")} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
+                                    <DropdownMenuItem onClick={() => setActiveTab('transcript')} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
                                         <FileText className="w-4 h-4 mr-3" /> Show Transcript
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
@@ -293,7 +346,6 @@ export default function WatchPage() {
                         </div>
                     </div>
 
-                    {/* Description Box - Updated to match site theme */}
                     <div
                         className={`glass-card rounded-xl p-4 text-sm cursor-pointer transition-colors ${isDescriptionExpanded ? '' : 'overflow-hidden'}`}
                         onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
@@ -317,39 +369,76 @@ export default function WatchPage() {
                     </div>
                 </div>
 
-                {/* 3. Recommended Sidebar */}
-                <div className={`${isTheaterMode ? 'hidden' : 'lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-3 xl:col-start-4'} order-3 flex flex-col gap-4`}>
-                    {!isTheaterMode && (
-                        <>
-                            <div className="flex items-center justify-between px-1 mb-2">
-                                <h3 className="font-bold text-lg">Up Next</h3>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold text-muted-foreground">Autoplay</span>
-                                    <div
-                                        className={`w-10 h-6 rounded-full p-1 cursor-pointer transition-colors ${autoPlayNext ? 'bg-primary' : 'bg-gray-600'}`}
-                                        onClick={() => setAutoPlayNext(!autoPlayNext)}
-                                    >
-                                        <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${autoPlayNext ? 'translate-x-4' : 'translate-x-0'}`} />
+                {/* 3. Sidebar (Recommendations / Transcript / Chapters) */}
+                <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : 'lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-3 xl:col-start-4'} order-3 flex flex-col gap-4`}>
+
+                    {/* AI Summary Card */}
+                    <AISummaryCard videoId={videoId} />
+
+                    {/* Sidebar Tabs */}
+                    <div className="flex bg-white/4 rounded-xl p-1 mb-2">
+                        <button
+                            onClick={() => setActiveTab('next')}
+                            className={cn(
+                                "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all",
+                                activeTab === 'next' ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white"
+                            )}
+                        >
+                            Up Next
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('transcript')}
+                            className={cn(
+                                "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all",
+                                activeTab === 'transcript' ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white"
+                            )}
+                        >
+                            Transcript
+                        </button>
+                        {chapters.length > 0 && (
+                            <button
+                                onClick={() => setActiveTab('chapters')}
+                                className={cn(
+                                    "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all",
+                                    activeTab === 'chapters' ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white"
+                                )}
+                            >
+                                Chapters
+                            </button>
+                        )}
+                    </div>
+
+                    <div className="flex flex-col gap-3 min-h-[300px]">
+                        {activeTab === 'next' && (
+                            <>
+                                <div className="flex items-center justify-between px-1 mb-1">
+                                    <h3 className="font-bold text-sm">Recommended</h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-semibold text-muted-foreground uppercase opacity-60">Autoplay</span>
+                                        <div
+                                            className={`w-8 h-4.5 rounded-full p-0.5 cursor-pointer transition-colors ${autoPlayNext ? 'bg-primary' : 'bg-gray-600'}`}
+                                            onClick={() => setAutoPlayNext(!autoPlayNext)}
+                                        >
+                                            <div className={`w-3.5 h-3.5 bg-white rounded-full transition-transform shadow-sm ${autoPlayNext ? 'translate-x-3.5' : 'translate-x-0'}`} />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex flex-col gap-3">
                                 {playlist ? (
-                                    <div className="glass-card rounded-xl border-white/5 overflow-hidden mb-4">
-                                        <div className="p-3 bg-white/5 border-b border-white/5">
-                                            <h4 className="font-bold text-sm">{playlist.name}</h4>
-                                            <p className="text-xs text-muted-foreground">{playlist.owner?.username} - {playlist.videos.length} videos</p>
+                                    <div className="glass-card rounded-xl border-white/5 overflow-hidden mb-2">
+                                        <div className="p-2.5 bg-white/5 border-b border-white/5">
+                                            <h4 className="font-bold text-xs truncate">{playlist.name}</h4>
+                                            <p className="text-[10px] text-muted-foreground truncate">{playlist.owner?.username} - {playlist.videos.length} videos</p>
                                         </div>
-                                        <div className="max-h-[400px] overflow-y-auto">
+                                        <div className="max-h-[300px] overflow-y-auto">
                                             {playlist.videos?.map((v, i) => (
                                                 <Link key={v._id} to={`/watch/${v._id}?list=${playlist._id}`}
                                                     className={`flex gap-2 p-2 hover:bg-white/5 ${v._id === videoId && 'bg-white/10'}`}>
-                                                    <span className="text-xs text-gray-400 w-4 flex-shrink-0 flex items-center">{v._id === videoId ? <Play className="w-3 h-3 fill-white" /> : i + 1}</span>
-                                                    <img src={v.thumbnail} className="w-24 h-14 object-cover rounded" />
+                                                    <span className="text-[10px] text-gray-400 w-4 flex-shrink-0 flex items-center">{v._id === videoId ? <Play className="w-2.5 h-2.5 fill-white" /> : i + 1}</span>
+                                                    <img src={v.thumbnail} className="w-20 h-11 object-cover rounded" />
                                                     <div className="min-w-0">
-                                                        <p className="text-xs font-bold line-clamp-2 text-white">{v.title}</p>
-                                                        <p className="text-[10px] text-gray-400">{v.owner?.username}</p>
+                                                        <p className="text-[10px] font-bold line-clamp-2 text-white">{v.title}</p>
+                                                        <p className="text-[9px] text-gray-400">{v.owner?.username}</p>
                                                     </div>
                                                 </Link>
                                             ))}
@@ -357,36 +446,45 @@ export default function WatchPage() {
                                     </div>
                                 ) : null}
 
-                                {recommended?.map((recVideo) => (
-                                    <VideoCard
-                                        key={recVideo._id}
-                                        video={recVideo}
-                                        type="compact"
-                                    />
-                                ))}
+                                <div className="flex flex-col gap-3">
+                                    {recommended?.map((recVideo) => (
+                                        <VideoCard
+                                            key={recVideo._id}
+                                            video={recVideo}
+                                            type="compact"
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {activeTab === 'transcript' && (
+                            <div className="glass-card rounded-xl p-3 h-[500px] flex flex-col">
+                                <TranscriptPanel
+                                    videoId={videoId}
+                                    currentTime={currentTime}
+                                    onSeek={(s) => seekToRef.current?.(s)}
+                                />
                             </div>
-                        </>
-                    )}
+                        )}
+
+                        {activeTab === 'chapters' && (
+                            <div className="glass-card rounded-xl p-3">
+                                <ChaptersPanel
+                                    chapters={chapters}
+                                    currentTime={currentTime}
+                                    poster={video.thumbnail}
+                                    onSeek={(s) => seekToRef.current?.(s)}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {/* 4. Comments Section - Improved */}
+                {/* 4. Comments Section */}
                 <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : 'lg:col-span-2 xl:col-span-3'} order-4 pt-6`}>
                     <div className="flex items-center gap-6 mb-6">
                         <h3 className="font-bold text-xl">{formatNumber(video.commentsCount)} Comments</h3>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <button className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-white transition-colors">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                                    </svg>
-                                    Sort by
-                                </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" className="glass-panel border-white/5 text-white rounded-xl">
-                                <DropdownMenuItem className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-2">Top comments</DropdownMenuItem>
-                                <DropdownMenuItem className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-2">Newest first</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
                     </div>
 
                     <form onSubmit={handleSubmitComment} className="flex gap-4 mb-8 items-start">

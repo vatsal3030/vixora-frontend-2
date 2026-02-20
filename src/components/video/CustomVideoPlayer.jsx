@@ -4,9 +4,11 @@ import {
     Settings, PictureInPicture, Loader2, Volume1, RectangleHorizontal,
     SkipForward, SkipBack, Captions
 } from 'lucide-react'
-import { watchHistoryService } from '../../services/api'
+import { watchHistoryService, watchService } from '../../services/api'
 import { PlayerSettingsMenu } from './PlayerSettingsMenu'
 import { cn } from '../../lib/utils'
+import { getMediaUrl, getStoredQuality, setStoredQuality } from '../../lib/media'
+import { toast } from 'sonner'
 
 export default function CustomVideoPlayer({
     src,
@@ -18,13 +20,23 @@ export default function CustomVideoPlayer({
     isTheaterMode,
     onToggleTheater,
     onShowShortcuts,
-    defaultQuality = 'Auto'
+    // Quality props from WatchPage
+    selectedQuality = 'auto',
+    availableQualities = [],
+    onQualityChange,
+    // Transcript/chapter integration
+    onTimeUpdate,   // (seconds: number) => void  — throttled to ~1s
+    seekToRef,      // ref — parent attaches: seekToRef.current = (s) => { videoRef.current.currentTime = s }
 }) {
+    // Quality Preference Logic
+    const initialQuality = getStoredQuality()
+
     // Refs
     const videoRef = useRef(null)
     const containerRef = useRef(null)
     const progressBarRef = useRef(null)
     const controlsTimeoutRef = useRef(null)
+    const currentSrcRef = useRef(null) // track loaded src to avoid redundant reloads
 
     // Playback State
     const [isPlaying, setIsPlaying] = useState(false)
@@ -47,20 +59,36 @@ export default function CustomVideoPlayer({
     const [volume, setVolume] = useState(1)
     const [isMuted, setIsMuted] = useState(false)
     const [playbackSpeed, setPlaybackSpeed] = useState(1)
-    const [quality, setQuality] = useState(defaultQuality)
     const [showCaptions, setShowCaptions] = useState(false)
+    // Quality Switch State
+    const [isSwitchingQuality, setIsSwitchingQuality] = useState(false)
+    const [quality, setQuality] = useState(initialQuality)
+    const [activeSrc, setActiveSrc] = useState(() => src || null)
+
+    // Reset internal state when videoId changes
+    useEffect(() => {
+        setQuality(getStoredQuality())
+        setIsEnded(false)
+        setCurrentTime(0)
+        setDuration(0)
+    }, [videoId])
+
+    // Sync prop quality to state
+    useEffect(() => {
+        setQuality(selectedQuality)
+    }, [selectedQuality])
 
     // Helper: Format Time
     const formatTime = (time) => {
-        if (isNaN(time)) return "0:00"
+        if (!time || isNaN(time) || time === Infinity) return "0:00"
         const hours = Math.floor(time / 3600)
         const minutes = Math.floor((time % 3600) / 60)
         const seconds = Math.floor(time % 60)
 
         if (hours > 0) {
-            return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+            return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds} `
         }
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds} `
     }
 
     // Load saved progress
@@ -94,6 +122,117 @@ export default function CustomVideoPlayer({
             )
         } catch { /* Silent */ }
     }, [videoId])
+
+    // ── Quality Switch — Backend Driven ───────────────────────────────────────
+    const handleQualityChange = useCallback(async (newQuality) => {
+        if (newQuality === quality && activeSrc) return
+        const el = videoRef.current
+        if (!el || !videoId) return
+
+        const savedTime = el.currentTime
+        const wasPlaying = !el.paused
+        setIsSwitchingQuality(true)
+        setQuality(newQuality)
+        setStoredQuality(newQuality) // Persist preference
+        onQualityChange?.(newQuality)
+
+        try {
+            // Always call backend for specific playback URL per requirement
+            const res = await watchService.getStreamMeta(videoId, newQuality.toLowerCase())
+            const data = res?.data?.data
+            const newSrc = data?.playbackUrl || data?.streaming?.selectedPlaybackUrl
+
+            if (newSrc) {
+                const resolvedNewSrc = newSrc.startsWith('http') ? newSrc : getMediaUrl(newSrc)
+                currentSrcRef.current = resolvedNewSrc
+                setActiveSrc(resolvedNewSrc)
+
+                // Restore playhead after load — use onLoadedMetadata
+                const el = videoRef.current
+                if (el) {
+                    const onLoad = () => {
+                        el.currentTime = savedTime
+                        if (wasPlaying) el.play().catch(() => { })
+                        el.removeEventListener('loadedmetadata', onLoad)
+                    }
+                    el.addEventListener('loadedmetadata', onLoad)
+                }
+            }
+        } catch (err) {
+            console.error('[Player] Quality switch failed:', err)
+            toast.error(`Failed to switch to ${newQuality} `)
+        } finally {
+            setIsSwitchingQuality(false)
+        }
+    }, [quality, activeSrc, videoId, onQualityChange])
+
+    // Fallback to MAX on error
+    const handlePlayerError = useCallback(async () => {
+        if (quality === 'MAX' || !videoId) return
+        console.warn(`[Player] Playback error at ${quality}, falling back to MAX...`)
+
+        const el = videoRef.current
+        const savedTime = el?.currentTime || 0
+
+        try {
+            const res = await watchService.getStreamMeta(videoId, 'MAX')
+            const data = res?.data?.data
+            const fallbackSrc = data?.playbackUrl || data?.streaming?.selectedPlaybackUrl
+
+            if (fallbackSrc) {
+                const resolved = fallbackSrc.startsWith('http') ? fallbackSrc : getMediaUrl(fallbackSrc)
+                currentSrcRef.current = resolved
+                setActiveSrc(resolved)
+                setQuality('MAX')
+                onQualityChange?.('MAX')
+
+                if (el) {
+                    const onRestore = () => {
+                        el.currentTime = savedTime
+                        el.play().catch(() => { })
+                        el.removeEventListener('loadedmetadata', onRestore)
+                    }
+                    el.addEventListener('loadedmetadata', onRestore)
+                }
+            }
+        } catch (err) {
+            console.error('[Player] Fallback failed:', err)
+        }
+    }, [quality, videoId, onQualityChange])
+
+    // Sync src prop → activeSrc state (handles late API resolve: undefined → URL)
+    useEffect(() => {
+        if (!src) return
+        const resolved = src.startsWith('http') ? src : getMediaUrl(src)
+
+        // Use ref to compare — browser normalizes el.src to absolute URL which causes false mismatches
+        if (currentSrcRef.current === resolved) return
+
+        const isInitialLoad = !currentSrcRef.current
+        currentSrcRef.current = resolved
+        setActiveSrc(resolved)
+
+        // If a video was already loaded (quality switch mid-session), also call el.load()
+        const el = videoRef.current
+        if (el && (el.readyState > 0 || !isInitialLoad)) {
+            const t = el.currentTime
+            const wasPlaying = !el.paused || (isInitialLoad && autoPlay)
+
+            el.load()
+
+            // Restore playback state after source change
+            if (t > 0) el.currentTime = t
+            if (wasPlaying) {
+                // Delay play slightly to ensure load() has processed the new source
+                const playAttempt = () => el.play().catch(() => {
+                    // Fallback: try once more on interaction or after a short delay
+                    setTimeout(() => el.play().catch(() => { }), 100)
+                })
+                playAttempt()
+            }
+        }
+    }, [src, autoPlay])
+
 
     // Play/Pause Toggle
     const togglePlay = useCallback((e) => {
@@ -291,8 +430,36 @@ export default function CustomVideoPlayer({
 
 
     // Lifecycle Events
-    const handleTimeUpdate = () => setCurrentTime(videoRef.current.currentTime)
-    const handleLoadedMetadata = () => setDuration(videoRef.current.duration)
+    const lastTimeUpdateRef = useRef(0)
+    const handleTimeUpdate = () => {
+        const t = videoRef.current?.currentTime ?? 0
+        setCurrentTime(t)
+        // Throttle external callback to ~1s to avoid excessive parent renders
+        if (onTimeUpdate && t - lastTimeUpdateRef.current >= 1) {
+            lastTimeUpdateRef.current = t
+            onTimeUpdate(t)
+        }
+    }
+
+    // Expose seek function to parent via ref
+    useEffect(() => {
+        if (seekToRef) {
+            seekToRef.current = (seconds) => {
+                if (videoRef.current) {
+                    videoRef.current.currentTime = seconds
+                    if (videoRef.current.paused) videoRef.current.play().catch(() => { })
+                }
+            }
+        }
+    }, [seekToRef])
+    const handleLoadedMetadata = () => {
+        const d = videoRef.current.duration
+        if (d && d !== Infinity) setDuration(d)
+    }
+    const handleDurationChange = () => {
+        const d = videoRef.current.duration
+        if (d && d !== Infinity) setDuration(d)
+    }
     const handleWaiting = () => setIsBuffering(true)
     const handlePlaying = () => { setIsBuffering(false); setIsPlaying(true); setIsEnded(false) }
     const handleEnded = () => {
@@ -328,23 +495,26 @@ export default function CustomVideoPlayer({
         >
             <video
                 ref={videoRef}
-                src={src}
+                src={activeSrc || undefined}
                 poster={poster}
                 className={cn("w-full h-full", isTheaterMode || isFullscreen ? "object-contain" : "object-cover")}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
+                onDurationChange={handleDurationChange}
                 onWaiting={handleWaiting}
                 onPlaying={handlePlaying}
                 onPause={() => setIsPlaying(false)}
                 onEnded={handleEnded}
+                onError={handlePlayerError}
                 autoPlay={autoPlay}
                 playsInline
             />
 
             {/* Buffering Spinner */}
-            {isBuffering && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+            {(isBuffering || isSwitchingQuality) && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20 gap-2">
                     <Loader2 className="w-12 h-12 text-white animate-spin drop-shadow-lg" />
+                    {isSwitchingQuality && <span className="text-white/70 text-xs font-medium">Switching quality...</span>}
                 </div>
             )}
 
@@ -375,12 +545,12 @@ export default function CustomVideoPlayer({
                     onMouseDown={handleMouseDown}
                 >
                     {/* Buffer Bar (Mock loop for now) */}
-                    <div className="absolute top-0 left-0 h-full bg-white/40" style={{ width: `${(currentTime / duration) * 100 + 5}%`, maxWidth: '100%' }} />
+                    <div className="absolute top-0 left-0 h-full bg-white/40" style={{ width: `${(currentTime / duration) * 100 + 5}% `, maxWidth: '100%' }} />
 
                     {/* Current Time Bar */}
                     <div
                         className="absolute top-0 left-0 h-full bg-[#f00]"
-                        style={{ width: `${(currentTime / duration) * 100}%` }}
+                        style={{ width: `${(currentTime / duration) * 100}% ` }}
                     >
                         {/* Scrubber Knob */}
                         <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#f00] rounded-full scale-0 group-hover/progress:scale-100 transition-transform duration-200" />
@@ -422,7 +592,7 @@ export default function CustomVideoPlayer({
                                 <div className="relative w-full h-1 bg-white/30 rounded-full">
                                     <div
                                         className="absolute left-0 top-0 h-full bg-white rounded-full"
-                                        style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}
+                                        style={{ width: `${(isMuted ? 0 : volume) * 100}% ` }}
                                     />
                                     <input
                                         type="range"
@@ -474,7 +644,8 @@ export default function CustomVideoPlayer({
                                     if (videoRef.current) videoRef.current.playbackRate = s;
                                 }}
                                 quality={quality}
-                                onQualityChange={setQuality}
+                                onQualityChange={handleQualityChange}
+                                availableQualities={availableQualities}
                                 showCaptions={showCaptions}
                                 onToggleCaptions={() => setShowCaptions(!showCaptions)}
                                 onShowShortcuts={onShowShortcuts}

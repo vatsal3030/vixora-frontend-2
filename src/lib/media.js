@@ -12,3 +12,22 @@ export const getMediaUrl = (path) => {
 
     return `${baseUrl}${cleanPath}`;
 };
+
+// Quality Preference Persistence
+const QUALITY_PREF_KEY = 'vixora_video_quality_pref';
+
+export const getStoredQuality = () => {
+    try {
+        return localStorage.getItem(QUALITY_PREF_KEY) || 'auto';
+    } catch {
+        return 'auto';
+    }
+};
+
+export const setStoredQuality = (quality) => {
+    try {
+        localStorage.setItem(QUALITY_PREF_KEY, quality);
+    } catch (err) {
+        console.error('[Storage] Failed to save quality preference:', err);
+    }
+};

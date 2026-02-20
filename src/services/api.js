@@ -179,7 +179,13 @@ export const dashboardService = {
 
 // Watch Service (for video streaming)
 export const watchService = {
-    watchVideo: (videoId) => api.get(`/watch/${videoId}`)
+    // Initial load: increments views + returns quality-resolved playback URL
+    watchVideo: (videoId, quality = 'auto') =>
+        api.get(`/watch/${videoId}`, { params: { quality } }),
+
+    // Quality switch: returns new URL without incrementing views
+    getStreamMeta: (videoId, quality = 'auto') =>
+        api.get(`/watch/${videoId}/stream`, { params: { quality } })
 }
 
 // Settings Service
@@ -187,4 +193,60 @@ export const settingsService = {
     getSettings: () => api.get('/settings'),
     updateSettings: (data) => api.patch('/settings', data),
     resetSettings: () => api.post('/settings/reset')
+}
+
+// AI Service (Vixora AI — powered by Gemini)
+export const aiService = {
+    // Chat Sessions
+    createSession: (data = {}) => api.post('/ai/sessions', data), // { videoId?, title? }
+    getSessions: (params = {}) => api.get('/ai/sessions', { params }),
+    getSessionMessages: (sessionId, params = {}) => api.get(`/ai/sessions/${sessionId}/messages`, { params }),
+    sendMessage: (sessionId, message) => api.post(`/ai/sessions/${sessionId}/messages`, { message }),
+
+    // Video-specific AI
+    getVideoSummary: (videoId) => api.get(`/ai/videos/${videoId}/summary`),
+    generateVideoSummary: (videoId, force = false) => api.post(`/ai/videos/${videoId}/summary`, { force }),
+    askAboutVideo: (videoId, question) => api.post(`/ai/videos/${videoId}/ask`, { question }),
+
+    // Transcript (AI route — auth required)
+    getVideoTranscript: (videoId, params = {}) => api.get(`/ai/videos/${videoId}/transcript`, { params }),
+    uploadTranscript: (videoId, body) => api.post(`/ai/videos/${videoId}/transcript`, body),
+    deleteTranscript: (videoId) => api.delete(`/ai/videos/${videoId}/transcript`),
+}
+
+// Transcript Service (public read via watch route + owner management)
+export const transcriptService = {
+    // Public — watch route (supports q, from, to, fromSeconds, toSeconds, page, limit)
+    getWatchTranscript: (videoId, params = {}) => api.get(`/watch/${videoId}/transcript`, { params }),
+    // Auth — AI route (same data, requires login)
+    getAITranscript: (videoId, params = {}) => api.get(`/ai/videos/${videoId}/transcript`, { params }),
+    // Owner only — upsert transcript (plain text, SRT/VTT, or cues array)
+    uploadTranscript: (videoId, body) => api.post(`/ai/videos/${videoId}/transcript`, body),
+    // Owner only — delete transcript
+    deleteTranscript: (videoId) => api.delete(`/ai/videos/${videoId}/transcript`),
+}
+
+// Feedback Service (Not Interested, Block Channel, Reports)
+export const feedbackService = {
+    // Not Interested
+    markNotInterested: (videoId, reason) => api.post(`/feedback/not-interested/${videoId}`, { reason }),
+    removeNotInterested: (videoId) => api.delete(`/feedback/not-interested/${videoId}`),
+    getNotInterested: (params = {}) => api.get('/feedback/not-interested', { params }),
+
+    // Blocked Channels
+    blockChannel: (channelId) => api.post(`/feedback/blocked-channels/${channelId}`),
+    unblockChannel: (channelId) => api.delete(`/feedback/blocked-channels/${channelId}`),
+    getBlockedChannels: (params = {}) => api.get('/feedback/blocked-channels', { params }),
+
+    // Reports
+    report: ({ targetType, targetId, reason, description }) =>
+        api.post('/feedback/reports', { targetType, targetId, reason, description }),
+    getMyReports: (params = {}) => api.get('/feedback/reports/me', { params })
+}
+
+// Account Service (Multi-Account Switch)
+export const accountService = {
+    getAccountSwitchToken: () => api.get('/users/account-switch-token'),
+    switchAccount: (accountSwitchToken) => api.post('/users/switch-account', { accountSwitchToken }),
+    resolveAccounts: (tokens) => api.post('/users/switch-account/resolve', { tokens })
 }

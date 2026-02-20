@@ -164,27 +164,27 @@ export default function ChannelPage() {
             <ChannelTabs activeTab={activeTab} onChange={setActiveTab} />
 
             <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4">
-                {/* VIDEOS & SHORTS TAB */}
-                {(activeTab === 'Videos' || activeTab === 'Shorts') && (
+                {/* VIDEOS TAB */}
+                {activeTab === 'Videos' && (
                     <>
                         {loadingVideos ? (
-                            <div className={`grid grid-cols-1 ${activeTab === 'Shorts' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3'} gap-x-4 gap-y-8`}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                                 {Array.from({ length: 8 }).map((_, i) => <VideoCardSkeleton key={i} />)}
                             </div>
                         ) : videos.length === 0 ? (
                             <div className="text-center py-20 text-muted-foreground">
-                                <p>This channel has no {activeTab.toLowerCase()}.</p>
+                                <p>This channel has no videos.</p>
                             </div>
                         ) : (
                             <>
-                                <div className={`grid grid-cols-1 ${activeTab === 'Shorts' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3'} gap-x-4 gap-y-8`}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                                     {videos.map((video, index) => (
                                         <div
                                             key={video._id}
                                             className="animate-in fade-in slide-in-from-bottom-4 duration-500"
                                             style={{ animationDelay: `${index * 50}ms` }}
                                         >
-                                            <VideoCard video={video} type={activeTab === 'Shorts' ? 'shorts' : 'standard'} />
+                                            <VideoCard video={video} type="standard" />
                                         </div>
                                     ))}
                                 </div>
@@ -211,7 +211,7 @@ export default function ChannelPage() {
                             {Array.from({ length: 10 }).map((_, i) => <VideoCardSkeleton key={i} />)}
                         </div>
                     ) : shorts.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-2xl border-white/5">
+                        <div className="flex flex-col items-center justify-center py-20 text-center glass-panel rounded-2xl border-white/5">
                             <div className="bg-secondary/30 p-4 rounded-full mb-4">
                                 <Smartphone className="w-8 h-8 text-muted-foreground" />
                             </div>
@@ -222,8 +222,13 @@ export default function ChannelPage() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                            {shorts.map((video) => (
-                                <Link to={`/watch/${video._id}`} key={video._id} className="group relative aspect-[9/16] rounded-xl overflow-hidden bg-black glass-card border-0">
+                            {shorts.map((video, index) => (
+                                <Link
+                                    to={`/watch/${video._id}`}
+                                    key={video._id}
+                                    className="group relative aspect-[9/16] rounded-xl overflow-hidden bg-black glass-panel border-0 animate-in fade-in zoom-in-95 duration-500"
+                                    style={{ animationDelay: `${index * 50}ms` }}
+                                >
                                     <img
                                         src={video.thumbnail}
                                         alt={video.title}

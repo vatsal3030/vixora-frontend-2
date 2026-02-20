@@ -45,13 +45,16 @@ export default function MyVideosPage() {
             })
             return res.data.data
         },
-        getNextPageParam: (lastPage) => lastPage?.hasNextPage ? lastPage.nextPage : undefined,
+        getNextPageParam: (lastPage) => {
+            const p = lastPage?.pagination
+            return p?.hasNextPage ? (p.currentPage || p.page) + 1 : undefined
+        },
         initialPageParam: 1
     })
 
     // --- Derived State (Client-side Filtering) ---
     const allVideos = useMemo(() => {
-        const flattened = _videosData?.pages.flatMap(page => page?.docs || page) || []
+        const flattened = _videosData?.pages.flatMap(page => page?.items || []) || []
 
         return flattened.filter(video => {
             // Text Search
