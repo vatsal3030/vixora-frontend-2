@@ -168,7 +168,7 @@ export default function ChannelPage() {
                 {(activeTab === 'Videos' || activeTab === 'Shorts') && (
                     <>
                         {loadingVideos ? (
-                            <div className={`grid grid-cols-1 ${activeTab === 'Shorts' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-x-4 gap-y-6`}>
+                            <div className={`grid grid-cols-1 ${activeTab === 'Shorts' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3'} gap-x-4 gap-y-8`}>
                                 {Array.from({ length: 8 }).map((_, i) => <VideoCardSkeleton key={i} />)}
                             </div>
                         ) : videos.length === 0 ? (
@@ -177,7 +177,7 @@ export default function ChannelPage() {
                             </div>
                         ) : (
                             <>
-                                <div className={`grid grid-cols-1 ${activeTab === 'Shorts' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-x-4 gap-y-6`}>
+                                <div className={`grid grid-cols-1 ${activeTab === 'Shorts' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' : 'sm:grid-cols-2 lg:grid-cols-3'} gap-x-4 gap-y-8`}>
                                     {videos.map((video, index) => (
                                         <div
                                             key={video._id}
@@ -252,7 +252,7 @@ export default function ChannelPage() {
                                 <p>This channel has no playlists.</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                                 {playlists.map((playlist) => (
                                     <Link to={`/playlist/${playlist._id}`} key={playlist._id} className="group cursor-pointer">
                                         <div className="relative aspect-video rounded-xl overflow-hidden glass-card mb-3 border border-white/5">

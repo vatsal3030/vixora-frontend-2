@@ -1,5 +1,8 @@
 import { Link } from 'react-router-dom'
-import { MoreVertical, CheckCircle2, Ban, EyeOff, Save, Share2, Pencil, Trash2, Eye, VolumeX, Volume2, Clock, MoreHorizontal } from 'lucide-react'
+import {
+    MoreVertical, CheckCircle2, Ban, EyeOff, Save, Share2,
+    Pencil, Trash2, Eye, VolumeX, Volume2, Clock
+} from 'lucide-react'
 import { Avatar } from '../ui/Avatar'
 import { formatDuration, formatViews, formatTimeAgo } from '../../lib/utils'
 import { getMediaUrl } from '../../lib/media'
@@ -13,311 +16,245 @@ import {
     DropdownMenuSeparator,
 } from "../ui/DropdownMenu"
 import { toast } from 'sonner'
-import { useState, useRef, useEffect, memo } from 'react'
-import { cn } from '../../lib/utils'
-import { useVideoHover } from '../../context/VideoHoverContext'
+import { useState, useRef, useEffect, useCallback, memo } from 'react'
+import { videoService } from '../../services/api'
 
-const THUMBNAIL_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><polygon fill="#ffffff20" points="140,65 140,115 180,90"/></svg>')
+const THUMBNAIL_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><polygon fill="#ffffff20" points="140,65 140,115 180,90"/></svg>'
+)
 
-export const VideoCard = memo(function VideoCard({ video, type = 'default', showEditButton = false, onDelete, onTogglePublish }) {
-    const { hoveredVideoId, onHover, onLeave } = useVideoHover()
+export const VideoCard = memo(function VideoCard({
+    video, type = 'default', showEditButton = false, onDelete, onTogglePublish
+}) {
+    const [isHovered, setIsHovered] = useState(false)
     const [isHidden, setIsHidden] = useState(false)
-    // const [showPreview, setShowPreview] = useState(false) // Managed globally
     const [isMuted, setIsMuted] = useState(true)
-    const [isPlaying, setIsPlaying] = useState(false)
+    const [previewUrl, setPreviewUrl] = useState(null)   // fetched video URL
+    const [isFetchingUrl, setIsFetchingUrl] = useState(false)
+
     const videoRef = useRef(null)
+    const hoverTimerRef = useRef(null)
+    const cachedUrlRef = useRef(null)  // never re-fetch the same card
+    const isUnmountedRef = useRef(false)
 
     const videoId = video?.id || video?._id
-    const showPreview = hoveredVideoId === videoId
+    const progress = video?.watchProgress || 0
 
-    // Stable badges - computed once on mount using useState initializer
-    const [isNew] = useState(() => {
-        if (!video?.createdAt) return false
-        const weekAgo = Date.now() - 1000 * 60 * 60 * 24 * 7
-        return new Date(video.createdAt).getTime() > weekAgo
-    })
-    const progress = video?.watchProgress || 0 // Use actual progress if available
+    // If the list response already includes a videoFile/videoUrl, use it directly
+    const listVideoSrc = getMediaUrl(video?.videoUrl || video?.videoFile || video?.video)
 
-    // Playback Logic - Simplified to use autoPlay prop
-    // We rely on the conditional rendering of the <video> tag when showPreview is true
-    // The video tag will have autoPlay, muted, loop attributes which browsers support well for this use case
+    useEffect(() => () => {
+        isUnmountedRef.current = true
+        clearTimeout(hoverTimerRef.current)
+    }, [])
 
+    // ── Fetch the streaming URL on first hover ────────────────────────────────
+    const fetchPreviewUrl = useCallback(async () => {
+        // Already have it
+        if (cachedUrlRef.current) {
+            setPreviewUrl(cachedUrlRef.current)
+            return
+        }
+        // List response already supplied the URL
+        if (listVideoSrc) {
+            cachedUrlRef.current = listVideoSrc
+            setPreviewUrl(listVideoSrc)
+            return
+        }
+        // Fetch from API
+        if (isFetchingUrl || !videoId) return
+        setIsFetchingUrl(true)
+        try {
+            const res = await videoService.getVideo(videoId)
+            const data = res?.data?.data
+            const url = getMediaUrl(data?.videoFile || data?.videoUrl || data?.video)
+            if (!isUnmountedRef.current && url) {
+                cachedUrlRef.current = url
+                setPreviewUrl(url)
+            }
+        } catch {
+            // silent — preview just won't play
+        } finally {
+            if (!isUnmountedRef.current) setIsFetchingUrl(false)
+        }
+    }, [videoId, listVideoSrc, isFetchingUrl])
+
+    // ── Play / pause the <video> ref when hover or URL changes ───────────────
+    useEffect(() => {
+        const el = videoRef.current
+        if (!el || !previewUrl) return
+
+        if (isHovered) {
+            el.src = previewUrl
+            el.muted = isMuted
+            el.currentTime = 0
+            const p = el.play()
+            if (p instanceof Promise) {
+                p.catch(() => {
+                    // One retry
+                    setTimeout(() => {
+                        if (!isUnmountedRef.current && el.paused) el.play().catch(() => { })
+                    }, 200)
+                })
+            }
+        } else {
+            el.pause()
+            el.currentTime = 0
+        }
+    }, [isHovered, previewUrl]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (videoRef.current) videoRef.current.muted = isMuted
+    }, [isMuted])
+
+    // ── Hover handlers ────────────────────────────────────────────────────────
     const handleMouseEnter = () => {
-        // Disable on touch devices
         if (window.matchMedia && !window.matchMedia('(hover: hover)').matches) return
-        onHover(videoId)
+        clearTimeout(hoverTimerRef.current)
+        hoverTimerRef.current = setTimeout(() => {
+            setIsHovered(true)
+            fetchPreviewUrl()
+        }, 300)
     }
 
     const handleMouseLeave = () => {
-        setIsPlaying(false)
-        onLeave(videoId)
-        if (videoRef.current) {
-            videoRef.current.pause()
-            videoRef.current.currentTime = 0
-        }
+        clearTimeout(hoverTimerRef.current)
+        setIsHovered(false)
     }
 
     const toggleMute = (e) => {
         e.preventDefault()
         e.stopPropagation()
-        setIsMuted(!isMuted)
-        if (videoRef.current) {
-            videoRef.current.muted = !isMuted
-        }
+        setIsMuted(p => !p)
     }
 
-    const handleWatchLater = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        toast.success("Added to Watch Later")
-        // Trigger actual logic here if available
+    const handleNotInterested = () => {
+        setIsHidden(true)
+        toast.success("Video hidden", { description: "We'll tune your recommendations." })
+    }
+    const handleBlockChannel = () => {
+        setIsHidden(true)
+        toast.success("Channel blocked", { description: `You won't see videos from ${video.owner?.username} again.` })
     }
 
     if (!video || isHidden) return null
 
-    const handleNotInterested = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsHidden(true)
-        toast.success("Video hidden", {
-            description: "We'll tune your recommendations."
-        })
-    }
-
-    const handleBlockChannel = (e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setIsHidden(true)
-        toast.success(`Channel blocked`, {
-            description: `You won't see videos from ${video.owner?.username} again.`
-        })
-    }
-
     const isCompact = type === 'compact'
 
-
-    // Playback Logic
-
-
+    // ── COMPACT ───────────────────────────────────────────────────────────────
     if (isCompact) {
         return (
-            <div
-                className="group flex gap-3 cursor-pointer"
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-            >
-                {/* Thumbnail */}
-                <Link to={`/watch/${video.id || video._id}`} className="relative min-w-[168px] w-[168px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 group-hover:scale-105 transition-transform duration-300 origin-center z-10">
+            <div className="group flex gap-3 cursor-pointer" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+                <Link to={`/watch/${videoId}`} className="relative min-w-[168px] w-[168px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 transition-transform duration-300 group-hover:scale-[1.02]">
                     <img
-                        src={getMediaUrl(video.thumbnail)}
-                        alt={video.title}
-                        className={`w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}
-                        loading="lazy"
-                        decoding="async"
-                        onError={(e) => { e.target.src = THUMBNAIL_FALLBACK }}
+                        src={getMediaUrl(video.thumbnail)} alt={video.title}
+                        className={`w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-0' : 'opacity-100'}`}
+                        loading="lazy" decoding="async" onError={e => { e.target.src = THUMBNAIL_FALLBACK }}
                     />
-
-                    {showPreview && (
-                        <video
-                            ref={videoRef}
-                            src={getMediaUrl(video.videoUrl || video.videoFile)}
-                            className="absolute inset-0 w-full h-full object-cover animate-in fade-in duration-300"
-                            muted={true}
-                            autoPlay
-                            playsInline
-                            loop
-                            preload="metadata"
-                            onPlaying={() => setIsPlaying(true)}
-                        />
+                    <video
+                        ref={videoRef}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-100' : 'opacity-0'}`}
+                        muted playsInline loop preload="none"
+                    />
+                    <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+                        {formatDuration(video.duration)}
+                    </div>
+                    {isHovered && previewUrl && (
+                        <button onClick={toggleMute} className="absolute top-1.5 right-1.5 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white z-10">
+                            {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                        </button>
                     )}
-
-                    {!showPreview && (
-                        <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
-                            {formatDuration(video.duration)}
+                    {progress > 0 && (
+                        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
+                            <div className="h-full bg-red-600" style={{ width: `${progress}%` }} />
                         </div>
                     )}
                 </Link>
-
-                {/* Info */}
-                <div className="flex flex-col min-w-0 pr-6 relative flex-1">
-                    <Link to={`/watch/${video.id || video._id}`}>
-                        <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors mb-1">
-                            {video.title}
-                        </h3>
+                <div className="flex flex-col min-w-0 flex-1 relative pr-6">
+                    <Link to={`/watch/${videoId}`}>
+                        <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight mb-1">{video.title}</h3>
                     </Link>
-
-                    <Link to={`/@${video.owner?.username}`} className="text-xs text-muted-foreground hover:text-foreground transition-colors mb-1">
+                    <Link to={`/@${video.owner?.username}`} className="text-xs text-muted-foreground hover:text-foreground transition-colors mb-0.5 truncate">
                         {video.owner?.fullName || video.owner?.username}
                     </Link>
-
-                    <div className="text-xs text-muted-foreground">
-                        {formatViews(video.views)} • {formatTimeAgo(video.createdAt)}
-                    </div>
-
-                    {/* Menu */}
+                    <div className="text-xs text-muted-foreground">{formatViews(video.views)} • {formatTimeAgo(video.createdAt)}</div>
                     <div className="absolute top-0 right-0">
-                        <VideoMenu
-                            videoId={video.id || video._id}
-                            title={video.title}
-                            video={video}
-                            onNotInterested={handleNotInterested}
-                            onBlock={handleBlockChannel}
-                            showEditButton={showEditButton}
-                            onDelete={onDelete}
-                            onTogglePublish={onTogglePublish}
-                        />
+                        <VideoMenu videoId={videoId} title={video.title} video={video} onNotInterested={handleNotInterested} onBlock={handleBlockChannel} showEditButton={showEditButton} onDelete={onDelete} onTogglePublish={onTogglePublish} />
                     </div>
                 </div>
             </div>
         )
     }
 
+    // ── DEFAULT — YouTube-style grid card ─────────────────────────────────────
     return (
-        <div
-            className="group flex flex-col gap-3 cursor-pointer relative glass-card rounded-xl p-2"
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
-        >
-            {/* Thumbnail Container */}
-            <Link to={`/watch/${video.id || video._id}`} className="relative aspect-video rounded-xl overflow-hidden bg-muted/20 shadow-glass hover:shadow-glass-hover transition-all duration-300 z-10 block ring-0 outline-none">
+        <div className="group flex flex-col cursor-pointer" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+
+            {/* Thumbnail + video container */}
+            <Link to={`/watch/${videoId}`} className="relative aspect-video rounded-xl overflow-hidden bg-muted/20 block">
+
+                {/* Thumbnail */}
                 <img
-                    src={getMediaUrl(video.thumbnail)}
-                    alt={video.title}
-                    className={`w-full h-full object-cover transition-opacity duration-300 ${isPlaying ? 'opacity-0' : 'opacity-100'}`}
-                    loading="lazy"
-                    decoding="async"
-                    onError={(e) => { e.target.src = THUMBNAIL_FALLBACK }}
+                    src={getMediaUrl(video.thumbnail)} alt={video.title}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-0' : 'opacity-100'}`}
+                    loading="lazy" decoding="async" onError={e => { e.target.src = THUMBNAIL_FALLBACK }}
                 />
 
-                {/* Video Preview */}
-                {showPreview && (
-                    <video
-                        ref={videoRef}
-                        src={getMediaUrl(video.videoUrl || video.videoFile)}
-                        className="absolute inset-0 w-full h-full object-cover animate-in fade-in duration-300"
-                        muted={true}
-                        autoPlay
-                        playsInline
-                        loop
-                        preload="metadata"
-                        onPlaying={() => setIsPlaying(true)}
-                        onError={(e) => {
-                            console.error("Video load error:", e)
-                            setIsPlaying(false)
-                        }}
-                    />
+                {/* Video element — always mounted, src set imperatively on hover */}
+                <video
+                    ref={videoRef}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-100' : 'opacity-0'}`}
+                    muted playsInline loop preload="none"
+                />
+
+                {/* Fetching indicator */}
+                {isHovered && isFetchingUrl && !previewUrl && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    </div>
                 )}
 
-                {/* Overlays */}
-                <div className={cn("absolute inset-0 flex flex-col justify-between p-2 transition-opacity duration-300 bg-black/10 hover:bg-black/0", showPreview ? "opacity-100" : "opacity-0 group-hover:opacity-100")}>
+                {/* Mute toggle */}
+                {isHovered && previewUrl && (
+                    <button onClick={toggleMute} className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors z-10">
+                        {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                    </button>
+                )}
 
-                    {/* Dark gradient overlay for text readability */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
-
-                    {/* Top Right Quick Actions */}
-                    <div className={cn("flex justify-end gap-1.5 transition-all duration-300 z-20", showPreview ? "translate-y-0 opacity-100" : "-translate-y-2 opacity-0")}>
-                        <button
-                            onClick={toggleMute}
-                            className="p-1.5 glass-btn rounded-full text-white"
-                            title={isMuted ? "Unmute" : "Mute"}
-                        >
-                            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                        </button>
-                        <button
-                            onClick={handleWatchLater}
-                            className="p-1.5 glass-btn rounded-full text-white"
-                            title="Watch Later"
-                        >
-                            <Clock className="w-4 h-4" />
-                        </button>
-
-                        <div onClick={e => e.stopPropagation()}>
-                            <VideoMenu
-                                videoId={video.id || video._id}
-                                title={video.title}
-                                video={video}
-                                onNotInterested={handleNotInterested}
-                                onBlock={handleBlockChannel}
-                                showEditButton={showEditButton}
-                                onDelete={onDelete}
-                                onTogglePublish={onTogglePublish}
-                                trigger={
-                                    <button className="p-1.5 glass-btn rounded-full text-white">
-                                        <MoreHorizontal className="w-4 h-4" />
-                                    </button>
-                                }
-                            />
-                        </div>
-                    </div>
-
-                    {/* Bottom Info Badges */}
-                    <div className="flex items-end justify-between mt-auto w-full z-20">
-                        <div className="flex flex-wrap gap-1">
-                            {/* Live/New Badges can go here */}
-                            {isNew && <span className="glass-badge active text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-sm">NEW</span>}
-                        </div>
-
-                        <div className="flex flex-col gap-1 items-end">
-                            <span className="glass text-white text-xs font-medium px-1.5 py-0.5 rounded shadow-sm">
-                                {formatDuration(video.duration)}
-                            </span>
-                        </div>
-                    </div>
+                {/* Duration badge */}
+                <div className={`absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[11px] font-medium px-1.5 py-[2px] rounded transition-opacity duration-200 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
+                    {formatDuration(video.duration)}
                 </div>
 
-                {/* Watch Progress */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20 z-20">
-                    <div className="h-full bg-red-600" style={{ width: `${progress}%` }}></div>
-                </div>
+                {/* Watch progress */}
+                {progress > 0 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
+                        <div className="h-full bg-red-600" style={{ width: `${progress}%` }} />
+                    </div>
+                )}
             </Link>
 
-            {/* Info */}
-            <div className="flex gap-3 items-start pr-4 relative">
-                <Link to={`/@${video.owner?.username}`}>
-                    <Avatar
-                        src={getMediaUrl(video.owner?.avatar)}
-                        fallback={video.owner?.username}
-                        size="sm"
-                        className="mt-0.5"
-                    />
+            {/* Info row: avatar | title + channel + meta | three-dots */}
+            <div className="flex gap-3 mt-3 items-start">
+                <Link to={`/@${video.owner?.username}`} className="flex-shrink-0 mt-0.5">
+                    <Avatar src={getMediaUrl(video.owner?.avatar)} fallback={video.owner?.username} size="sm" />
                 </Link>
 
                 <div className="flex-1 min-w-0">
-                    <Link to={`/watch/${video.id || video._id}`}>
-                        <h3 className="text-base font-bold text-foreground line-clamp-2 leading-snug group-hover:text-primary transition-colors duration-300">
-                            {video.title}
-                        </h3>
+                    <Link to={`/watch/${videoId}`}>
+                        <h3 className="text-[0.9rem] font-semibold text-foreground line-clamp-2 leading-snug mb-1">{video.title}</h3>
                     </Link>
-
-                    <div className="flex items-center flex-wrap gap-1 mt-1 text-sm text-muted-foreground w-full">
-                        <Link to={`/@${video.owner?.username}`} className="hover:text-foreground transition-colors truncate max-w-[200px] flex items-center gap-1">
-                            {video.owner?.fullName || video.owner?.username}
-                            <CheckCircle2 className="w-3 h-3 text-muted-foreground fill-black" />
-                        </Link>
-                    </div>
-
+                    <Link to={`/@${video.owner?.username}`} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                        <span className="truncate">{video.owner?.fullName || video.owner?.username}</span>
+                        <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
+                    </Link>
                     <div className="text-sm text-muted-foreground mt-0.5">
                         {formatViews(video.views)} • {formatTimeAgo(video.createdAt)}
                     </div>
                 </div>
 
-                {/* Fallback Menu for non-hover users or quick access */}
-                <div className="flex-shrink-0 -mt-1 -mr-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:hidden">
-                    <VideoMenu
-                        videoId={video.id || video._id}
-                        title={video.title}
-                        video={video}
-                        onNotInterested={handleNotInterested}
-                        onBlock={handleBlockChannel}
-                        showEditButton={showEditButton}
-                        onDelete={onDelete}
-                        onTogglePublish={onTogglePublish}
-                        trigger={
-                            <button className="p-1.5 hover:bg-secondary rounded-full">
-                                <MoreVertical className="w-4 h-4" />
-                            </button>
-                        }
-                    />
+                <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity -mt-0.5">
+                    <VideoMenu videoId={videoId} title={video.title} video={video} onNotInterested={handleNotInterested} onBlock={handleBlockChannel} showEditButton={showEditButton} onDelete={onDelete} onTogglePublish={onTogglePublish} />
                 </div>
             </div>
         </div>
@@ -328,53 +265,36 @@ export const VideoCard = memo(function VideoCard({ video, type = 'default', show
         && prev.showEditButton === next.showEditButton
 })
 
+// ─── Three-dot menu ───────────────────────────────────────────────────────────
 function VideoMenu({ videoId, title, video, onNotInterested, onBlock, showEditButton, onDelete, onTogglePublish, trigger }) {
+    const defaultTrigger = (
+        <button className="p-1.5 hover:bg-secondary rounded-full outline-none text-muted-foreground hover:text-foreground transition-colors">
+            <MoreVertical className="w-4 h-4" />
+        </button>
+    )
+
     if (showEditButton) {
         return (
             <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    {trigger || (
-                        <button className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 hover:bg-secondary rounded-full outline-none text-muted-foreground hover:text-foreground">
-                            <MoreVertical className="w-4 h-4" />
-                        </button>
-                    )}
-                </DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild>{trigger || defaultTrigger}</DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                     <Link to={`/video/${videoId}/edit`}>
-                        <DropdownMenuItem>
-                            <Pencil className="w-4 h-4 mr-2" />
-                            Edit Video
-                        </DropdownMenuItem>
+                        <DropdownMenuItem><Pencil className="w-4 h-4 mr-2" />Edit Video</DropdownMenuItem>
                     </Link>
-
                     {onTogglePublish && (
                         <DropdownMenuItem onClick={() => onTogglePublish(videoId)}>
-                            {video?.isPublished ? (
-                                <>
-                                    <EyeOff className="w-4 h-4 mr-2" />
-                                    Unpublish
-                                </>
-                            ) : (
-                                <>
-                                    <Eye className="w-4 h-4 mr-2" />
-                                    Publish
-                                </>
-                            )}
+                            {video?.isPublished
+                                ? <><EyeOff className="w-4 h-4 mr-2" />Unpublish</>
+                                : <><Eye className="w-4 h-4 mr-2" />Publish</>
+                            }
                         </DropdownMenuItem>
                     )}
-
                     <ShareDialog title={title} url={`${window.location.origin}/watch/${videoId}`} trigger={
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                            <Share2 className="w-4 h-4 mr-2" />
-                            Share
-                        </DropdownMenuItem>
+                        <DropdownMenuItem onSelect={e => e.preventDefault()}><Share2 className="w-4 h-4 mr-2" />Share</DropdownMenuItem>
                     } />
-
                     <DropdownMenuSeparator />
-
                     <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
+                        <Trash2 className="w-4 h-4 mr-2" />Delete
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
@@ -383,42 +303,21 @@ function VideoMenu({ videoId, title, video, onNotInterested, onBlock, showEditBu
 
     return (
         <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                {trigger || (
-                    <button className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity p-1.5 hover:bg-secondary rounded-full outline-none text-muted-foreground hover:text-foreground">
-                        <MoreVertical className="w-4 h-4" />
-                    </button>
-                )}
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>{trigger || defaultTrigger}</DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
                 <AddToPlaylistDialog videoId={videoId}>
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Save className="w-4 h-4 mr-2" />
-                        Save to Playlist
-                    </DropdownMenuItem>
+                    <DropdownMenuItem onSelect={e => e.preventDefault()}><Save className="w-4 h-4 mr-2" />Save to Playlist</DropdownMenuItem>
                 </AddToPlaylistDialog>
-
-                <ShareDialog title={title} url={`${window.location.origin}/watch/${videoId}`} trigger={
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                        <Share2 className="w-4 h-4 mr-2" />
-                        Share
-                    </DropdownMenuItem>
-                } />
                 <DropdownMenuItem onClick={() => toast.success("Added to Watch Later")}>
-                    <Clock className="w-4 h-4 mr-2" />
-                    Save to Watch Later
+                    <Clock className="w-4 h-4 mr-2" />Save to Watch Later
                 </DropdownMenuItem>
-
+                <ShareDialog title={title} url={`${window.location.origin}/watch/${videoId}`} trigger={
+                    <DropdownMenuItem onSelect={e => e.preventDefault()}><Share2 className="w-4 h-4 mr-2" />Share</DropdownMenuItem>
+                } />
                 <DropdownMenuSeparator />
-
-                <DropdownMenuItem onClick={onNotInterested}>
-                    <EyeOff className="w-4 h-4 mr-2" />
-                    Not interested
-                </DropdownMenuItem>
-
+                <DropdownMenuItem onClick={onNotInterested}><EyeOff className="w-4 h-4 mr-2" />Not interested</DropdownMenuItem>
                 <DropdownMenuItem onClick={onBlock} className="text-destructive focus:text-destructive">
-                    <Ban className="w-4 h-4 mr-2" />
-                    Block channel
+                    <Ban className="w-4 h-4 mr-2" />Block channel
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>

@@ -346,7 +346,7 @@ export default function HistoryPage() {
                 {isLoading && (
                     <div className={cn(
                         viewMode === 'grid'
-                            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6"
+                            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                             : "space-y-2"
                     )}>
                         {Array.from({ length: 8 }).map((_, i) => (
@@ -389,7 +389,7 @@ export default function HistoryPage() {
                                 <DateSectionHeader label="Today" count={groupedVideos.today.length} />
                                 <div className={cn(
                                     viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6"
+                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
                                     {groupedVideos.today.map((video, index) => (
@@ -413,7 +413,7 @@ export default function HistoryPage() {
                                 <DateSectionHeader label="Yesterday" count={groupedVideos.yesterday.length} />
                                 <div className={cn(
                                     viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6"
+                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
                                     {groupedVideos.yesterday.map((video, index) => (
@@ -437,7 +437,7 @@ export default function HistoryPage() {
                                 <DateSectionHeader label="This Week" count={groupedVideos.thisWeek.length} />
                                 <div className={cn(
                                     viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6"
+                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
                                     {groupedVideos.thisWeek.map((video, index) => (
@@ -461,7 +461,7 @@ export default function HistoryPage() {
                                 <DateSectionHeader label="This Month" count={groupedVideos.thisMonth.length} />
                                 <div className={cn(
                                     viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6"
+                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
                                     {groupedVideos.thisMonth.map((video, index) => (
@@ -485,7 +485,7 @@ export default function HistoryPage() {
                                 <DateSectionHeader label="Older" count={groupedVideos.older.length} />
                                 <div className={cn(
                                     viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6"
+                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
                                     {groupedVideos.older.map((video, index) => (

@@ -1,6 +1,6 @@
 import { useRef, useState, useMemo } from 'react'
 import { ConfirmationDialog } from '../components/common/ConfirmationDialog'
-import { motion } from 'framer-motion'
+import { motion } from 'framer-motion' // eslint-disable-line
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { videoService } from '../services/api'
 import { CreatorVideoCard } from '../components/dashboard/videos/CreatorVideoCard'
@@ -28,7 +28,7 @@ export default function MyVideosPage() {
 
     // --- Query ---
     const {
-        data,
+        data: _videosData,
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
@@ -51,7 +51,7 @@ export default function MyVideosPage() {
 
     // --- Derived State (Client-side Filtering) ---
     const allVideos = useMemo(() => {
-        const flattened = data?.pages.flatMap(page => page?.docs || page) || []
+        const flattened = _videosData?.pages.flatMap(page => page?.docs || page) || []
 
         return flattened.filter(video => {
             // Text Search
@@ -66,7 +66,7 @@ export default function MyVideosPage() {
 
             return matchesSearch && matchesFilter
         })
-    }, [data, searchQuery, filter])
+    }, [_videosData, searchQuery, filter])
 
     // --- Mutations ---
     const deleteMutation = useMutation({
@@ -79,11 +79,9 @@ export default function MyVideosPage() {
         onError: () => toast.error('Failed to delete video')
     })
 
-    const togglePublishMutation = useMutation({
-        mutationFn: (videoId) => videoService.togglePublishStatus(videoId), // Verify API method name
-        // Checking api.js: togglePublish: (videoId) => api.patch(...)
-        // Let's use videoService.togglePublish(videoId) if that's what's exposed
-        onSuccess: (data) => {
+    const togglePublishMutation = useMutation({ // eslint-disable-line no-unused-vars
+        mutationFn: (videoId) => videoService.togglePublishStatus(videoId),
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['myVideos'] })
             toast.success('Visibility updated')
         },
@@ -108,7 +106,7 @@ export default function MyVideosPage() {
             toast.success(`${selectedIds.size} videos moved to trash`)
             queryClient.invalidateQueries({ queryKey: ['myVideos'] })
             clearSelection()
-        } catch (e) {
+        } catch {
             toast.error('Failed to delete some videos')
         } finally {
             setIsBulkProcessing(false)
@@ -129,7 +127,7 @@ export default function MyVideosPage() {
             toast.success('Visibility updated')
             queryClient.invalidateQueries({ queryKey: ['myVideos'] })
             clearSelection()
-        } catch (e) {
+        } catch {
             toast.error('Failed to update some videos')
         } finally {
             setIsBulkProcessing(false)
@@ -202,7 +200,7 @@ export default function MyVideosPage() {
                 </div>
             ) : (
                 <div className={viewMode === 'grid'
-                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-6"
+                    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                     : "flex flex-col gap-3"
                 }>
                     {allVideos.map((video, index) => (

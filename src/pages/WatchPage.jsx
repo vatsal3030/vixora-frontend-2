@@ -22,7 +22,7 @@ import { toast } from 'sonner'
 import VideoPlayerSkeleton from '../components/skeletons/VideoPlayerSkeleton'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { KeyboardShortcutsModal } from '../components/common/KeyboardShortcutsModal'
-import { AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion' // eslint-disable-line
 
 export default function WatchPage() {
     const { videoId } = useParams()

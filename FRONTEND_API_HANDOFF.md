@@ -198,6 +198,7 @@ Backend behavior on finalize:
 - Accepts optional `isShort` (`true`/`false`)
 - Verifies uploaded assets belong to current user folder
 - Uses Cloudinary verified URLs (not blindly trusting client URL)
+- Creates quality profile (`availableQualities`) based on source metadata
 - Creates DB video row with `processingStatus = PENDING`
 - Marks upload session `COMPLETED`
 - Enqueues background processing job
@@ -206,6 +207,27 @@ Backend behavior on finalize:
 
 - Poll status: `GET /api/v1/videos/:videoId/processing-status` (auth)
 - Publish when ready: `PATCH /api/v1/videos/:videoId/publish` (auth)
+
+#### Step G: Playback quality selection (YouTube-like)
+
+- Public watch payload: `GET /api/v1/watch/:videoId?quality=auto|max|1080p|720p|480p|360p|240p|144p`
+- Optional stream-only endpoint: `GET /api/v1/watch/:videoId/stream?quality=...`
+- Auth detail payload also supports quality query:
+  - `GET /api/v1/videos/:videoId?quality=...`
+
+Playback response contains:
+
+- `playbackUrl` (already resolved to selected quality)
+- `selectedQuality`
+- `availableQualities` (includes `AUTO`, `MAX`, then manual qualities)
+- `qualityUrls` (quality => direct URL map)
+- `streaming` object with `defaultQuality`, `selectedQuality`, `selectedPlaybackUrl`, `masterPlaylistUrl`, `availableQualities`
+
+Important behavior:
+
+- `GET /watch/:videoId` increments views for non-owner users.
+- `GET /watch/:videoId/stream` is stream metadata only and does not increment views.
+- For quality switches after initial watch load, frontend should call `/watch/:videoId/stream?quality=...`.
 
 Processing status enums:
 
@@ -425,7 +447,7 @@ Base: `/api/v1/videos` (all protected)
 | PATCH | `/:videoId/cancel-processing` | none |
 | PATCH | `/:videoId/publish` | none |
 | PATCH | `/:videoId/restore` | none |
-| GET | `/:videoId` | none |
+| GET | `/:videoId` | query (optional): `quality=auto|max|1080p|720p|480p|360p|240p|144p` |
 | PATCH | `/:videoId` | body: `{ title?, description? }` |
 | DELETE | `/:videoId` | none |
 
@@ -437,7 +459,8 @@ Base: `/api/v1/watch`
 
 | Method | Endpoint | Auth | Purpose |
 |---|---|---|---|
-| GET | `/:videoId` | No (optional token supported) | Public watch payload + increments views |
+| GET | `/:videoId` | No (optional token supported) | Public watch payload + increments views + quality selection |
+| GET | `/:videoId/stream` | No (optional token supported) | Stream payload only (quality URLs + selected quality, no view increment) |
 
 ## Feed
 
@@ -719,7 +742,8 @@ Watch history notes:
 - Trending: `/api/v1/feed/trending`
 - Shorts: `/api/v1/feed/shorts`
 - Video detail: `/api/v1/videos/:videoId`
-- Public watch page: `/api/v1/watch/:videoId`
+- Public watch page: `/api/v1/watch/:videoId` (+ optional `quality` query)
+- Stream-only load (optional): `/api/v1/watch/:videoId/stream`
 - Upload studio: `/api/v1/upload/session` -> `/api/v1/upload/signature` -> Cloudinary direct upload -> `/api/v1/upload/finalize/:sessionId` -> `/api/v1/videos/:videoId/processing-status` -> `/api/v1/videos/:videoId/publish`
 - Comments panel: `/api/v1/comments/:videoId`, `/api/v1/likes/toggle/c/:commentId`
 - Channel page: `/api/v1/channels/:channelId`, `/about`, `/videos`, `/shorts`, `/playlists`, `/tweets`
@@ -734,6 +758,7 @@ Watch history notes:
 - Avatar/Cover update APIs require Cloudinary `publicId`, not file upload multipart.
 - Signature endpoint returns custom `resourceType` labels (`thumbnail`, `avatar`, `post`). For Cloudinary URL path, use `/image/upload` for non-video uploads.
 - Media finalize (`/api/v1/media/finalize/:sessionId`, legacy `/api/media/finalize/:sessionId`) trusts only `publicId` and verifies asset ownership on backend; do not send Cloudinary URL as source of truth.
+- Quality playback supports `AUTO`, `MAX`, and manual levels (`1080p`, `720p`, etc). Use `quality` query param for selection.
 - Folder checks are strict in backend verification:
   - video finalize expects `videos/<userId>` and `thumbnails/<userId>`
   - avatar update expects `avatars/<userId>`
