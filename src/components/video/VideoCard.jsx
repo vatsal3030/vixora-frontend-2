@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom'
 import {
     MoreVertical, CheckCircle2, Ban, EyeOff, Save, Share2,
-    Pencil, Trash2, Eye, VolumeX, Volume2, Clock, Flag
+    Pencil, Trash2, Eye, VolumeX, Volume2, Clock, Flag, Info
 } from 'lucide-react'
+import { useMiniPlayer } from '../../context/MiniPlayerContext'
 import { Avatar } from '../ui/Avatar'
 import { formatDuration, formatViews, formatTimeAgo } from '../../lib/utils'
 import { getMediaUrl } from '../../lib/media'
@@ -27,6 +28,7 @@ const THUMBNAIL_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
 export const VideoCard = memo(function VideoCard({
     video, type = 'default', showEditButton = false, onDelete, onTogglePublish
 }) {
+    const { openPlayer } = useMiniPlayer()
     const [isHovered, setIsHovered] = useState(false)
     const [isHidden, setIsHidden] = useState(false)
     const [isMuted, setIsMuted] = useState(true)
@@ -180,9 +182,18 @@ export const VideoCard = memo(function VideoCard({
                         {formatDuration(video.duration)}
                     </div>
                     {isHovered && previewUrl && (
-                        <button onClick={toggleMute} className="absolute top-1.5 right-1.5 p-1 bg-black/60 hover:bg-black/80 rounded-full text-white z-10">
-                            {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
-                        </button>
+                        <div className="absolute top-1.5 right-1.5 flex flex-col gap-1.5 z-10">
+                            <button onClick={toggleMute} className="p-1 bg-black/60 hover:bg-black/80 rounded-full text-white">
+                                {isMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                            </button>
+                            <button
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); openPlayer(video) }}
+                                className="p-1 bg-black/60 hover:bg-black/80 rounded-full text-white"
+                                title="Open in Mini Player"
+                            >
+                                <Info className="w-3 h-3" />
+                            </button>
+                        </div>
                     )}
                     {progress > 0 && (
                         <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
@@ -234,11 +245,20 @@ export const VideoCard = memo(function VideoCard({
                     </div>
                 )}
 
-                {/* Mute toggle */}
+                {/* Mute + Info toggle */}
                 {isHovered && previewUrl && (
-                    <button onClick={toggleMute} className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors z-10">
-                        {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
-                    </button>
+                    <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+                        <button onClick={toggleMute} className="p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors">
+                            {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
+                        </button>
+                        <button
+                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); openPlayer(video) }}
+                            className="p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
+                            title="Open in Mini Player"
+                        >
+                            <Info className="w-3.5 h-3.5" />
+                        </button>
+                    </div>
                 )}
 
                 {/* Duration badge */}

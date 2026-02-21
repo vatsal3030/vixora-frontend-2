@@ -6,6 +6,14 @@ import ErrorBoundary from './components/common/ErrorBoundary'
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
+// Silence unhandled promise rejections in production to prevent leaking sensitive API/auth info
+if (!import.meta.env.DEV) {
+  window.addEventListener('unhandledrejection', (event) => {
+    // Prevent default logging
+    event.preventDefault()
+  })
+}
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

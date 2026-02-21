@@ -1,5 +1,5 @@
 export const getMediaUrl = (path) => {
-    if (!path) return '';
+    if (!path || typeof path !== 'string') return '';
     if (path.startsWith('http') || path.startsWith('blob:') || path.startsWith('data:')) {
         return path;
     }

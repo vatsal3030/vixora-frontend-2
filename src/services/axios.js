@@ -42,9 +42,21 @@ api.interceptors.response.use(
             }
         }
 
-        // Suppress console error for 401s to avoid leaking "Unauthorized" spam
+        // Silence 401s and other sensitive network errors to avoid leaking backend details in console
         if (error.response?.status === 401) {
             return Promise.reject(error);
+        }
+
+        // Handle network errors (like ERR_CONNECTION_REFUSED) silently in production
+        if (!error.response && !import.meta.env.DEV) {
+            // Log a generic message without revealing internal URLs or config
+            // console.warn('Network connection failed. Please check your internet.');
+            return Promise.reject(new Error('Network Error'));
+        }
+
+        if (import.meta.env.DEV) {
+            // Suppress detailed error logging to prevent accidental credential/URL exposure in screenshots
+            // console.error('[API Error]:', error.message, error.config?.url);
         }
 
         return Promise.reject(error);

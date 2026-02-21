@@ -7,7 +7,8 @@ import { authService } from '../../services/api'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
-import { Video, Loader2, ArrowLeft, KeyRound, CheckCircle2, ShieldCheck, Mail } from 'lucide-react'
+import { Loader2, ArrowLeft, KeyRound, CheckCircle2, ShieldCheck, Mail } from 'lucide-react'
+import { BrandLogo } from '../../components/common/BrandLogo'
 import toast from '../../lib/toast'
 import { validatePassword } from '../../utils/validators'
 
@@ -162,11 +163,7 @@ export default function ForgotPasswordPage() {
                 </Link>
 
                 <div className="flex justify-center mb-6">
-                    <div className="inline-flex p-4 bg-primary/10 rounded-2xl">
-                        {step === 1 && <Mail className="w-10 h-10 text-primary" />}
-                        {step === 2 && <ShieldCheck className="w-10 h-10 text-primary" />}
-                        {step === 3 && <KeyRound className="w-10 h-10 text-primary" />}
-                    </div>
+                    <BrandLogo size="xl" />
                 </div>
 
                 <h1 className="text-3xl font-bold tracking-tight">

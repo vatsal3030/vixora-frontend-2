@@ -50,15 +50,15 @@ export default function AISummaryCard({ videoId }) {
     return (
         <button
             onClick={openChat}
-            className="w-full rounded-xl border border-violet-500/20 bg-violet-500/8 hover:bg-violet-500/14 transition-colors text-left overflow-hidden group"
+            className="w-full rounded-xl border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors text-left overflow-hidden group"
         >
             {/* Header */}
-            <div className="flex items-center gap-2 px-3 py-2.5 border-b border-violet-500/12">
-                <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-3 h-3 text-violet-400" />
+            <div className="flex items-center gap-2 px-3 py-2.5 border-b border-primary/12">
+                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-3 h-3 text-primary" />
                 </div>
-                <span className="text-xs font-semibold text-violet-300 flex-1">AI Summary</span>
-                <span className="text-[10px] text-violet-400 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                <span className="text-xs font-semibold text-white/90 flex-1">AI Summary</span>
+                <span className="text-[10px] text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
                     <MessageSquare className="w-3 h-3" /> Open chat
                 </span>
             </div>
@@ -68,7 +68,7 @@ export default function AISummaryCard({ videoId }) {
                 {hasSummary && preview ? (
                     <>
                         <p className="text-xs text-gray-300 leading-relaxed line-clamp-3">{preview}</p>
-                        <p className="text-[10px] text-violet-400 mt-2 font-medium">
+                        <p className="text-[10px] text-primary mt-2 font-medium">
                             Chat with AI to ask follow-up questions →
                         </p>
                     </>

@@ -5,7 +5,8 @@ import { authService } from '../../services/api'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
-import { Video, CheckCircle2, Loader2, Mail, RefreshCw, ArrowRight, AlertCircle, Clock } from 'lucide-react'
+import { CheckCircle2, Loader2, Mail, RefreshCw, ArrowRight, AlertCircle, Clock } from 'lucide-react'
+import { BrandLogo } from '../../components/common/BrandLogo'
 import toast from '../../lib/toast'
 
 export default function VerifyEmailPage() {
@@ -203,11 +204,9 @@ export default function VerifyEmailPage() {
             className="w-full space-y-8"
         >
             <div className="text-center space-y-2">
-                <Link to="/" className="inline-flex items-center gap-2 text-primary hover:text-green-500 transition-colors">
-                    <div className="p-2 bg-green-500/10 rounded-xl">
-                        <Video className="w-8 h-8" />
-                    </div>
-                    <span className="text-2xl font-display font-bold tracking-tight">Vixora</span>
+                <Link to="/" className="inline-flex items-center gap-2 group">
+                    <BrandLogo size="lg" className="group-hover:scale-105 transition-transform" />
+                    <span className="text-2xl font-display font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">Vixora</span>
                 </Link>
                 <div className="absolute top-0 right-0 p-4">
                     {/* Theme toggle could go here */}

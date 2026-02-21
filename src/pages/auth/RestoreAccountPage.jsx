@@ -7,7 +7,8 @@ import { userService } from '../../services/api'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
-import { Video, Loader2, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { Loader2, RefreshCw, AlertTriangle, ArrowLeft } from 'lucide-react'
+import { BrandLogo } from '../../components/common/BrandLogo'
 import toast from '../../lib/toast'
 
 export default function RestoreAccountPage() {
@@ -159,9 +160,7 @@ export default function RestoreAccountPage() {
                 </Link>
 
                 <div className="flex justify-center mb-6">
-                    <div className="inline-flex p-4 bg-amber-500/10 rounded-2xl">
-                        <RefreshCw className="w-10 h-10 text-amber-500" />
-                    </div>
+                    <BrandLogo size="xl" />
                 </div>
 
                 <h1 className="text-2xl font-bold">Restore Account</h1>

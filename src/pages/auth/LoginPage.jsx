@@ -5,7 +5,8 @@ import { useAuth } from '../../context/AuthContext'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
-import { Video, Loader2, X, Eye, EyeOff } from 'lucide-react'
+import { Loader2, X, Eye, EyeOff } from 'lucide-react'
+import { BrandLogo } from '../../components/common/BrandLogo'
 import toast from '../../lib/toast'
 import { useState, useEffect } from 'react'
 
@@ -81,11 +82,9 @@ export default function LoginPage() {
             className="w-full space-y-8"
         >
             <div className="text-center space-y-2">
-                <Link to="/" className="inline-flex items-center gap-2 text-primary hover:text-primary/80 transition-colors">
-                    <div className="p-2 bg-primary/10 rounded-xl">
-                        <Video className="w-8 h-8" />
-                    </div>
-                    <span className="text-2xl font-display font-bold tracking-tight">Vixora</span>
+                <Link to="/" className="inline-flex items-center gap-2 group">
+                    <BrandLogo size="lg" className="group-hover:scale-105 transition-transform" />
+                    <span className="text-2xl font-display font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">Vixora</span>
                 </Link>
                 <h1 className="text-3xl font-bold tracking-tight mt-4">Welcome back</h1>
                 <p className="text-muted-foreground">Sign in to continue to your account</p>

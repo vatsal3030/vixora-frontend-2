@@ -79,7 +79,7 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
 
                     {/* Actions */}
                     <div className="col-span-2 flex justify-end gap-2">
-                        <Link to={`/video/${video._id}/edit`}>
+                        <Link to={`/video/${video._id || video.id}/edit`}>
                             <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                                 <Pencil className="w-4 h-4" />
                             </Button>
@@ -161,7 +161,7 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                            <Link to={`/video/${video._id}/edit`}>
+                            <Link to={`/video/${video._id || video.id}/edit`}>
                                 <DropdownMenuItem>
                                     <Pencil className="w-4 h-4 mr-2" /> Edit
                                 </DropdownMenuItem>

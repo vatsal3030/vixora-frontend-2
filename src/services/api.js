@@ -202,6 +202,9 @@ export const aiService = {
     getSessions: (params = {}) => api.get('/ai/sessions', { params }),
     getSessionMessages: (sessionId, params = {}) => api.get(`/ai/sessions/${sessionId}/messages`, { params }),
     sendMessage: (sessionId, message) => api.post(`/ai/sessions/${sessionId}/messages`, { message }),
+    updateSession: (sessionId, data) => api.patch(`/ai/sessions/${sessionId}`, data), // { title }
+    deleteSession: (sessionId) => api.delete(`/ai/sessions/${sessionId}`),
+    clearAllSessions: () => api.delete('/ai/sessions/all'),
 
     // Video-specific AI
     getVideoSummary: (videoId) => api.get(`/ai/videos/${videoId}/summary`),

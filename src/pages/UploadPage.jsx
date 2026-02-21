@@ -7,7 +7,7 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { toast } from 'sonner'
 import { ImageCropModal } from '../components/common/ImageCropModal'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { cn } from '../lib/utils'
 import { Switch } from '../components/ui/Switch' // Assuming we have a Switch component or will use a checkbox
 
@@ -35,6 +35,7 @@ export default function UploadPage() {
     const [description, setDescription] = useState('')
     const [tags, setTags] = useState('')
     const [isShort, setIsShort] = useState(false) // New state for Shorts
+    const [transcript, setTranscript] = useState('') // New state for Transcript
 
     // Crop State
     const [cropModalOpen, setCropModalOpen] = useState(false)
@@ -44,8 +45,6 @@ export default function UploadPage() {
     const [uploadProgress, setUploadProgress] = useState(0)
     const [uploadSpeed, setUploadSpeed] = useState(0)
     const [timeRemaining, setTimeRemaining] = useState(0)
-    const [uploadedBytes, setUploadedBytes] = useState(0)
-    const [totalBytes, setTotalBytes] = useState(0)
     const startTimeRef = useRef(0)
 
     const videoInputRef = useRef(null)
@@ -177,7 +176,7 @@ export default function UploadPage() {
                     try {
                         const err = JSON.parse(xhr.responseText)
                         reject(new Error(err.error?.message || `Cloudinary Error: ${xhr.statusText}`))
-                    } catch (e) {
+                    } catch {
                         reject(new Error(`Cloudinary upload failed: ${xhr.statusText}`))
                     }
                 }
@@ -231,8 +230,6 @@ export default function UploadPage() {
             const videoData = await uploadToCloudinary(videoFile, videoSigData, (loaded, total) => {
                 const percent = Math.floor((loaded * 100) / total)
                 setUploadProgress(percent)
-                setUploadedBytes(loaded)
-                setTotalBytes(total)
 
                 const now = Date.now()
                 const elapsed = (now - startTimeRef.current) / 1000
@@ -267,8 +264,20 @@ export default function UploadPage() {
             const finalizeRes = await videoService.finalizeUpload(sessionId, finalizePayload)
 
             if (finalizeRes.data.success) {
-                toast.success('Video uploaded successfully! Processing started.')
                 const videoId = finalizeRes.data.data.videoId || finalizeRes.data.data.id
+
+                // 6. Upload Transcript if provided
+                if (videoId && transcript.trim()) {
+                    try {
+                        await videoService.uploadTranscript(videoId, { content: transcript.trim() })
+                    } catch (err) {
+                        console.error("Transcript upload failed", err)
+                        // Don't block navigation, just warn
+                        toast.error("Transcript failed to upload, but video is ready.")
+                    }
+                }
+
+                toast.success('Video uploaded successfully! Processing started.')
                 if (videoId) {
                     navigate(`/watch/${videoId}`)
                 } else {
@@ -466,6 +475,19 @@ export default function UploadPage() {
                                                         onChange={(e) => setTags(e.target.value)}
                                                         placeholder="gaming, vlog, tutorial (comma separated)"
                                                         className="glass-input"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-sm font-medium">Transcript <span className="text-white/30 font-normal">(Optional)</span></label>
+                                                        <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold">Recommended for AI</span>
+                                                    </div>
+                                                    <textarea
+                                                        value={transcript}
+                                                        onChange={(e) => setTranscript(e.target.value)}
+                                                        placeholder="Paste your video transcript here (SRT, VTT, or plain text). This helps Vixora AI understand your video better."
+                                                        className="w-full glass-input rounded-xl p-4 min-h-[120px] resize-y text-xs font-mono"
                                                     />
                                                 </div>
                                             </div>

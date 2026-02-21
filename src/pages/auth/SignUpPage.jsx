@@ -6,7 +6,8 @@ import { motion } from 'framer-motion'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
-import { Video, Loader2, Upload, AlertCircle, Check, X } from 'lucide-react'
+import { Loader2, Upload, AlertCircle, Check, X } from 'lucide-react'
+import { BrandLogo } from '../../components/common/BrandLogo'
 import toast from '../../lib/toast'
 import { validatePassword } from '../../utils/validators'
 import { FILE_SIZE_LIMITS } from '../../lib/constants'
@@ -115,11 +116,9 @@ export default function SignUpPage() {
             className="w-full space-y-8"
         >
             <div className="text-center space-y-2">
-                <Link to="/" className="inline-flex items-center gap-2 text-primary hover:text-red-500 transition-colors">
-                    <div className="p-2 bg-red-500/10 rounded-xl">
-                        <Video className="w-8 h-8" />
-                    </div>
-                    <span className="text-2xl font-display font-bold tracking-tight">Vixora</span>
+                <Link to="/" className="inline-flex items-center gap-2 group">
+                    <BrandLogo size="lg" className="group-hover:scale-105 transition-transform" />
+                    <span className="text-2xl font-display font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">Vixora</span>
                 </Link>
                 <h1 className="text-3xl font-bold tracking-tight mt-4">Create an account</h1>
                 <p className="text-muted-foreground">Join the Vixora community today</p>

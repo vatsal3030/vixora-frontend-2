@@ -21,8 +21,8 @@ export const AuthProvider = ({ children }) => {
                 const userData = response.data.data.user || response.data.data
                 setUser(userData)
             }
-        } catch (error) {
-            // console.debug('Auth check failed (expected if not logged in):', error)
+        } catch {
+            // Silence auth check failure - expected if not logged in
             setUser(null)
         } finally {
             setLoading(false)
@@ -91,7 +91,9 @@ export const AuthProvider = ({ children }) => {
             setUser(null)
             toast.success('Logged out successfully')
         } catch (error) {
-            console.error('Logout error:', error)
+            if (import.meta.env.DEV) {
+                console.error('Logout error:', error)
+            }
             // Force logout on client even if server fails
             setUser(null)
         }

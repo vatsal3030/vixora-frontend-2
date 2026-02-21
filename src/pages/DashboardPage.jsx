@@ -118,9 +118,49 @@ export default function DashboardPage() {
     }
 
     const handleExport = () => {
-        toast.info("Exporting data...", { description: "Download will start shortly." })
-        // Mock download
-        setTimeout(() => toast.success("Dashboard_Analytics.csv downloaded"), 1000)
+        try {
+            toast.info("Preparing data for export...")
+
+            const dataToExport = showDemoData ? Array.from({ length: 5 }, (_, i) => ({
+                title: `Demo Video ${i + 1}`,
+                createdAt: new Date().toISOString(),
+                views: (i + 1) * 1000,
+                likesCount: (i + 1) * 100,
+                commentsCount: (i + 1) * 10
+            })) : sortedVideos
+
+            // Define CSV header
+            let csvContent = "\uFEFFVideo Title,Upload Date,Views,Likes,Comments\n"
+
+            // Add video rows
+            dataToExport.forEach(v => {
+                const date = new Date(v.createdAt).toLocaleDateString()
+                // Escape quotes and wrap in quotes for CSV safety
+                const title = `"${(v.title || '').replace(/"/g, '""')}"`
+                csvContent += `${title},${date},${v.metrics?.views || v.views || 0},${v.metrics?.likes || v.likesCount || 0},${v.commentsCount || 0}\n`
+            })
+
+            // Add summary section
+            csvContent += `\n\nChannel Overview (${PERIODS.find(p => p.value === period)?.label || period})\n`
+            csvContent += `Total Subscribers,${stats?.subscribers || 0}\n`
+            csvContent += `Total Views,${stats?.views || 0}\n`
+            csvContent += `Total Likes,${stats?.likes || 0}\n`
+
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+            const url = URL.createObjectURL(blob)
+            const link = document.createElement("a")
+            link.setAttribute("href", url)
+            link.setAttribute("download", `Vixora_Analytics_${period}_${new Date().toISOString().split('T')[0]}.csv`)
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+
+            toast.success("Analytics exported successfully!")
+        } catch (error) {
+            console.error('Export failed:', error)
+            toast.error("Failed to export analytics data")
+        }
     }
 
     if (loading) {

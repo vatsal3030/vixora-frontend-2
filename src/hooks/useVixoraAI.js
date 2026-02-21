@@ -28,14 +28,18 @@ export function useVixoraAI() {
     const [messages, setMessages] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [isSending, setIsSending] = useState(false)
-    const [rateLimitRetryAt, setRateLimitRetryAt] = useState(null)
     const [quota, setQuota] = useState(null) // { usedToday, dailyLimit, remaining }
     const [contextHealth, setContextHealth] = useState(null) // { hasTranscript, quality, ... }
 
     const loadSessions = useCallback(async () => {
         try {
-            const res = await aiService.getSessions({ limit: 20 })
-            setSessions(res.data.data?.items || [])
+            const res = await aiService.getSessions({ limit: 50 })
+            const allSessions = res.data.data?.items || []
+            // Sort by updatedAt descending
+            const sorted = [...allSessions].sort((a, b) =>
+                new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
+            )
+            setSessions(sorted)
         } catch {
             // non-critical — failure doesn't block chat
         }
@@ -45,9 +49,8 @@ export function useVixoraAI() {
         if (!sessionId) return
         setIsLoading(true)
         try {
-            const res = await aiService.getSessionMessages(sessionId, { limit: 50 })
+            const res = await aiService.getSessionMessages(sessionId, { limit: 100 })
             const raw = res.data.data?.items || []
-            // roleLower is preferred; fall back to uppercased role enum
             setMessages(raw.map(normalizeMessage))
         } catch {
             setMessages([])
@@ -70,46 +73,91 @@ export function useVixoraAI() {
         }
     }, [])
 
+    const renameSession = useCallback(async (sessionId, newTitle) => {
+        try {
+            const res = await aiService.updateSession(sessionId, { title: newTitle })
+            const updated = res.data.data
+            setSessions(prev => prev.map(s => s.id === sessionId ? { ...s, title: updated.title } : s))
+            toast.success('Session renamed')
+            return true
+        } catch {
+            toast.error('Failed to rename session')
+            return false
+        }
+    }, [])
+
+    const deleteSession = useCallback(async (sessionId) => {
+        try {
+            await aiService.deleteSession(sessionId)
+            setSessions(prev => prev.filter(s => s.id !== sessionId))
+            if (activeSessionId === sessionId) {
+                setActiveSessionId(null)
+                setMessages([])
+            }
+            toast.success('Session deleted')
+            return true
+        } catch {
+            toast.error('Failed to delete session')
+            return false
+        }
+    }, [activeSessionId])
+
+    const clearAllSessions = useCallback(async () => {
+        try {
+            await aiService.clearAllSessions()
+            setSessions([])
+            setActiveSessionId(null)
+            setMessages([])
+            toast.success('All sessions cleared')
+        } catch {
+            toast.error('Failed to clear sessions')
+        }
+    }, [])
+
     const switchSession = useCallback(async (sessionId) => {
         setActiveSessionId(sessionId)
         await loadMessages(sessionId)
     }, [loadMessages])
 
-    const sendMessage = useCallback(async (message) => {
-        if (!activeSessionId || isSending) return
+    const sendMessage = useCallback(async (message, options = {}) => {
+        let sessionId = activeSessionId
+        const isNewSession = !sessionId
 
-        // Optimistically add user message while request is in-flight
+        if (isNewSession && isSending) return
+        if (!isNewSession && isSending) return
+
+        setIsSending(true)
+
+        // Optimistically add user message
         const tempId = `temp-${Date.now()}`
         const userMsg = { id: tempId, role: 'user', content: message, createdAt: new Date().toISOString() }
         setMessages(prev => [...prev, userMsg])
-        setIsSending(true)
 
         try {
-            const res = await aiService.sendMessage(activeSessionId, message)
+            // 1. Lazy Session Creation
+            if (isNewSession) {
+                const sessionRes = await aiService.createSession({
+                    videoId: options.videoId,
+                    title: options.title || (message.length > 20 ? message.substring(0, 20) + '...' : message)
+                })
+                const session = sessionRes.data.data
+                sessionId = session.id
+                setSessions(prev => [session, ...prev])
+                setActiveSessionId(sessionId)
+            }
+
+            // 2. Send Message
+            const res = await aiService.sendMessage(sessionId, message)
             const data = res.data.data
 
-            // ── AI reply text  (per API contract) ──────────────────────────
-            // Primary:   data.reply                        (top-level alias)
-            // Fallbacks: data.assistantMessage.text / .message / .content
-            const aiText =
-                data?.reply ??
-                data?.answer ??
-                data?.assistantMessage?.text ??
-                data?.assistantMessage?.message ??
-                data?.assistantMessage?.content ??
-                ''
+            const aiText = data?.reply ?? data?.answer ?? data?.assistantMessage?.text ?? ''
+            const resolvedUserMsgId = data?.userMessage?.id ?? tempId
+            const aiMsgId = data?.assistantMessage?.id ?? `ai-${Date.now()}`
 
-            // ── IDs ──────────────────────────────────────────────────────────
-            const resolvedUserMsgId =
-                data?.userMessage?.id ?? data?.userMessageId ?? tempId
-            const aiMsgId =
-                data?.assistantMessage?.id ?? `ai-${Date.now()}`
-
-            // Replace optimistic message with confirmed version + append AI reply
             const confirmedUserMsg = {
                 id: resolvedUserMsgId,
                 role: 'user',
-                content: data?.userMessage?.content ?? data?.userMessage?.text ?? message,
+                content: data?.userMessage?.content ?? message,
                 createdAt: data?.userMessage?.createdAt ?? userMsg.createdAt,
             }
             const aiMsg = {
@@ -125,19 +173,21 @@ export function useVixoraAI() {
                 aiMsg,
             ])
 
-            // Track quota and context from response
+            // Update session's updatedAt locally for sorting
+            setSessions(prev => {
+                const updated = prev.find(s => s.id === sessionId)
+                if (updated) {
+                    updated.updatedAt = new Date().toISOString()
+                    return [updated, ...prev.filter(s => s.id !== sessionId)]
+                }
+                return prev
+            })
+
             if (data?.ai?.quota) setQuota(data.ai.quota)
             if (data?.context) setContextHealth(data.context)
-        } catch (err) {
-            // Roll back the optimistic message
+        } catch {
             setMessages(prev => prev.filter(m => m.id !== tempId))
-            if (err?.response?.status === 429) {
-                const retryAfter = parseInt(err.response.headers?.['retry-after'] || '60', 10)
-                setRateLimitRetryAt(Date.now() + retryAfter * 1000)
-                toast.error('AI daily limit reached. Try again later.')
-            } else {
-                toast.error('Failed to send message')
-            }
+            toast.error('Failed to send message')
         } finally {
             setIsSending(false)
         }
@@ -147,14 +197,9 @@ export function useVixoraAI() {
         setIsSending(true)
         try {
             const res = await aiService.askAboutVideo(videoId, question)
-            // Backend returns both `answer` and `reply` as aliases
             return res.data.data?.answer ?? res.data.data?.reply ?? ''
-        } catch (err) {
-            if (err?.response?.status === 429) {
-                toast.error('AI daily limit reached.')
-            } else {
-                toast.error('Failed to get answer')
-            }
+        } catch {
+            toast.error('Failed to get answer')
             return null
         } finally {
             setIsSending(false)
@@ -167,12 +212,14 @@ export function useVixoraAI() {
         messages,
         isLoading,
         isSending,
-        rateLimitRetryAt,
         quota,
         contextHealth,
         loadSessions,
         loadMessages,
         createSession,
+        renameSession,
+        deleteSession,
+        clearAllSessions,
         switchSession,
         sendMessage,
         askAboutVideo,

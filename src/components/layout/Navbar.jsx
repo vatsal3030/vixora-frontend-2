@@ -22,6 +22,7 @@ import { Avatar } from '../ui/Avatar'
 import { Button } from '../ui/Button'
 import { SidebarToggle } from './Sidebar'
 import NotificationDropdown from './NotificationDropdown'
+import { BrandLogo } from '../common/BrandLogo'
 
 import { useAuth } from '../../context/AuthContext'
 import { toast } from 'sonner'
@@ -95,10 +96,8 @@ export function Navbar({ onMenuClick, user }) {
                 <div className="flex items-center gap-4">
                     <SidebarToggle onClick={onMenuClick} />
 
-                    <Link to="/" className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary-500 to-primary-700 flex items-center justify-center">
-                            <span className="text-white font-bold text-lg">V</span>
-                        </div>
+                    <Link to="/" className="flex items-center gap-2 group">
+                        <BrandLogo size="md" className="group-hover:scale-105 transition-transform" />
                         <span className="font-display font-bold text-xl text-gradient hidden sm:block">
                             Vixora
                         </span>
