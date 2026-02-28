@@ -122,7 +122,7 @@ export function ShareDialog({ title, url, trigger, children }) {
                 {trigger || children}
             </div>
 
-            <DialogContent className="sm:max-w-[550px] glass-panel border-white/5 text-foreground shadow-premium bg-black/40 backdrop-blur-xl p-0 overflow-hidden gap-0">
+            <DialogContent className="w-[95vw] max-w-lg sm:max-w-[550px] max-h-[90vh] overflow-y-auto glass-panel border-white/5 text-foreground shadow-premium bg-black/40 backdrop-blur-xl p-0 gap-0">
                 <DialogHeader className="p-6 pb-2">
                     <DialogTitle className="text-xl font-bold font-display">Share</DialogTitle>
                     <DialogDescription className="text-muted-foreground">
@@ -164,9 +164,9 @@ export function ShareDialog({ title, url, trigger, children }) {
                     </div>
 
                     {/* Page Link - Redesigned for clarity */}
-                    <div className="space-y-3 ">
+                    <div className="space-y-3 pb-2">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Page Link</label>
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 min-w-0">
                             <div className="flex-1 glass-input rounded-xl px-4 py-2.5 text-sm text-muted-foreground font-mono truncate border border-white/5 bg-white/5 select-all min-w-0">
                                 {shareUrl}
                             </div>

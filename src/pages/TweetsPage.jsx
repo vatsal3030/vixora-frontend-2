@@ -4,8 +4,10 @@ import { useAuth } from '../context/AuthContext'
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
 import { toast } from 'sonner'
-import { Loader2, Trash2, Heart, MessageSquare, Image, X } from 'lucide-react'
+import { Loader2, Trash2, Heart, MessageSquare, Image, X, MoreVertical, Flag } from 'lucide-react'
 import { formatTimeAgo } from '../lib/utils'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../components/ui/DropdownMenu'
+import { ReportDialog } from '../components/common/ReportDialog'
 
 export default function TweetsPage() {
     const { user } = useAuth()
@@ -201,14 +203,25 @@ export default function TweetsPage() {
                                             <span className="font-semibold mr-2">{tweet.owner?.username || user.username}</span>
                                             <span className="text-xs text-muted-foreground">{formatTimeAgo(tweet.createdAt)}</span>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                                            onClick={() => handleDeleteTweet(tweet._id)}
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </Button>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:bg-white/10 rounded-full">
+                                                    <MoreVertical className="w-4 h-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48 glass-panel border-white/5 text-white bg-black/60 backdrop-blur-xl rounded-xl shadow-premium">
+                                                <ReportDialog targetType="TWEET" targetId={tweet._id} trigger={
+                                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
+                                                        <Flag className="w-4 h-4 mr-3" /> Report
+                                                    </DropdownMenuItem>
+                                                } />
+                                                {(tweet.owner?._id === user._id || !tweet.owner) && (
+                                                    <DropdownMenuItem onClick={() => handleDeleteTweet(tweet._id)} className="text-red-500 hover:text-red-500 focus:text-red-500 cursor-pointer py-3">
+                                                        <Trash2 className="w-4 h-4 mr-3" /> Delete
+                                                    </DropdownMenuItem>
+                                                )}
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </div>
 
                                     <p className="mt-2 text-sm whitespace-pre-wrap">{tweet.content}</p>

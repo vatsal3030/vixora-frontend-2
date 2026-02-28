@@ -150,9 +150,9 @@ export function useVixoraAI() {
             const res = await aiService.sendMessage(sessionId, message)
             const data = res.data.data
 
-            const aiText = data?.reply ?? data?.answer ?? data?.assistantMessage?.text ?? ''
+            const aiText = data?.reply ?? data?.answer ?? data?.content ?? data?.assistantMessage?.content ?? data?.assistantMessage?.text ?? data?.message ?? ''
             const resolvedUserMsgId = data?.userMessage?.id ?? tempId
-            const aiMsgId = data?.assistantMessage?.id ?? `ai-${Date.now()}`
+            const aiMsgId = data?.assistantMessage?.id ?? data?.id ?? `ai-${Date.now()}`
 
             const confirmedUserMsg = {
                 id: resolvedUserMsgId,
@@ -197,7 +197,7 @@ export function useVixoraAI() {
         setIsSending(true)
         try {
             const res = await aiService.askAboutVideo(videoId, question)
-            return res.data.data?.answer ?? res.data.data?.reply ?? ''
+            return res.data.data?.answer ?? res.data.data?.reply ?? res.data.data?.content ?? res.data.data?.message ?? ''
         } catch {
             toast.error('Failed to get answer')
             return null

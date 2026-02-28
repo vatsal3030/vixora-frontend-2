@@ -1,12 +1,16 @@
 # Frontend API Handoff
 
-Last updated: 2026-02-20
+Last updated: 2026-02-28
 Source of truth: `src/app.js`, `src/routes/*`, `src/controllers/*`
+
+For implementation-depth frontend guidance (route selection, per-screen call sequence, admin UI blueprint, role assignment flow), read:
+
+- `FRONTEND_INTEGRATION_PLAYBOOK.md`
 
 ## 1) Base URL and Global Behavior
 
 - API base: `/api/v1`
-- Media base: `/api/v1/media` (legacy alias also works: `/api/media`)
+- Media base: `/api/v1/media`
 - Health check: `GET /healthz`
 - Root check: `GET /`
 - Global rate limit: `100 requests/min/IP` on `/api/*`
@@ -363,7 +367,7 @@ Backend rules:
 - Uploading avatar/cover into wrong folder.
 - Using Cloudinary `/video/upload` for image.
 - Forgetting `withCredentials: true` / cookie not sent.
-- Calling `/api/media/...` while frontend base already includes `/api/v1`.
+- Calling wrong base path (`/api/media/...`) instead of `/api/v1/media/...`.
 
 ## 4) Route Catalog (Frontend usage)
 
@@ -398,7 +402,7 @@ Base: `/api/v1/users`
 | GET | `/current-user` | Yes | none |
 | POST | `/forgot-password` | No | `{ email }` |
 | POST | `/forgot-password/verify` | No | `{ email, otp }` |
-| POST | `/reset-password` | No | `{ email, otp, newPassword }` |
+| POST | `/reset-password` | No | `{ email, newPassword, resetToken? }` (`otp` accepted only as legacy fallback) |
 | POST | `/change-password` | Yes | `{ oldPassword, newPassword }` |
 | PATCH | `/update-account` | Yes | `{ fullName }` |
 | PATCH | `/update-avatar` | Yes | `{ avatarPublicId }` |
@@ -424,6 +428,13 @@ Auth response additions:
   - `data.accountSwitch.account`
 - Use `accountSwitchToken` to implement multi-account switch without logging out.
 
+Forgot-password flow notes:
+
+- After `POST /users/forgot-password/verify`, backend sets `passwordResetToken` HttpOnly cookie (path `/api/v1/users`).
+- Preferred reset request is `POST /users/reset-password` with `{ email, newPassword }` and cookie included.
+- If cookie transport is unavailable, frontend can send `{ resetToken }` in body.
+- Passing OTP directly to `/reset-password` is supported only for legacy compatibility.
+
 ## Upload
 
 Base: `/api/v1/upload`
@@ -438,7 +449,7 @@ Base: `/api/v1/upload`
 
 ## Media
 
-Base: `/api/v1/media` (legacy alias `/api/media` also works)
+Base: `/api/v1/media`
 
 | Method | Endpoint | Auth | Request |
 |---|---|---|---|
@@ -651,6 +662,24 @@ Response `data`:
     "provider": "gemini",
     "model": "gemini-2.5-flash",
     "warning": null,
+    "confidence": 0.86,
+    "citations": [
+      {
+        "type": "VIDEO_METADATA",
+        "videoId": "uuid",
+        "title": "Video title",
+        "fields": ["title", "description", "summary"]
+      },
+      {
+        "type": "TRANSCRIPT",
+        "available": true,
+        "transcriptChars": 4820,
+        "language": "en",
+        "source": "MANUAL",
+        "wordCount": 812,
+        "segmentCount": 96
+      }
+    ],
     "quota": {
       "usedToday": 3,
       "dailyLimit": 40,
@@ -666,6 +695,16 @@ Frontend should display AI text from:
 2. fallback: `data.assistantMessage.text`
 3. fallback: `data.assistantMessage.message`
 4. fallback: `data.assistantMessage.content`
+
+AI metadata notes:
+
+- `data.ai.confidence` is a backend confidence score (`0..1`) based on context quality and provider type.
+- `data.ai.citations` is evidence metadata (video metadata + transcript availability) for explainability.
+- `data.ai.provider` can be: `gemini`, `fallback`, `rule-based`, `session-cache`.
+- Keep UI resilient: if `ai.confidence`/`ai.citations` are missing, continue rendering message normally.
+- `data.ai.quota` can also include:
+  - `globalUsedToday`
+  - `globalDailyLimit` (nullable if global cap disabled)
 
 #### 2) Fetch session messages
 
@@ -730,6 +769,7 @@ Response `data` includes both:
 - `answer`
 - `reply` (alias, same value)
 - `context` (context quality metadata)
+- `ai` (provider/model/quota + confidence + citations)
 
 #### 4) Generate summary
 
@@ -743,6 +783,7 @@ Response `data`:
 - `source` (`gemini` or `fallback`)
 - `model`
 - `quota`
+- `ai` (same structure as chat/ask responses for consistent UI bindings)
 
 #### 5) Transcript read/update/delete
 
@@ -790,6 +831,129 @@ Feedback notes:
 - `targetType` for reports: `VIDEO|COMMENT|USER|CHANNEL`
 - duplicate pending report for same target returns existing report instead of creating new
 - report + not-interested actions are logged into `UserEvent`
+
+## Internal Ops (not for public frontend)
+
+Base: `/api/v1/internal`
+
+| Method | Endpoint | Auth | Request |
+|---|---|---|---|
+| GET | `/usage` | token header | `x-internal-token: <INTERNAL_METRICS_TOKEN>` (or bearer) |
+
+Notes:
+
+- This endpoint is for internal observability only.
+- It returns runtime flags, queue stats, AI usage counters, cache/redis metrics snapshot.
+- Do not call this route from normal product UI traffic.
+
+## Admin
+
+Base: `/api/v1/admin` (protected; requires admin role)
+
+Admin role model:
+
+- `MODERATOR`: can moderate content + resolve reports + set user status `ACTIVE|RESTRICTED`
+- `ADMIN`: moderator permissions + user suspend/delete/restore + verify pending email
+- `SUPER_ADMIN`: admin permissions + role updates
+
+All endpoints below require:
+
+- valid auth (`accessToken`)
+- admin panel enabled (`ADMIN_PANEL_ENABLED`)
+- account role in `MODERATOR|ADMIN|SUPER_ADMIN`
+
+### Admin session/profile
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/me` | Current admin profile + permission list |
+
+### Admin dashboard
+
+| Method | Endpoint | Query |
+|---|---|---|
+| GET | `/dashboard/overview` | `period=7d|30d|90d|1y` |
+| GET | `/dashboard/activity` | `period=7d|30d|90d|1y` |
+
+### Reports moderation
+
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/reports` | query: `page,limit,status,targetType,q,sortBy,sortType,from,to` |
+| GET | `/reports/:reportId` | none |
+| PATCH | `/reports/:reportId/resolve` | body: `{ status, note?, action? }` |
+
+`status` must be one of:
+
+- `REVIEWED`
+- `REJECTED`
+- `ACTION_TAKEN`
+
+`action` supports moderation commands:
+
+- `USER_SET_STATUS`
+- `USER_SOFT_DELETE`
+- `USER_RESTORE`
+- `USER_VERIFY_PENDING_EMAIL`
+- `VIDEO_UNPUBLISH`
+- `VIDEO_PUBLISH`
+- `VIDEO_SOFT_DELETE`
+- `VIDEO_RESTORE`
+- `TWEET_SOFT_DELETE`
+- `TWEET_RESTORE`
+- `COMMENT_SOFT_DELETE`
+- `COMMENT_RESTORE`
+- `PLAYLIST_SOFT_DELETE`
+- `PLAYLIST_RESTORE`
+
+### Users moderation
+
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/users` | query: `page,limit,q,status,role,isDeleted,sortBy,sortType` |
+| GET | `/users/:userId` | none |
+| PATCH | `/users/:userId/status` | body: `{ status: ACTIVE|RESTRICTED|SUSPENDED, reason }` |
+| PATCH | `/users/:userId/verify-pending-email` | body: `{ reason? }` |
+| PATCH | `/users/:userId/soft-delete` | body: `{ reason }` |
+| PATCH | `/users/:userId/restore` | body: `{ reason? }` |
+| PATCH | `/users/:userId/role` | body: `{ role: USER|MODERATOR|ADMIN|SUPER_ADMIN, reason? }` |
+
+### Content moderation
+
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/videos` | query: `page,limit,q,ownerId,isShort,isPublished,isDeleted,processingStatus,sortBy,sortType` |
+| GET | `/videos/:videoId` | none |
+| PATCH | `/videos/:videoId/unpublish` | body: `{ reason? }` |
+| PATCH | `/videos/:videoId/publish` | body: `{ reason? }` |
+| PATCH | `/videos/:videoId/soft-delete` | body: `{ reason }` |
+| PATCH | `/videos/:videoId/restore` | body: `{ reason? }` |
+| GET | `/tweets` | query: `page,limit,q,ownerId,isDeleted,sortBy,sortType` |
+| GET | `/tweets/:tweetId` | none |
+| PATCH | `/tweets/:tweetId/soft-delete` | body: `{ reason }` |
+| PATCH | `/tweets/:tweetId/restore` | body: `{ reason? }` |
+| GET | `/comments` | query: `page,limit,q,ownerId,videoId,isDeleted,sortBy,sortType` |
+| GET | `/comments/:commentId` | none |
+| PATCH | `/comments/:commentId/soft-delete` | body: `{ reason }` |
+| PATCH | `/comments/:commentId/restore` | body: `{ reason? }` |
+| GET | `/playlists` | query: `page,limit,q,ownerId,isDeleted,isPublic,sortBy,sortType` |
+| GET | `/playlists/:playlistId` | none |
+| PATCH | `/playlists/:playlistId/soft-delete` | body: `{ reason }` |
+| PATCH | `/playlists/:playlistId/restore` | body: `{ reason? }` |
+
+### Audit logs
+
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/audit-logs` | query: `page,limit,actorId,action,targetType,targetId,from,to,sortBy,sortType` |
+| GET | `/audit-logs/:logId` | none |
+
+Admin moderation policy notes:
+
+- Admin delete actions are soft-delete only.
+- Restore is allowed only within 7 days of `deletedAt`.
+- Last remaining `SUPER_ADMIN` cannot be demoted.
+- Mutating APIs are blocked for non-admin users with `moderationStatus=RESTRICTED|SUSPENDED` (read-only mode).
 
 ## Comments
 
@@ -1077,11 +1241,18 @@ Watch history notes:
 - Video creation is upload-session based. There is no direct `POST /api/v1/videos`.
 - Avatar/Cover update APIs require Cloudinary `publicId`, not file upload multipart.
 - Signature endpoint returns custom `resourceType` labels (`thumbnail`, `avatar`, `post`). For Cloudinary URL path, use `/image/upload` for non-video uploads.
-- Media finalize (`/api/v1/media/finalize/:sessionId`, legacy `/api/media/finalize/:sessionId`) trusts only `publicId` and verifies asset ownership on backend; do not send Cloudinary URL as source of truth.
+- Media finalize (`/api/v1/media/finalize/:sessionId`) trusts only `publicId` and verifies asset ownership on backend; do not send Cloudinary URL as source of truth.
 - Quality playback supports `AUTO`, `MAX`, and manual levels (`1080p`, `720p`, etc). Use `quality` query param for selection.
 - For account switch, frontend must persist `accountSwitchToken` per account (secure storage policy on frontend side).
 - AI APIs require authenticated user and respect daily quota limits.
 - AI responses can come from `gemini`, `rule-based`, or `session-cache` providers depending on request type and cache hit.
+- AI responses now include explainability metadata (`ai.confidence`, `ai.citations`).
+- Cache strategy is free-tier-safe by default:
+  - L1 in-memory cache is primary.
+  - Redis cache layer is disabled by default in production unless `CACHE_REDIS_ENABLED=true`.
+  - Very short TTL cache keys can stay L1-only (`CACHE_REDIS_MIN_TTL_SECONDS`, default `60` in production).
+  - Redis cache can be restricted by scope allowlist (`CACHE_REDIS_SCOPE_ALLOWLIST`).
+- Notification fanout has dedup guard (`NOTIFICATION_DEDUP_WINDOW_MINUTES`) to avoid duplicate writes/events in short windows.
 - Folder checks are strict in backend verification:
   - video finalize expects `videos/<userId>` and `thumbnails/<userId>`
   - avatar update expects `avatars/<userId>`

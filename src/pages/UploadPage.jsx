@@ -258,24 +258,21 @@ export default function UploadPage() {
                 thumbnailPublicId: thumbData.public_id,
                 duration: videoData.duration || 0,
                 width: videoData.width || 0,
-                height: videoData.height || 0
+                height: videoData.height || 0,
+                isShort
+            }
+
+            // Include transcript inline in finalize if provided (backend supports it)
+            if (transcript.trim()) {
+                finalizePayload.transcript = transcript.trim()
+                finalizePayload.transcriptLanguage = 'en'
+                finalizePayload.transcriptSource = 'IMPORTED'
             }
 
             const finalizeRes = await videoService.finalizeUpload(sessionId, finalizePayload)
 
             if (finalizeRes.data.success) {
                 const videoId = finalizeRes.data.data.videoId || finalizeRes.data.data.id
-
-                // 6. Upload Transcript if provided
-                if (videoId && transcript.trim()) {
-                    try {
-                        await videoService.uploadTranscript(videoId, { content: transcript.trim() })
-                    } catch (err) {
-                        console.error("Transcript upload failed", err)
-                        // Don't block navigation, just warn
-                        toast.error("Transcript failed to upload, but video is ready.")
-                    }
-                }
 
                 toast.success('Video uploaded successfully! Processing started.')
                 if (videoId) {

@@ -165,7 +165,11 @@ export default function WatchPage() {
 
     // --- Mutations ---
     const subscribeMutation = useMutation({
-        mutationFn: () => subscriptionService.toggleSubscription(video.owner._id),
+        mutationFn: () => {
+            const channelId = typeof video.owner === 'string' ? video.owner : (video.owner?._id || video.owner?.id)
+            if (!channelId) throw new Error("Channel ID missing")
+            return subscriptionService.toggleSubscription(channelId)
+        },
         onMutate: async () => {
             await queryClient.cancelQueries(['video', videoId])
             const previousVideo = queryClient.getQueryData(['video', videoId])
@@ -187,7 +191,7 @@ export default function WatchPage() {
     })
 
     const likeMutation = useMutation({
-        mutationFn: () => likeService.toggleVideoLike(video._id),
+        mutationFn: () => likeService.toggleVideoLike(video._id || video.id),
         onMutate: async () => {
             await queryClient.cancelQueries(['video', videoId])
             const previousVideo = queryClient.getQueryData(['video', videoId])
@@ -290,11 +294,15 @@ export default function WatchPage() {
                         </div>
 
                         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto scrollbar-hide">
-                            <div className="flex bg-white/10 rounded-full overflow-hidden items-center shrink-0 h-9 md:h-10">
+                            <div className="flex items-center glass-card rounded-full h-9 md:h-10 shrink-0 relative">
                                 <button
-                                    onClick={handleLike}
-                                    disabled={likeMutation.isPending}
-                                    className={`flex items-center gap-2 px-4 h-full hover:bg-white/10 border-r border-white/10 transition-all duration-300 relative ${video.isLiked ? 'text-primary' : ''}`}
+                                    onClick={() => {
+                                        if (!user) return navigate('/login')
+                                        setLikeAnimation(true)
+                                        setTimeout(() => setLikeAnimation(false), 300)
+                                        likeMutation.mutate()
+                                    }}
+                                    className="flex items-center gap-2 px-4 h-full hover:bg-white/10 transition-colors rounded-l-full"
                                 >
                                     <motion.div
                                         animate={likeAnimation ? { scale: [1, 1.4, 1] } : {}}
@@ -304,16 +312,17 @@ export default function WatchPage() {
                                     </motion.div>
                                     <span className="text-sm font-medium">{formatNumber(video.likesCount)}</span>
                                 </button>
-                                <button className="px-4 h-full hover:bg-white/10 transition-colors">
+                                <div className="w-[1px] h-5 bg-white/10"></div>
+                                <button className="px-4 h-full hover:bg-white/10 transition-colors rounded-r-full">
                                     <ThumbsDown className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            <ShareDialog title={video.title} url={window.location.href}>
+                            <ShareDialog title={video.title} url={window.location.href} trigger={
                                 <Button variant="secondary" className="rounded-full bg-white/10 hover:bg-white/20 shrink-0 h-9 md:h-10 text-white px-4">
                                     <Share2 className="w-4 h-4 mr-2" /> Share
                                 </Button>
-                            </ShareDialog>
+                            } />
 
                             <Button
                                 variant="secondary"
@@ -330,14 +339,16 @@ export default function WatchPage() {
                                     </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="w-56 glass-panel border-white/5 text-white rounded-xl shadow-premium">
-                                    <AddToPlaylistDialog videoId={video._id}>
+                                    <AddToPlaylistDialog videoId={video._id} trigger={
                                         <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
                                             <Save className="w-4 h-4 mr-3" /> Save to Playlist
                                         </DropdownMenuItem>
-                                    </AddToPlaylistDialog>
-                                    <DropdownMenuItem onClick={() => toast("Report received")} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
-                                        <Flag className="w-4 h-4 mr-3" /> Report
-                                    </DropdownMenuItem>
+                                    } />
+                                    <ReportDialog targetType="VIDEO" targetId={video._id} trigger={
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
+                                            <Flag className="w-4 h-4 mr-3" /> Report
+                                        </DropdownMenuItem>
+                                    } />
                                     <DropdownMenuItem onClick={() => setActiveTab('transcript')} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
                                         <FileText className="w-4 h-4 mr-3" /> Show Transcript
                                     </DropdownMenuItem>
@@ -355,23 +366,21 @@ export default function WatchPage() {
                             <span className="text-muted-foreground">•</span>
                             <span>{formatTimeAgo(video.createdAt)}</span>
                         </div>
-                        <div className="whitespace-pre-line text-gray-300 leading-relaxed font-normal text-[0.95rem]">
+                        <p className="whitespace-pre-line text-gray-300 leading-relaxed font-normal text-[0.95rem]">
                             {isDescriptionExpanded ? video.description : (
-                                <>
-                                    {video.description?.substring(0, 180)}
-                                    {video.description?.length > 180 && '...'}
-                                </>
+                                (video.description?.substring(0, 180) || '') + (video.description?.length > 180 ? '...' : '')
                             )}
-                        </div>
-                        <button className="text-white mt-2 font-semibold hover:underline text-sm">
-                            {isDescriptionExpanded ? 'Show less' : '...more'}
-                        </button>
+                        </p>
+                        {video.description?.length > 180 && (
+                            <button className="text-white mt-2 font-semibold hover:underline text-sm">
+                                {isDescriptionExpanded ? 'Show less' : '...more'}
+                            </button>
+                        )}
                     </div>
                 </div>
 
                 {/* 3. Sidebar (Recommendations / Transcript / Chapters) */}
-                <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : 'lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-3 xl:col-start-4'} order-3 flex flex-col gap-4`}>
-
+                <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : 'lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:row-span-3 xl:col-start-4 lg:w-[350px] xl:w-[400px] w-full overflow-hidden shrink-0'} order-3 flex flex-col gap-4`}>
                     {/* AI Summary Card */}
                     <AISummaryCard videoId={videoId} />
 
@@ -384,7 +393,7 @@ export default function WatchPage() {
                                 activeTab === 'next' ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white"
                             )}
                         >
-                            Up Next
+                            Next
                         </button>
                         <button
                             onClick={() => setActiveTab('transcript')}
@@ -451,7 +460,7 @@ export default function WatchPage() {
                                         <VideoCard
                                             key={recVideo._id}
                                             video={recVideo}
-                                            type="compact"
+                                            layout="compact"
                                         />
                                     ))}
                                 </div>
@@ -531,10 +540,9 @@ export default function WatchPage() {
                         )}
                     </div>
                 </div>
-
-            </div>
+            </div >
 
             <KeyboardShortcutsModal isOpen={showShortcuts} onClose={() => setShowShortcuts(false)} />
-        </div>
+        </div >
     )
 }

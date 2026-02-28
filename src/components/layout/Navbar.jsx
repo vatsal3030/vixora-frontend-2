@@ -9,7 +9,8 @@ import {
     LogOut,
     Video,
     Plus,
-    ArrowLeft
+    ArrowLeft,
+    Shield
 } from 'lucide-react'
 import {
     DropdownMenu,
@@ -25,10 +26,10 @@ import NotificationDropdown from './NotificationDropdown'
 import { BrandLogo } from '../common/BrandLogo'
 
 import { useAuth } from '../../context/AuthContext'
-import { toast } from 'sonner'
+
 
 export function Navbar({ onMenuClick, user }) {
-    const { logout } = useAuth()
+    const { logout, availableAccounts, switchAccount } = useAuth()
 
     const [searchQuery, setSearchQuery] = useState('')
     const [showMobileSearch, setShowMobileSearch] = useState(false)
@@ -184,11 +185,49 @@ export function Navbar({ onMenuClick, user }) {
                                         </Link>
                                     </DropdownMenuItem>
 
-                                    <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 text-muted-foreground px-3" onClick={() => toast.info('Feature coming soon!')}>
-                                        <div className="flex items-center gap-3 w-full py-2.5">
+                                    {availableAccounts?.filter(acc => acc.id !== (user?.id || user?._id)).length > 0 && (
+                                        <>
+                                            <DropdownMenuSeparator className="bg-white/10" />
+                                            <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                                Switch Account
+                                            </div>
+                                            {availableAccounts
+                                                .filter(acc => acc.id !== (user?.id || user?._id))
+                                                .map(acc => (
+                                                    <DropdownMenuItem
+                                                        key={acc.id}
+                                                        className="cursor-pointer rounded-lg focus:bg-white/10 px-3"
+                                                        onClick={() => switchAccount(acc.accountSwitchToken)}
+                                                    >
+                                                        <div className="flex items-center gap-3 w-full py-2">
+                                                            <Avatar src={acc.avatar} alt={acc.username} size="sm" />
+                                                            <div className="flex flex-col overflow-hidden max-w-[150px]">
+                                                                <span className="font-medium text-sm text-foreground truncate">{acc.fullName || acc.username}</span>
+                                                                <span className="text-xs text-muted-foreground truncate">{acc.email}</span>
+                                                            </div>
+                                                        </div>
+                                                    </DropdownMenuItem>
+                                                ))
+                                            }
+                                        </>
+                                    )}
+
+                                    <DropdownMenuSeparator className="bg-white/10" />
+
+                                    {['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(user?.role) && (
+                                        <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 px-3" asChild>
+                                            <Link to="/admin/dashboard" className="flex items-center gap-3 w-full py-2.5 text-blue-400">
+                                                <Shield className="w-4 h-4" />
+                                                <span>Admin Panel</span>
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    )}
+
+                                    <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 px-3" asChild>
+                                        <Link to="/login" className="flex items-center gap-3 w-full py-2.5 text-foreground">
                                             <Plus className="w-4 h-4" />
                                             <span>Add Account</span>
-                                        </div>
+                                        </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         className="cursor-pointer rounded-lg text-red-400 hover:text-red-400 focus:text-red-400 hover:bg-red-500/10 focus:bg-red-500/10 px-3"

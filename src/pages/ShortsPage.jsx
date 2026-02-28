@@ -23,29 +23,14 @@ export default function ShortsPage() {
             setLoading(true)
             let newShorts = []
 
-            // Strategy 1: Try the dedicated shorts feed endpoint
+            // Fetch from dedicated shorts feed endpoint
             try {
-                console.log('[Shorts] Trying /feed/shorts endpoint...')
                 const res = await feedService.getShortsFeed({ page: pageNum, limit: 10 })
-                console.log('[Shorts] /feed/shorts response:', res.data)
-
                 const data = res.data?.data
-                newShorts = Array.isArray(data) ? data : (Array.isArray(data?.docs) ? data.docs : [])
-
-                // If data is wrapped in statusCode pattern
-                if (newShorts.length === 0 && res.data?.data?.videos) {
-                    newShorts = res.data.data.videos
-                }
-                if (newShorts.length === 0 && Array.isArray(res.data?.videos)) {
-                    newShorts = res.data.videos
-                }
+                newShorts = data?.items || (Array.isArray(data) ? data : [])
             } catch (feedError) {
-                console.warn('[Shorts] /feed/shorts failed:', feedError.response?.status, feedError.message)
+                // Silently handle — empty array will trigger "No Shorts found" UI
             }
-
-
-
-            console.log(`[Shorts] Final shorts count: ${newShorts.length}`, newShorts.slice(0, 2))
 
             if (newShorts.length === 0) {
                 setHasMore(false)

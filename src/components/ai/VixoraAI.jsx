@@ -265,6 +265,9 @@ export default function VixoraAI() {
     const videoIdMatch = location.pathname.match(/\/watch\/([^/?]+)/)
     const currentVideoId = videoIdMatch?.[1] || null
 
+    const authRoutes = ['/login', '/register', '/forgot-password', '/verify-email', '/restore-account']
+    const isAuthRoute = authRoutes.includes(location.pathname)
+
     const startResizing = useCallback((e) => {
         e.preventDefault()
         setIsResizing(true)
@@ -332,7 +335,7 @@ export default function VixoraAI() {
         }
     }, [isResizing])
 
-    if (!user) return null
+    if (!user || isAuthRoute) return null
 
     const handleOpen = () => {
         setIsOpen(true)

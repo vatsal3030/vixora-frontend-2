@@ -5,6 +5,8 @@ import { AuthProvider } from './context/AuthContext'
 import { Layout } from './components/layout'
 import { AuthLayout } from './components/layout/AuthLayout'
 import ProtectedRoute from './components/auth/ProtectedRoute'
+import AdminRoute from './components/auth/AdminRoute'
+import { AdminLayout } from './components/layout/AdminLayout'
 import { ThemeProvider } from './context/ThemeContext'
 import { AppSkeleton } from './components/skeletons/AppSkeleton'
 import { VideoHoverProvider } from './context/VideoHoverContext'
@@ -47,6 +49,9 @@ const ChannelPage = lazy(() => import('./pages/ChannelPage'))
 const LibraryPage = lazy(() => import('./pages/LibraryPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
+// Lazy load admin pages
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+
 function App() {
   return (
     <AuthProvider>
@@ -66,6 +71,23 @@ function App() {
                     <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                     <Route path="/verify-email" element={<VerifyEmailPage />} />
                     <Route path="/restore-account" element={<RestoreAccountPage />} />
+                  </Route>
+
+                  {/* Admin Routes - Wrapped in AdminLayout and AdminRoute */}
+                  <Route path="/admin" element={
+                    <AdminRoute>
+                      <AdminLayout />
+                    </AdminRoute>
+                  }>
+                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="dashboard" element={<AdminDashboard />} />
+                    {/* Stubs for future admin tabs, navigating back to dashboard for now */}
+                    <Route path="reports" element={<div>Reports (WIP)</div>} />
+                    <Route path="users" element={<div>Users (WIP)</div>} />
+                    <Route path="videos" element={<div>Videos (WIP)</div>} />
+                    <Route path="tweets" element={<div>Tweets (WIP)</div>} />
+                    <Route path="playlists" element={<div>Playlists (WIP)</div>} />
+                    <Route path="audit-logs" element={<div>Audit Logs (WIP)</div>} />
                   </Route>
 
                   {/* Protected Routes - Main Layout */}
@@ -98,19 +120,25 @@ function App() {
                     <Route path="video/:videoId" element={<WatchPage />} /> {/* Alias */}
                     <Route path="video/:videoId/edit" element={<EditVideoPage />} />
 
-                    {/* Channel Routes */}
-                    <Route path="channel/:username" element={<ChannelPage />} />
-
+                    {/* Upload Route */}
                     <Route path="upload" element={<UploadPage />} />
-                    <Route path="tweets" element={<TweetsPage />} />
-                    <Route path="trash" element={<TrashPage />} />
-                    <Route path="profile" element={<ProfilePage />} />
-                    <Route path="settings" element={<SettingsPage />} />
-                    <Route path=":username" element={<ChannelPage />} />
 
-                    {/* Catch All / 404 */}
-                    <Route path="*" element={<NotFoundPage />} />
+                    {/* Trash Route */}
+                    <Route path="trash" element={<TrashPage />} />
+
+                    {/* User Setting & Profile Route */}
+                    <Route path="settings" element={<SettingsPage />} />
+                    <Route path="profile" element={<ProfilePage />} />
+
+                    {/* Channel Routes */}
+                    <Route path="@:username/*" element={<ChannelPage />} />
+
+                    {/* Tweets Routes */}
+                    <Route path="tweets" element={<TweetsPage />} />
                   </Route>
+
+                  {/* Catch all route - 404 */}
+                  <Route path="*" element={<Layout><NotFoundPage /></Layout>} />
                 </Routes>
               </Suspense>
             </Router>

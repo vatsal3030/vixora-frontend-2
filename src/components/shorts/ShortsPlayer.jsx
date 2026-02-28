@@ -1,6 +1,8 @@
 import { useRef, useState, useEffect } from 'react'
-import { Play, Pause, Volume2, VolumeX, ThumbsUp, ThumbsDown, MessageSquare, Share2, MoreVertical, Loader2 } from 'lucide-react'
+import { Play, Pause, Volume2, VolumeX, ThumbsUp, ThumbsDown, MessageSquare, Share2, MoreVertical, Loader2, Flag } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/DropdownMenu'
+import { ReportDialog } from '../common/ReportDialog'
 import { Avatar } from '../ui/Avatar'
 import { Button } from '../ui/Button'
 import { formatViews } from '../../lib/utils'
@@ -172,9 +174,20 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                         {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                     </button>
                     {/* More Menu */}
-                    <button className="p-2 bg-black/40 rounded-full text-white backdrop-blur-sm hover:bg-black/60 transition-colors">
-                        <MoreVertical className="w-5 h-5" />
-                    </button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <button className="p-2 bg-black/40 rounded-full text-white backdrop-blur-sm hover:bg-black/60 transition-colors">
+                                <MoreVertical className="w-5 h-5" />
+                            </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48 glass-panel border-white/5 text-white bg-black/60 backdrop-blur-xl rounded-xl shadow-premium">
+                            <ReportDialog targetType="VIDEO" targetId={video._id} trigger={
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
+                                    <Flag className="w-4 h-4 mr-3" /> Report
+                                </DropdownMenuItem>
+                            } />
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
 
                 {/* Right Side Actions */}

@@ -253,3 +253,26 @@ export const accountService = {
     switchAccount: (accountSwitchToken) => api.post('/users/switch-account', { accountSwitchToken }),
     resolveAccounts: (tokens) => api.post('/users/switch-account/resolve', { tokens })
 }
+
+// Admin Service
+export const adminService = {
+    getMe: () => api.get('/admin/me'),
+    getDashboardOverview: (params = {}) => api.get('/admin/dashboard/overview', { params }),
+    getDashboardActivity: (params = {}) => api.get('/admin/dashboard/activity', { params }),
+
+    getUsers: (params = {}) => api.get('/admin/users', { params }),
+    getUser: (userId) => api.get(`/admin/users/${userId}`),
+    updateUserStatus: (userId, data) => api.patch(`/admin/users/${userId}/status`, data), // { status, reason }
+    updateUserRole: (userId, data) => api.patch(`/admin/users/${userId}/role`, data), // { role, reason }
+    verifyPendingEmail: (userId) => api.patch(`/admin/users/${userId}/verify-pending-email`),
+
+    getReports: (params = {}) => api.get('/admin/reports', { params }),
+    getReport: (reportId) => api.get(`/admin/reports/${reportId}`),
+    resolveReport: (reportId, data) => api.patch(`/admin/reports/${reportId}/resolve`, data), // { resolution, actionTaken }
+
+    getVideos: (params = {}) => api.get('/admin/videos', { params }),
+    getVideo: (videoId) => api.get(`/admin/videos/${videoId}`),
+
+    getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
+    getAuditLog: (logId) => api.get(`/admin/audit-logs/${logId}`)
+}

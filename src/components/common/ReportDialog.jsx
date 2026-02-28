@@ -1,10 +1,11 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useMutation } from '@tanstack/react-query'
 import { Flag, Loader2 } from 'lucide-react'
 import { feedbackService } from '../../services/api'
 import { toast } from 'sonner'
 
-const REPORT_TARGET_TYPES = ['VIDEO', 'COMMENT', 'USER', 'CHANNEL']
+const REPORT_TARGET_TYPES = ['VIDEO', 'COMMENT', 'USER', 'CHANNEL', 'TWEET', 'PLAYLIST']
 
 const REPORT_REASONS = {
     VIDEO: [
@@ -32,6 +33,17 @@ const REPORT_REASONS = {
         'Spam or misleading',
         'Hateful or abusive content',
         'Copyright infringement',
+        'Other',
+    ],
+    TWEET: [
+        'Spam or misleading',
+        'Hateful or abusive content',
+        'Harassment',
+        'Other',
+    ],
+    PLAYLIST: [
+        'Spam or misleading',
+        'Hateful or abusive content',
         'Other',
     ],
 }
@@ -88,14 +100,14 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger }) {
             <span onClick={handleOpen}>{trigger}</span>
 
             {/* Modal overlay */}
-            {isOpen && (
+            {isOpen && createPortal(
                 <div
                     className="fixed inset-0 z-[200] flex items-center justify-center p-4"
                     style={OVERLAY_STYLE}
                     onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}
                 >
                     <div
-                        className="w-full max-w-md rounded-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
+                        className="w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
                         style={PANEL_STYLE}
                     >
                         {/* Header */}
@@ -110,7 +122,7 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger }) {
                         </div>
 
                         {/* Form */}
-                        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+                        <form onSubmit={handleSubmit} className="p-5 space-y-4 overflow-y-auto">
                             <div className="space-y-2">
                                 <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Reason</label>
                                 <div className="grid gap-2">
@@ -120,8 +132,8 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger }) {
                                             type="button"
                                             onClick={() => setReason(r)}
                                             className={`w-full text-left text-sm px-3.5 py-2.5 rounded-xl border transition-all ${reason === r
-                                                    ? 'bg-primary/20 border-primary/50 text-white'
-                                                    : 'bg-white/4 border-white/8 text-gray-300 hover:bg-white/8'
+                                                ? 'bg-primary/20 border-primary/50 text-white'
+                                                : 'bg-white/4 border-white/8 text-gray-300 hover:bg-white/8'
                                                 }`}
                                         >
                                             {r}
@@ -163,7 +175,8 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger }) {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     )

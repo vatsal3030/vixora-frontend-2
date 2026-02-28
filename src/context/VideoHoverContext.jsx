@@ -1,3 +1,5 @@
+/* eslint-disable react-refresh/only-export-components */
+// @refresh reset
 import { createContext, useContext, useState, useRef, useCallback } from 'react';
 
 const VideoHoverContext = createContext(null);

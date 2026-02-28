@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { MoreVertical, Play, Globe, Lock, Link as LinkIcon, Trash2, Edit2, Share2 } from 'lucide-react'
+import { MoreVertical, Play, Globe, Lock, Link as LinkIcon, Trash2, Edit2, Share2, Flag } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 
 import { CompositeThumbnail } from './CompositeThumbnail'
@@ -10,6 +10,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '../ui/DropdownMenu'
+import { ReportDialog } from '../common/ReportDialog'
 
 export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
     const navigate = useNavigate()
@@ -94,6 +95,11 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
                                 Share
                             </DropdownMenuItem>
                         )}
+                        <ReportDialog targetType="PLAYLIST" targetId={playlist._id} trigger={
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white">
+                                <Flag className="w-4 h-4 mr-2" /> Report
+                            </DropdownMenuItem>
+                        } />
                         <DropdownMenuItem onClick={() => onDelete(playlist)} className="text-red-500 focus:text-red-500">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Delete playlist

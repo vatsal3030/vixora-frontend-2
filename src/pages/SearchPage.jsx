@@ -1,14 +1,14 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { motion } from 'framer-motion' // eslint-disable-line
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { videoService } from '../services/api'
 import { VideoCard } from '../components/video/VideoCard'
-import { Loader2, SearchX, Filter } from 'lucide-react'
+import { Loader2, SearchX } from 'lucide-react'
 import { toast } from 'sonner'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
-import { Button } from '../components/ui/Button' // Added Button import
+import { Button } from '../components/ui/Button'
 
 export default function SearchPage() {
     const [searchParams] = useSearchParams()
@@ -19,22 +19,13 @@ export default function SearchPage() {
 
     // Using TanStack Query for Search
     const { data: searchResults = {}, isLoading, error } = useQuery({
-        queryKey: ['search', query, filter],
+        queryKey: ['search', query],
         queryFn: async () => {
             if (!query) return {}
-            // Pass filter type to backend if supported, otherwise filter locally? 
-            // The prompt implies we need search filters. Let's assume standard params.
-            const params = { search: query }
-            if (filter !== 'All') params.type = filter.toLowerCase()
 
-            const response = await videoService.getVideos(params)
-            // NOTE: The backend API in videoService.getVideos might strictly return videos.
-            // If we need channels, we might need a separate service call or a unified search endpoint.
-            // Given the current api.js service, videoService.getVideos serves videos.
-            // For now, we will stick to searching videos, as channel search isn't explicitly in api.js 
-            // except via direct username or similar.
-
-            // Let's rely on standard response
+            // The backend getAllVideos controller specifically looks for "query" in req.query
+            // e.g. /api/v1/videos?query=xyz
+            const response = await videoService.getVideos({ query })
             return response.data.data
         },
         enabled: !!query,
@@ -42,12 +33,21 @@ export default function SearchPage() {
     })
 
     // Normalize data
-    const videos = searchResults?.items || []
+    const allVideos = useMemo(() => searchResults?.items || [], [searchResults])
 
     if (error) {
         toast.error('Search failed')
         console.error("Search error:", error)
     }
+
+    // getAllVideos strictly returns videos. The filter tabs on the UI might not apply cleanly 
+    // unless the backend eventually supports "type=channels", but we will leave the UI intact for now.
+    const displayItems = useMemo(() => {
+        if (filter === 'Channels') {
+            return [] // The getAllVideos route only returns videos.
+        }
+        return allVideos
+    }, [filter, allVideos])
 
     return (
         <div className="py-6 min-h-[80vh] container mx-auto px-4">
@@ -57,7 +57,7 @@ export default function SearchPage() {
                         <h1 className="text-2xl font-bold flex items-center gap-2">
                             Search Results
                             <span className="text-sm font-normal text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
-                                {videos.length} found
+                                {allVideos.length} found
                             </span>
                         </h1>
                         <p className="text-sm text-muted-foreground mt-1">
@@ -66,7 +66,7 @@ export default function SearchPage() {
                     </div>
 
                     {/* Filter Tabs */}
-                    <div className="flex bg-black/20 p-1 rounded-xl border border-white/5">
+                    <div className="flex bg-black/20 p-1 rounded-xl border border-white/5 shrink-0">
                         {['All', 'Videos', 'Channels'].map((tab) => (
                             <button
                                 key={tab}
@@ -89,7 +89,7 @@ export default function SearchPage() {
                         <VideoCardSkeleton key={i} />
                     ))}
                 </div>
-            ) : videos.length === 0 ? (
+            ) : displayItems.length === 0 ? (
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -100,7 +100,7 @@ export default function SearchPage() {
                     </div>
                     <h2 className="text-2xl font-bold mb-3">No matches found</h2>
                     <p className="text-muted-foreground max-w-md mx-auto mb-8">
-                        We couldn't find any videos matching "{query}". Try checking for typos or using different keywords.
+                        We couldn't find any {filter === 'Channels' ? 'channels' : 'videos'} matching "{query}". Try checking for typos or using different keywords.
                     </p>
                     <Button onClick={() => window.history.back()} variant="outline" className="glass hover:bg-white/5">
                         <Loader2 className="w-4 h-4 mr-2" />
@@ -109,9 +109,9 @@ export default function SearchPage() {
                 </motion.div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
-                    {videos.map((video, index) => (
+                    {displayItems.map((video, index) => (
                         <motion.div
-                            key={video._id}
+                            key={video.id || video._id || index}
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}

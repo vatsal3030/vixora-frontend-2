@@ -1,10 +1,12 @@
 
 import { Button } from '../ui/Button'
-import { CheckCircle2, Bell } from 'lucide-react'
+import { CheckCircle2, Bell, MoreVertical, Flag } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { subscriptionService } from '../../services/api'
 import { toast } from 'sonner'
 import { Avatar } from '../ui/Avatar'
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/DropdownMenu'
+import { ReportDialog } from '../common/ReportDialog'
 import { ConfirmationDialog } from '../common/ConfirmationDialog'
 import { formatSubscribers } from '../../lib/utils'
 
@@ -106,6 +108,21 @@ export default function ChannelInfo({ channel }) {
                                 "Subscribe"
                             )}
                         </Button>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="rounded-full text-muted-foreground hover:bg-white/10">
+                                    <MoreVertical className="w-5 h-5" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-48 glass-panel border-white/5 text-white bg-black/60 backdrop-blur-xl rounded-xl shadow-premium">
+                                <ReportDialog targetType="CHANNEL" targetId={channel._id} trigger={
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
+                                        <Flag className="w-4 h-4 mr-3" /> Report Channel
+                                    </DropdownMenuItem>
+                                } />
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
 

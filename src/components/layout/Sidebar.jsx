@@ -64,7 +64,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                     isOpen ? "translate-x-0" : "-translate-x-full",
                     // Desktop: Always visible, width controlled by prop
                     "lg:translate-x-0",
-                    isCollapsed ? "w-[80px]" : "w-[256px]"
+                    isCollapsed ? "w-[80px]" : "w-[256px] max-w-[85vw]"
                 )}
             >
                 {/* Mobile Close Button (Top Right of Sidebar) */}
@@ -83,7 +83,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 key={item.path}
                                 to={item.path}
                                 className={cn(
-                                    "flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group relative overflow-hidden",
+                                    "flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden",
                                     isActive(item.path)
                                         ? "bg-white/10 font-semibold text-white shadow-inner"
                                         : "hover:bg-white/5 text-muted-foreground hover:text-white",
@@ -93,10 +93,10 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 onClick={() => window.innerWidth < 1024 && onClose()}
                             >
                                 <item.icon className={cn(
-                                    "w-5 h-5 flex-shrink-0 transition-all duration-300",
+                                    "w-[18px] h-[18px] flex-shrink-0 transition-all duration-300",
                                     isActive(item.path) ? "scale-110" : "group-hover:scale-110"
                                 )} />
-                                {!isCollapsed && <span className="">{item.label}</span>}
+                                {!isCollapsed && <span className="text-[14px]">{item.label}</span>}
                                 {isActive(item.path) && !isCollapsed && (
                                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                 )}

@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, useEffect } from 'react'
-import { authService, userService } from '../services/api'
+/* eslint-disable react-refresh/only-export-components */
+// @refresh reset
+import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { authService, userService, accountService } from '../services/api'
 import { toast } from 'sonner'
 
 const AuthContext = createContext()
@@ -7,22 +9,62 @@ const AuthContext = createContext()
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [availableAccounts, setAvailableAccounts] = useState(() => {
+        try {
+            return JSON.parse(localStorage.getItem('vixora_accounts')) || []
+        } catch { return [] }
+    })
+
+    const saveAccountLocal = useCallback((userData, accountSwitchToken) => {
+        if (!userData || !accountSwitchToken) return;
+        setAvailableAccounts(prev => {
+            const filtered = prev.filter(acc => acc.id !== userData.id && acc.id !== userData._id)
+            const updated = [...filtered, {
+                id: userData.id || userData._id,
+                username: userData.username,
+                fullName: userData.fullName,
+                email: userData.email,
+                avatar: userData.avatar,
+                accountSwitchToken
+            }]
+            localStorage.setItem('vixora_accounts', JSON.stringify(updated))
+            return updated
+        })
+    }, [])
+
+    const removeAccountLocal = useCallback((userId) => {
+        setAvailableAccounts(prev => {
+            const updated = prev.filter(acc => acc.id !== userId)
+            localStorage.setItem('vixora_accounts', JSON.stringify(updated))
+            return updated
+        })
+    }, [])
 
     // Check auth status on mount
     useEffect(() => {
         checkAuth()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const checkAuth = async () => {
         try {
             const response = await authService.getCurrentUser()
             if (response.data.success) {
-                // Handle potentially nested user object (consistent with login vs current-user differences)
+                // Handle potentially nested user object
                 const userData = response.data.data.user || response.data.data
                 setUser(userData)
+
+                // Fetch current token to keep local storage fresh
+                try {
+                    const tokenRes = await accountService.getAccountSwitchToken()
+                    if (tokenRes.data?.data?.accountSwitchToken) {
+                        saveAccountLocal(userData, tokenRes.data.data.accountSwitchToken)
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch switch token", e)
+                }
             }
         } catch {
-            // Silence auth check failure - expected if not logged in
             setUser(null)
         } finally {
             setLoading(false)
@@ -33,7 +75,16 @@ export const AuthProvider = ({ children }) => {
         try {
             const response = await authService.login(credentials)
             if (response.data.success) {
-                setUser(response.data.data.user)
+                const userData = response.data.data.user
+                const switchTokenPayload = response.data.data.accountSwitch || response.data.data.accountSwitchToken
+
+                setUser(userData)
+                if (switchTokenPayload) {
+                    // It might be a direct string or an object depending on backend shape
+                    const tokenString = typeof switchTokenPayload === 'string' ? switchTokenPayload : switchTokenPayload.token
+                    if (tokenString) saveAccountLocal(userData, tokenString)
+                }
+
                 toast.success('Login successful!')
                 return response
             }
@@ -43,7 +94,25 @@ export const AuthProvider = ({ children }) => {
         }
     }
 
-    // googleLogin removed - handled via server redirection
+    const switchAccount = async (accountSwitchToken) => {
+        setLoading(true)
+        try {
+            const response = await accountService.switchAccount(accountSwitchToken)
+            if (response.data.success) {
+                toast.success('Account switched!')
+                await checkAuth()
+                return true
+            }
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Failed to switch account')
+            // If the token is invalid/expired, remove it
+            const tokenAccount = availableAccounts.find(a => a.accountSwitchToken === accountSwitchToken)
+            if (tokenAccount) removeAccountLocal(tokenAccount.id)
+        } finally {
+            setLoading(false)
+        }
+        return false
+    }
 
     const register = async (formData) => {
         try {
@@ -87,30 +156,45 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
+            const currentUser = user;
             await authService.logout()
             setUser(null)
+            if (currentUser) {
+                removeAccountLocal(currentUser.id || currentUser._id)
+            }
             toast.success('Logged out successfully')
         } catch (error) {
             if (import.meta.env.DEV) {
                 console.error('Logout error:', error)
             }
-            // Force logout on client even if server fails
+            if (user) removeAccountLocal(user.id || user._id)
             setUser(null)
         }
     }
 
     const updateProfile = (updatedUser) => {
-        setUser(prev => ({ ...prev, ...updatedUser }))
+        setUser(prev => {
+            const merged = { ...prev, ...updatedUser }
+            // Update local storage representation too if matching
+            const switchTokenItem = availableAccounts.find(a => a.id === merged.id || a.id === merged._id)
+            if (switchTokenItem) {
+                saveAccountLocal(merged, switchTokenItem.accountSwitchToken)
+            }
+            return merged
+        })
     }
 
     return (
         <AuthContext.Provider value={{
             user,
             loading,
+            availableAccounts,
             login,
             logout,
             register,
             checkAuth,
+            switchAccount,
+            removeAccountLocal,
             updateProfile,
             forgotPassword,
             forgotPasswordVerify,

@@ -25,7 +25,7 @@ export default function LibraryPage() {
         queryKey: ['watchHistory', 'recent'],
         queryFn: async () => {
             const res = await watchHistoryService.getHistory()
-            return res.data.data.videos || [] // Assuming standard response
+            return res.data.data?.items || res.data.data?.videos || res.data.data || [] // Assuming standard response
         }
     })
     const recentHistory = historyData?.slice(0, 10) || []
@@ -35,7 +35,7 @@ export default function LibraryPage() {
         queryKey: ['watchLater'],
         queryFn: async () => {
             const res = await playlistService.getWatchLater()
-            return res.data.data.videos || []
+            return res.data.data?.items || res.data.data?.videos || res.data.data || []
         }
     })
     const watchLaterCount = watchLaterData?.length || 0
@@ -45,7 +45,7 @@ export default function LibraryPage() {
         queryKey: ['likedVideos'],
         queryFn: async () => {
             const res = await likeService.getLikedVideos()
-            return res.data.data.videos || res.data.data || []
+            return res.data.data?.items || res.data.data?.videos || res.data.data || []
         }
     })
     const likedCount = likedData?.length || 0

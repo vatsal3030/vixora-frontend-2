@@ -201,9 +201,9 @@ export const VideoCard = memo(function VideoCard({
                         </div>
                     )}
                 </Link>
-                <div className="flex flex-col min-w-0 flex-1 relative pr-6">
+                <div className="flex flex-col min-w-0 flex-1 relative pr-6 overflow-hidden">
                     <Link to={`/watch/${videoId}`}>
-                        <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight mb-1">{video.title}</h3>
+                        <h3 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight mb-1 break-words">{video.title}</h3>
                     </Link>
                     <Link to={`/@${video.owner?.username}`} className="text-xs text-muted-foreground hover:text-foreground transition-colors mb-0.5 truncate">
                         {video.owner?.fullName || video.owner?.username}
