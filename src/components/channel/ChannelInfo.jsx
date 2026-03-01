@@ -12,7 +12,7 @@ import { formatSubscribers } from '../../lib/utils'
 
 export default function ChannelInfo({ channel }) {
     const [isSubscribed, setIsSubscribed] = useState(channel.isSubscribed || false)
-    const [subscribersCount, setSubscribersCount] = useState(channel.subscribers || 0)
+    const [subscribersCount, setSubscribersCount] = useState(channel.subscribersCount || channel.subscribers || 0)
     const [loading, setLoading] = useState(false)
 
     // Sync state if channel prop updates

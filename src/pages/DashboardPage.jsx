@@ -37,12 +37,12 @@ export default function DashboardPage() {
     const [sortOrder, setSortOrder] = useState('desc')
     const [showDemoData, setShowDemoData] = useState(false)
 
-    // Fetch Overview Stats (reactive on period)
-    const { data: overview, isLoading: overviewLoading } = useQuery({
-        queryKey: ['dashboardOverview', period],
+    // Fetch Full Dashboard Payload (Reduces Network Waterfall)
+    const { data: fullDashboard, isLoading: loading } = useQuery({
+        queryKey: ['dashboardFull', period],
         queryFn: async () => {
             try {
-                const res = await dashboardService.getOverview(period)
+                const res = await dashboardService.getFullDashboard({ period })
                 return res.data.data
             } catch {
                 return null
@@ -51,36 +51,10 @@ export default function DashboardPage() {
         retry: 1
     })
 
-    // Fetch Analytics Stats
-    const { data: analytics, isLoading: analyticsLoading } = useQuery({
-        queryKey: ['dashboardAnalytics', period],
-        queryFn: async () => {
-            try {
-                const res = await dashboardService.getAnalytics(period)
-                return res.data.data || {}
-            } catch {
-                return {}
-            }
-        }
-    })
-
-    // Fetch Top Videos (reactive on period)
-    const { data: topVideosRaw, isLoading: videosLoading } = useQuery({
-        queryKey: ['dashboardTopVideos', period],
-        queryFn: async () => {
-            try {
-                const res = await dashboardService.getTopVideos({ period })
-                return res.data.data
-            } catch {
-                return null
-            }
-        },
-        retry: 1
-    })
-
-    const topVideos = topVideosRaw?.items || []
-
-    const loading = overviewLoading || analyticsLoading || videosLoading
+    const overview = fullDashboard?.overview || {}
+    const analytics = fullDashboard?.analytics || {}
+    const topVideosRaw = fullDashboard?.topVideos || { items: [] }
+    const topVideos = topVideosRaw?.items || topVideosRaw || []
 
     // Logic to determine if we should show empty state or demo data
     // cards.videos.value is the authoritative field; fallback to legacy flat key
@@ -389,10 +363,10 @@ export default function DashboardPage() {
                                                     {new Date(v.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                                 </td>
                                                 <td className="p-4 text-right font-medium tabular-nums">
-                                                    {formatViews(v.views).replace('views', '')}
+                                                    {formatViews(v.metrics?.views || v.views).replace('views', '')}
                                                 </td>
                                                 <td className="p-4 text-right text-muted-foreground tabular-nums">
-                                                    {formatViews(v.likesCount).replace('views', '')}
+                                                    {formatViews(v.metrics?.likes || v.likesCount).replace('views', '')}
                                                 </td>
                                                 <td className="p-4 pr-6 text-right text-muted-foreground tabular-nums">
                                                     {v.commentsCount || 0}

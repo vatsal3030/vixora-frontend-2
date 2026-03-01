@@ -392,17 +392,20 @@ export default function HistoryPage() {
                                         ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
-                                    {groupedVideos.today.map((video, index) => (
-                                        <div
-                                            key={video._id || index}
-                                            className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                            style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                        >
-                                            <div className="relative group">
-                                                <VideoCard video={video} />
+                                    {groupedVideos.today.map((historyItem, index) => {
+                                        const video = historyItem.video || historyItem;
+                                        return (
+                                            <div
+                                                key={historyItem._id || index}
+                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
+                                            >
+                                                <div className="relative group">
+                                                    <VideoCard video={video} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </section>
                         )}
@@ -416,17 +419,20 @@ export default function HistoryPage() {
                                         ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
-                                    {groupedVideos.yesterday.map((video, index) => (
-                                        <div
-                                            key={video._id || index}
-                                            className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                            style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                        >
-                                            <div className="relative group">
-                                                <VideoCard video={video} />
+                                    {groupedVideos.yesterday.map((historyItem, index) => {
+                                        const video = historyItem.video || historyItem;
+                                        return (
+                                            <div
+                                                key={historyItem._id || index}
+                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
+                                            >
+                                                <div className="relative group">
+                                                    <VideoCard video={video} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </section>
                         )}
@@ -440,17 +446,20 @@ export default function HistoryPage() {
                                         ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
-                                    {groupedVideos.thisWeek.map((video, index) => (
-                                        <div
-                                            key={video._id || index}
-                                            className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                            style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                        >
-                                            <div className="relative group">
-                                                <VideoCard video={video} />
+                                    {groupedVideos.thisWeek.map((historyItem, index) => {
+                                        const video = historyItem.video || historyItem;
+                                        return (
+                                            <div
+                                                key={historyItem._id || index}
+                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
+                                            >
+                                                <div className="relative group">
+                                                    <VideoCard video={video} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </section>
                         )}
@@ -464,17 +473,20 @@ export default function HistoryPage() {
                                         ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
-                                    {groupedVideos.thisMonth.map((video, index) => (
-                                        <div
-                                            key={video._id || index}
-                                            className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                            style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                        >
-                                            <div className="relative group">
-                                                <VideoCard video={video} />
+                                    {groupedVideos.thisMonth.map((historyItem, index) => {
+                                        const video = historyItem.video || historyItem;
+                                        return (
+                                            <div
+                                                key={historyItem._id || index}
+                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
+                                            >
+                                                <div className="relative group">
+                                                    <VideoCard video={video} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </section>
                         )}
@@ -488,17 +500,20 @@ export default function HistoryPage() {
                                         ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
                                         : "space-y-2"
                                 )}>
-                                    {groupedVideos.older.map((video, index) => (
-                                        <div
-                                            key={video._id || index}
-                                            className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                            style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                        >
-                                            <div className="relative group">
-                                                <VideoCard video={video} />
+                                    {groupedVideos.older.map((historyItem, index) => {
+                                        const video = historyItem.video || historyItem;
+                                        return (
+                                            <div
+                                                key={historyItem._id || index}
+                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
+                                            >
+                                                <div className="relative group">
+                                                    <VideoCard video={video} />
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </div>
                             </section>
                         )}

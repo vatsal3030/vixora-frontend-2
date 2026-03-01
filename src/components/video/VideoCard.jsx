@@ -18,8 +18,9 @@ import {
     DropdownMenuSeparator,
 } from "../ui/DropdownMenu"
 import { toast } from 'sonner'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useRef, useEffect, useCallback, memo } from 'react'
-import { videoService, feedbackService } from '../../services/api'
+import { videoService, feedbackService, playlistService } from '../../services/api'
 
 const THUMBNAIL_FALLBACK = 'data:image/svg+xml,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180"><rect fill="#1a1a2e" width="320" height="180"/><polygon fill="#ffffff20" points="140,65 140,115 180,90"/></svg>'
@@ -307,6 +308,23 @@ export const VideoCard = memo(function VideoCard({
 
 // ─── Three-dot menu ───────────────────────────────────────────────────────────
 function VideoMenu({ videoId, title, video, onNotInterested, onBlock, showEditButton, onDelete, onTogglePublish, trigger }) {
+    const queryClient = useQueryClient()
+
+    // Toggle Watch Later Mutation
+    const watchLaterMutation = useMutation({
+        mutationFn: () => playlistService.toggleWatchLater(videoId),
+        onSuccess: (res) => {
+            const added = res.data?.data?.added
+            if (added !== undefined) {
+                toast.success(added ? "Added to Watch Later" : "Removed from Watch Later")
+            } else {
+                toast.success("Watch Later updated")
+            }
+            queryClient.invalidateQueries({ queryKey: ['watchLater'] })
+        },
+        onError: () => toast.error("Failed to update Watch Later")
+    })
+
     const defaultTrigger = (
         <button className="p-1.5 hover:bg-secondary rounded-full outline-none text-muted-foreground hover:text-foreground transition-colors">
             <MoreVertical className="w-4 h-4" />
@@ -348,8 +366,8 @@ function VideoMenu({ videoId, title, video, onNotInterested, onBlock, showEditBu
                 <AddToPlaylistDialog videoId={videoId}>
                     <DropdownMenuItem onSelect={e => e.preventDefault()}><Save className="w-4 h-4 mr-2" />Save to Playlist</DropdownMenuItem>
                 </AddToPlaylistDialog>
-                <DropdownMenuItem onClick={() => toast.success("Added to Watch Later")}>
-                    <Clock className="w-4 h-4 mr-2" />Save to Watch Later
+                <DropdownMenuItem onSelect={() => watchLaterMutation.mutate()} disabled={watchLaterMutation.isPending}>
+                    <Clock className="w-4 h-4 mr-2" />{watchLaterMutation.isPending ? "Saving..." : "Save to Watch Later"}
                 </DropdownMenuItem>
                 <ShareDialog title={title} url={`${window.location.origin}/watch/${videoId}`} trigger={
                     <DropdownMenuItem onSelect={e => e.preventDefault()}><Share2 className="w-4 h-4 mr-2" />Share</DropdownMenuItem>

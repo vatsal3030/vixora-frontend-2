@@ -134,7 +134,7 @@ export function ShareDialog({ title, url, trigger, children }) {
                     {/* Social Share Buttons */}
                     <div className="space-y-4">
                         <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Social Networks</label>
-                        <div className="flex flex-wrap gap-4 justify-start">
+                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-y-6 gap-x-2 justify-items-center">
                             {shareOptions.map((option) => (
                                 <button
                                     key={option.name}

@@ -115,6 +115,11 @@ export const feedService = {
     getShortsFeed: (params = {}) => api.get('/feed/shorts', { params }) // Corrected endpoint based on handoff
 }
 
+// Search Service
+export const searchService = {
+    globalSearch: (params = {}) => api.get('/search', { params })
+}
+
 // Playlist Service
 export const playlistService = {
     getMyPlaylists: (params = {}) => api.get('/playlists/user/me', { params }),

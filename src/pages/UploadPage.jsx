@@ -7,11 +7,14 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { toast } from 'sonner'
 import { ImageCropModal } from '../components/common/ImageCropModal'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence } from 'framer-motion'
 import { cn } from '../lib/utils'
 import { Switch } from '../components/ui/Switch' // Assuming we have a Switch component or will use a checkbox
 
+import { Video, FileText, Upload as UploadIcon } from 'lucide-react'
+
 const STEPS = [
+    { number: 0, title: 'Category', icon: FileText },
     { number: 1, title: 'Upload', icon: Upload },
     { number: 2, title: 'Details', icon: FileVideo },
     { number: 3, title: 'Review', icon: Check }
@@ -20,7 +23,7 @@ const STEPS = [
 export default function UploadPage() {
     useDocumentTitle('Upload Video - Vixora')
     const navigate = useNavigate()
-    const [currentStep, setCurrentStep] = useState(1)
+    const [currentStep, setCurrentStep] = useState(0)
 
     // Upload State
     const [dragging, setDragging] = useState(false)
@@ -41,11 +44,8 @@ export default function UploadPage() {
     const [cropModalOpen, setCropModalOpen] = useState(false)
     const [imageToCrop, setImageToCrop] = useState(null)
 
-    // Upload Stats
-    const [uploadProgress, setUploadProgress] = useState(0)
-    const [uploadSpeed, setUploadSpeed] = useState(0)
-    const [timeRemaining, setTimeRemaining] = useState(0)
-    const startTimeRef = useRef(0)
+    // Removed unused detail states: uploadProgress, uploadSpeed, timeRemaining
+    // Removed startTimeRef as it was related to upload progress tracking.
 
     const videoInputRef = useRef(null)
     const thumbnailInputRef = useRef(null)
@@ -117,24 +117,8 @@ export default function UploadPage() {
 
     const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
 
-    // Formatter Helpers
-    const formatBytes = (bytes) => {
-        if (bytes === 0) return '0 B'
-        const k = 1024
-        const sizes = ['B', 'KB', 'MB', 'GB']
-        const i = Math.floor(Math.log(bytes) / Math.log(k))
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-    }
-
-    const formatTime = (seconds) => {
-        if (!isFinite(seconds) || seconds < 0) return 'Calculating...'
-        const m = Math.floor(seconds / 60)
-        const s = Math.floor(seconds % 60)
-        return `${m}m ${s}s`
-    }
-
     // --- Direct Cloudinary Upload Logic ---
-    const uploadToCloudinary = async (file, signatureData, onProgress) => {
+    const uploadToCloudinary = async (file, signatureData) => { // Removed onProgress parameter
         const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${signatureData.resourceType}/upload`
         const formData = new FormData()
         formData.append('file', file)
@@ -163,12 +147,6 @@ export default function UploadPage() {
             const xhr = new XMLHttpRequest()
             xhr.open('POST', url)
 
-            xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable) {
-                    onProgress(e.loaded, e.total)
-                }
-            }
-
             xhr.onload = () => {
                 if (xhr.status >= 200 && xhr.status < 300) {
                     resolve(JSON.parse(xhr.responseText))
@@ -191,15 +169,14 @@ export default function UploadPage() {
         if (!videoFile || !thumbnailFile || !title) return
 
         setUploading(true)
-        startTimeRef.current = Date.now()
-        setUploadProgress(0)
 
         try {
             // 1. Create Upload Session & Get Video Upload Params
             const sessionRes = await videoService.createUploadSession({
                 fileName: videoFile.name,
                 fileSize: videoFile.size,
-                mimeType: videoFile.type
+                mimeType: videoFile.type,
+                uploadType: 'VIDEO'
             })
 
             const sessionId = sessionRes.data.data.id
@@ -227,25 +204,10 @@ export default function UploadPage() {
 
 
             // 3. Upload Video
-            const videoData = await uploadToCloudinary(videoFile, videoSigData, (loaded, total) => {
-                const percent = Math.floor((loaded * 100) / total)
-                setUploadProgress(percent)
-
-                const now = Date.now()
-                const elapsed = (now - startTimeRef.current) / 1000
-                if (elapsed > 0) {
-                    const speed = loaded / elapsed
-                    setUploadSpeed(speed)
-                    setTimeRemaining((total - loaded) / speed)
-                }
-
-                if (percent % 10 === 0) {
-                    videoService.reportProgress(sessionId, loaded).catch(() => { })
-                }
-            })
+            const videoData = await uploadToCloudinary(videoFile, videoSigData)
 
             // 4. Upload Thumbnail
-            const thumbData = await uploadToCloudinary(thumbnailFile, thumbSigData, () => { })
+            const thumbData = await uploadToCloudinary(thumbnailFile, thumbSigData)
 
             // 5. Finalize
             // SECURITY: Do not send trusted URLs. Backend will verify via publicId.
@@ -291,79 +253,39 @@ export default function UploadPage() {
     }
 
     return (
-        <div className="min-h-[calc(100vh-64px)] py-8 px-4 flex justify-center">
-            <div className="w-full max-w-5xl">
-
-                {/* Steps Header */}
-                <div className="mb-8 flex items-center justify-center">
-                    <div className="flex items-center gap-4">
-                        {STEPS.map((step, idx) => {
+        <>
+            <div className="min-h-[calc(100vh-64px)] py-8 px-4 flex justify-center">
+                <div className="max-w-4xl mx-auto space-y-8">
+                    {/* Steps Header */}
+                    <div className="glass-card p-4 sm:p-6 rounded-2xl flex items-center justify-between relative border-white/5">
+                        <div className="absolute top-1/2 left-0 w-full h-[2px] bg-white/5 -translate-y-1/2" />
+                        {STEPS.map((step, i) => {
+                            const Icon = step.icon
                             const isActive = currentStep === step.number
-                            const isCompleted = currentStep > step.number
+                            const isPast = currentStep > step.number
 
                             return (
-                                <div key={step.number} className="flex items-center">
+                                <div key={i} className="relative z-10 flex flex-col items-center gap-2">
                                     <div className={cn(
-                                        "flex items-center gap-2 px-4 py-2 rounded-full border transition-all duration-300",
-                                        isActive ? "bg-primary text-white border-primary shadow-lg shadow-primary/25" :
-                                            isCompleted ? "bg-secondary text-primary border-primary/50" :
-                                                "bg-secondary/30 text-muted-foreground border-transparent"
+                                        "w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all duration-300",
+                                        isActive ? "bg-primary text-primary-foreground shadow-lg shadow-primary/25 scale-110" :
+                                            isPast ? "bg-primary text-primary-foreground" :
+                                                "bg-[#1a1a1a] text-muted-foreground border-2 border-white/10"
                                     )}>
-                                        <step.icon className="w-4 h-4" />
-                                        <span className="font-medium text-sm hidden sm:inline">{step.title}</span>
+                                        <Icon className="w-5 h-5" />
                                     </div>
-                                    {idx < STEPS.length - 1 && (
-                                        <div className={cn(
-                                            "w-8 h-[1px] mx-2 transition-colors duration-300",
-                                            isCompleted ? "bg-primary/50" : "bg-white/10"
-                                        )} />
-                                    )}
+                                    <span className={cn(
+                                        "text-xs sm:text-sm font-medium hidden sm:block",
+                                        isActive ? "text-primary" :
+                                            isPast ? "text-foreground" :
+                                                "text-muted-foreground"
+                                    )}>
+                                        {step.title}
+                                    </span>
                                 </div>
                             )
                         })}
                     </div>
-                </div>
-
-                {/* Main Content Card */}
-                <div className="glass-card rounded-2xl overflow-hidden relative min-h-[500px] flex flex-col">
-
-                    {/* Upload Overlay */}
-                    <AnimatePresence>
-                        {uploading && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute inset-0 bg-background/80 backdrop-blur-md z-50 flex items-center justify-center p-8"
-                            >
-                                <div className="max-w-md w-full space-y-6 text-center">
-                                    <div className="relative w-20 h-20 mx-auto">
-                                        <svg className="w-full h-full transform -rotate-90">
-                                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-secondary" />
-                                            <circle cx="40" cy="40" r="36" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-primary transition-all duration-300 ease-linear" strokeDasharray={226} strokeDashoffset={226 - (226 * uploadProgress) / 100} />
-                                        </svg>
-                                        <div className="absolute inset-0 flex items-center justify-center">
-                                            <span className="text-xl font-bold">{uploadProgress}%</span>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-bold mb-2">Uploading Video...</h3>
-                                        <p className="text-muted-foreground text-sm">Please keep this tab open</p>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4 text-sm bg-secondary/30 p-4 rounded-xl">
-                                        <div className="text-left">
-                                            <p className="text-xs text-muted-foreground">Speed</p>
-                                            <p className="font-medium">{formatBytes(uploadSpeed)}/s</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xs text-muted-foreground">Time Left</p>
-                                            <p className="font-medium">{formatTime(timeRemaining)}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
 
                     {/* Step Content */}
                     <div className="flex-1 p-6 md:p-8">
@@ -594,22 +516,24 @@ export default function UploadPage() {
                     </div>
 
                     {/* Footer Nav */}
-                    {currentStep > 1 && !uploading && (
-                        <div className="p-6 border-t border-white/5 flex justify-between bg-black/20">
-                            <Button variant="ghost" onClick={prevStep}>
-                                <ArrowLeft className="w-4 h-4 mr-2" />
-                                Back
-                            </Button>
-                            {currentStep === 2 && (
-                                <Button onClick={nextStep} className="shadow-lg shadow-primary/20">
-                                    Next Step
-                                    <ArrowRight className="w-4 h-4 ml-2" />
+                    {
+                        currentStep > 1 && !uploading && (
+                            <div className="p-6 border-t border-white/5 flex justify-between bg-black/20">
+                                <Button variant="ghost" onClick={prevStep}>
+                                    <ArrowLeft className="w-4 h-4 mr-2" />
+                                    Back
                                 </Button>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </div>
+                                {currentStep === 2 && (
+                                    <Button onClick={nextStep} className="shadow-lg shadow-primary/20">
+                                        Next Step
+                                        <ArrowRight className="w-4 h-4 ml-2" />
+                                    </Button>
+                                )}
+                            </div>
+                        )
+                    }
+                </div >
+            </div >
 
             <ImageCropModal
                 isOpen={cropModalOpen}
@@ -619,6 +543,6 @@ export default function UploadPage() {
                 aspect={16 / 9}
                 title="Crop Thumbnail"
             />
-        </div>
+        </>
     )
 }

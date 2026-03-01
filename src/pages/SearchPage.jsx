@@ -3,7 +3,7 @@ import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { motion } from 'framer-motion' // eslint-disable-line
 import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
-import { videoService } from '../services/api'
+import { searchService } from '../services/api'
 import { VideoCard } from '../components/video/VideoCard'
 import { Loader2, SearchX } from 'lucide-react'
 import { toast } from 'sonner'
@@ -17,37 +17,41 @@ export default function SearchPage() {
 
     const [filter, setFilter] = useState('All') // All, Videos, Channels
 
-    // Using TanStack Query for Search
+    // Using TanStack Query for Global Search
     const { data: searchResults = {}, isLoading, error } = useQuery({
         queryKey: ['search', query],
         queryFn: async () => {
             if (!query) return {}
 
-            // The backend getAllVideos controller specifically looks for "query" in req.query
-            // e.g. /api/v1/videos?query=xyz
-            const response = await videoService.getVideos({ query })
+            // The backend global search API natively groups by type when scope=all
+            const response = await searchService.globalSearch({ q: query, scope: 'all' })
             return response.data.data
         },
         enabled: !!query,
         staleTime: 1000 * 60 * 1,
     })
 
-    // Normalize data
-    const allVideos = useMemo(() => searchResults?.items || [], [searchResults])
+    // Normalize data from the grouped `results` payload
+    const allVideos = useMemo(() => searchResults?.results?.videos || searchResults?.items || [], [searchResults])
+    const allChannels = useMemo(() => searchResults?.results?.channels || [], [searchResults])
 
     if (error) {
         toast.error('Search failed')
         console.error("Search error:", error)
     }
 
-    // getAllVideos strictly returns videos. The filter tabs on the UI might not apply cleanly 
-    // unless the backend eventually supports "type=channels", but we will leave the UI intact for now.
+    // The UI tabs filter between the globally fetched scopes
     const displayItems = useMemo(() => {
         if (filter === 'Channels') {
-            return [] // The getAllVideos route only returns videos.
+            return allChannels
         }
+        if (filter === 'Videos') {
+            return allVideos
+        }
+        // 'All' view currently renders videos by default in standard grid
+        // Custom mix logic can be added later as UI matures
         return allVideos
-    }, [filter, allVideos])
+    }, [filter, allVideos, allChannels])
 
     return (
         <div className="py-6 min-h-[80vh] container mx-auto px-4">
@@ -57,7 +61,7 @@ export default function SearchPage() {
                         <h1 className="text-2xl font-bold flex items-center gap-2">
                             Search Results
                             <span className="text-sm font-normal text-muted-foreground bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
-                                {allVideos.length} found
+                                {displayItems.length} found
                             </span>
                         </h1>
                         <p className="text-sm text-muted-foreground mt-1">

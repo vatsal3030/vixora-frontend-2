@@ -131,7 +131,7 @@ function App() {
                     <Route path="profile" element={<ProfilePage />} />
 
                     {/* Channel Routes */}
-                    <Route path="@:username/*" element={<ChannelPage />} />
+                    <Route path=":username/*" element={<ChannelPage />} />
 
                     {/* Tweets Routes */}
                     <Route path="tweets" element={<TweetsPage />} />

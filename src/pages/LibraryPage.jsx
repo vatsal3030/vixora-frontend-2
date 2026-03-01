@@ -55,7 +55,7 @@ export default function LibraryPage() {
         queryKey: ['myPlaylists'],
         queryFn: async () => {
             const res = await playlistService.getMyPlaylists()
-            return res.data.data || []
+            return res.data.data?.items || res.data.data?.docs || res.data.data || []
         }
     })
 
@@ -120,7 +120,7 @@ export default function LibraryPage() {
                     <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 scroll-pl-4">
                         {recentHistory.map(video => (
                             <div key={video._id} className="w-[160px] sm:w-[200px] flex-shrink-0">
-                                <VideoCard video={video} hideAvatar />
+                                <VideoCard video={video.video || video} hideAvatar />
                             </div>
                         ))}
                     </div>

@@ -5,6 +5,27 @@ import { Tabs, TabsList, TabsTrigger } from '../ui/Tabs'
 import { Skeleton } from '../ui/Skeleton'
 import { cn, formatViews } from '../../lib/utils'
 
+const CustomTooltip = ({ active, payload, label, activeTab }) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-background/95 backdrop-blur-sm border border-border p-3 rounded-lg shadow-xl">
+                <p className="font-medium mb-2">{label}</p>
+                <div className="flex items-center gap-2 text-sm">
+                    <div
+                        className="w-2 h-2 rounded-full"
+                        style={{ backgroundColor: payload[0].color }}
+                    />
+                    <span className="text-muted-foreground capitalize">{activeTab}:</span>
+                    <span className="font-bold">
+                        {activeTab === 'views' ? formatViews(payload[0].value) : payload[0].value.toLocaleString()}
+                    </span>
+                </div>
+            </div>
+        )
+    }
+    return null
+}
+
 export function DashboardCharts({ data = [], loading, className }) {
     const [activeTab, setActiveTab] = useState('views')
 
@@ -50,27 +71,6 @@ export function DashboardCharts({ data = [], loading, className }) {
 
     const currentConfig = chartConfig[activeTab]
 
-    const CustomTooltip = ({ active, payload, label, activeTab }) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="bg-background/95 backdrop-blur-sm border border-border p-3 rounded-lg shadow-xl">
-                    <p className="font-medium mb-2">{label}</p>
-                    <div className="flex items-center gap-2 text-sm">
-                        <div
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: payload[0].color }}
-                        />
-                        <span className="text-muted-foreground capitalize">{activeTab}:</span>
-                        <span className="font-bold">
-                            {activeTab === 'views' ? formatViews(payload[0].value) : payload[0].value.toLocaleString()}
-                        </span>
-                    </div>
-                </div>
-            )
-        }
-        return null
-    }
-
     return (
         <Card className={cn("col-span-1 lg:col-span-4 glass-card border-white/5", className)}>
             <div className="p-4 sm:p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-border">
@@ -81,10 +81,10 @@ export function DashboardCharts({ data = [], loading, className }) {
                     </CardDescription>
                 </div>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-                    <TabsList className="grid w-full grid-cols-3 sm:w-[280px] h-8 sm:h-9">
-                        <TabsTrigger value="views" className="text-xs sm:text-sm">Views</TabsTrigger>
-                        <TabsTrigger value="subscribers" className="text-xs sm:text-sm">Subs</TabsTrigger>
-                        <TabsTrigger value="likes" className="text-xs sm:text-sm">Likes</TabsTrigger>
+                    <TabsList className="grid w-full grid-cols-3 sm:w-[280px] h-8 sm:h-9 bg-secondary/50 p-1 rounded-lg border border-white/5">
+                        <TabsTrigger value="views" className="text-xs sm:text-sm rounded-md data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Views</TabsTrigger>
+                        <TabsTrigger value="subscribers" className="text-xs sm:text-sm rounded-md data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Subs</TabsTrigger>
+                        <TabsTrigger value="likes" className="text-xs sm:text-sm rounded-md data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-sm transition-all">Likes</TabsTrigger>
                     </TabsList>
                 </Tabs>
             </div>
@@ -104,10 +104,17 @@ export function DashboardCharts({ data = [], loading, className }) {
                                 fontSize={12}
                                 tickLine={false}
                                 axisLine={false}
+                                minTickGap={30}
+                                tickMargin={10}
                                 tickFormatter={(value) => {
                                     if (!value) return '';
                                     const date = new Date(value);
-                                    return isNaN(date.getTime()) ? '' : date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                    if (isNaN(date.getTime())) return '';
+                                    // Dynamically render just the Month if dataset is large, preventing screen clump
+                                    if (data && data.length > 14) {
+                                        return date.toLocaleDateString('en-US', { month: 'short' });
+                                    }
+                                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                                 }}
                             />
                             <YAxis
@@ -122,7 +129,7 @@ export function DashboardCharts({ data = [], loading, className }) {
                                 }}
                             />
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" className="opacity-30" />
-                            <Tooltip content={<CustomTooltip activeTab={activeTab} />} />
+                            <Tooltip content={(props) => <CustomTooltip {...props} activeTab={activeTab} />} />
                             <Area
                                 type="monotone"
                                 dataKey={currentConfig?.dataKey || "views"}
@@ -139,4 +146,3 @@ export function DashboardCharts({ data = [], loading, className }) {
         </Card>
     )
 }
-

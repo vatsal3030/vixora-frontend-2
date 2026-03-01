@@ -31,9 +31,12 @@ export default function SubscriptionsPage() {
         }
     })
 
-    // Filter logic
+    // Filter logic dynamically checking if backend populated the owner object or just sent the ID string
     const filteredVideos = selectedChannelId
-        ? videos.filter(v => (v.owner?._id || v.owner?.id) === selectedChannelId)
+        ? videos.filter(v => {
+            const ownerId = typeof v.owner === 'object' ? (v.owner?._id || v.owner?.id) : v.owner
+            return ownerId === selectedChannelId
+        })
         : videos
 
     // Loading state for feed
