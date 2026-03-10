@@ -30,18 +30,20 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                 try {
                     setError(false) // Reset error on new attempt
                     await videoRef.current.play()
-                } catch (e) {
-                    // Autoplay barred, try muted
+                } catch (err) {
                     console.log("Autoplay blocked, attempting muted fallback")
                     setIsMuted(true)
-                    if (videoRef.current) {
-                        videoRef.current.muted = true
-                        try {
-                            await videoRef.current.play()
-                        } catch (e) {
-                            console.log("Muted autoplay also failed", e)
+                    // The muted attribute will be applied via React re-render
+                    // We wait for the next frame to try playing again
+                    requestAnimationFrame(async () => {
+                        if (videoRef.current) {
+                            try {
+                                await videoRef.current.play()
+                            } catch (_err) {
+                                console.log("Muted autoplay also failed", _err)
+                            }
                         }
-                    }
+                    })
                 }
             }
             playVideo()
@@ -133,6 +135,7 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                         className="w-full h-full object-cover cursor-pointer"
                         loop
                         playsInline
+                        muted={isMuted}
                         onClick={togglePlay}
                         onTimeUpdate={handleTimeUpdate}
                         onError={handleError}

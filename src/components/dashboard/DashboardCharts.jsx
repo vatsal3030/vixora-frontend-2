@@ -122,6 +122,7 @@ export function DashboardCharts({ data = [], loading, className }) {
                                 fontSize={12}
                                 tickLine={false}
                                 axisLine={false}
+                                allowDecimals={false}
                                 tickFormatter={(value) => {
                                     if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
                                     if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;

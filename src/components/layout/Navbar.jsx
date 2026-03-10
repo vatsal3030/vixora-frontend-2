@@ -62,7 +62,7 @@ export function Navbar({ onMenuClick, user }) {
     }, [])
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-all duration-300">
+        <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-all duration-300" style={{ backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)' }}>
             {/* Mobile Search Overlay */}
             {showMobileSearch && (
                 <div className="md:hidden absolute inset-0 z-[60] glass-panel flex items-center px-4 gap-3 h-16 animate-in fade-in slide-in-from-top-2 duration-200">

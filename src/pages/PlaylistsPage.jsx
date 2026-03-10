@@ -24,7 +24,8 @@ export default function PlaylistsPage() {
         queryKey: ['playlists', 'me'],
         queryFn: async () => {
             const res = await playlistService.getMyPlaylists()
-            return res.data.data?.items || []
+            const data = res.data.data
+            return data?.items || (Array.isArray(data) ? data : [])
         }
     })
 

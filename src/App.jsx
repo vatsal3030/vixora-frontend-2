@@ -14,6 +14,7 @@ import VixoraAI from './components/ai/VixoraAI'
 import { MiniPlayerProvider } from './context/MiniPlayerContext'
 import MiniPlayer from './components/video/MiniPlayer'
 import { Analytics } from '@vercel/analytics/react'
+import { ScrollToTop } from './components/common/ScrollToTop'
 import './index.css'
 
 // Lazy load auth pages
@@ -60,6 +61,7 @@ function App() {
         <MiniPlayerProvider>
           <VideoHoverProvider>
             <Router>
+              <ScrollToTop />
               <Toaster />
               <VixoraAI />
               <MiniPlayer />

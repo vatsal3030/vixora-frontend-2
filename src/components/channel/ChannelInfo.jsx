@@ -82,7 +82,7 @@ export default function ChannelInfo({ channel }) {
                     <div className="text-gray-400 flex flex-wrap justify-center sm:justify-start gap-x-4 gap-y-1 text-sm sm:text-base">
                         <span className="font-medium">@{channel.username}</span>
                         <span>{formatSubscribers(subscribersCount)}</span>
-                        <span>{channel.videosCount || 0} videos</span>
+                        <span>{channel.videosCount || channel.totalVideos || channel.stats?.totalVideos || 0} videos</span>
                     </div>
 
                     <p className="text-gray-400 max-w-2xl text-sm leading-relaxed line-clamp-2">

@@ -19,7 +19,7 @@ export default function MobileBottomNav() {
     }
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-panel border-t border-[var(--glass-border)] border-r-0 border-l-0 border-b-0">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden glass-panel border-t border-white/10 pb-safe shadow-[0_-4px_24px_-8px_rgba(0,0,0,0.5)]" style={{ backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)' }}>
             <div className="flex justify-around items-center h-14 px-1">
                 {navItems.map((item) => (
                     <Link

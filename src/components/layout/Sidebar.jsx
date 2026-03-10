@@ -107,7 +107,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                     <div className="border-t border-white/5 pt-4">
                         {!isCollapsed && (
                             <Link to="/library" className="group/lib block px-4 mb-2">
-                                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider group-hover/lib:text-white transition-colors cursor-pointer flex items-center justify-between">
+                                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider group-hover/lib:text-white transition-colors cursor-pointer flex items-center justify-between">
                                     Library
                                     <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-2 group-hover/lib:opacity-100 group-hover/lib:translate-x-0 transition-all duration-300" />
                                 </h3>
@@ -129,10 +129,10 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     onClick={() => window.innerWidth < 1024 && onClose()}
                                 >
                                     <item.icon className={cn(
-                                        "w-[15px] h-[15px] flex-shrink-0 transition-all duration-300 opacity-80",
+                                        "w-[18px] h-[18px] flex-shrink-0 transition-all duration-300 opacity-80",
                                         isActive(item.path) ? "scale-105 opacity-100" : "group-hover:scale-110 group-hover:opacity-100"
                                     )} />
-                                    {!isCollapsed && <span className="text-[13px]">{item.label}</span>}
+                                    {!isCollapsed && <span className="text-[15px]">{item.label}</span>}
                                     {isActive(item.path) && !isCollapsed && (
                                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
                                     )}

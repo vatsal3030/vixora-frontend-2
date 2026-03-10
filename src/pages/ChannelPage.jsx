@@ -89,8 +89,8 @@ export default function ChannelPage() {
         initialPageParam: 1
     })
 
-    const videos = videosData?.pages.flatMap(page => page?.items || []) || []
-    const shorts = shortsData?.pages.flatMap(page => page?.items || []) || []
+    const videos = videosData?.pages.flatMap(page => page?.videos || page?.items || page?.docs || []) || []
+    const shorts = shortsData?.pages.flatMap(page => page?.shorts || page?.items || page?.docs || []) || []
 
 
     // 3. Fetch Channel Playlists
@@ -98,7 +98,8 @@ export default function ChannelPage() {
         queryKey: ['channelPlaylists', channel?._id],
         queryFn: async () => {
             const res = await channelService.getChannelPlaylists(channel._id)
-            return res.data.data?.items || []
+            const responseData = res.data.data
+            return responseData?.items || responseData?.docs || (Array.isArray(responseData) ? responseData : [])
         },
         enabled: !!channel?._id && activeTab === 'Playlists'
     })
@@ -338,10 +339,10 @@ export default function ChannelPage() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-8 border-t border-border">
                                 {[
-                                    { label: 'Joined', value: new Date(channel.stats?.joinedAt || channel.createdAt).toLocaleDateString() },
-                                    { label: 'Views', value: (channel.stats?.totalViews || channel.totalViews || 0).toLocaleString() },
-                                    { label: 'Subscribers', value: (channel.stats?.subscribersCount || channel.subscribersCount || 0).toLocaleString() },
-                                    { label: 'Videos', value: (channel.stats?.totalVideos || channel.videosCount || 0).toLocaleString() }
+                                    { label: 'Joined', value: channel.stats?.joinedAt || channel.createdAt ? new Date(channel.stats?.joinedAt || channel.createdAt).toLocaleDateString() : 'N/A' },
+                                    { label: 'Views', value: (channel.stats?.totalViews || channel.totalViews || channel.views || 0).toLocaleString() },
+                                    { label: 'Subscribers', value: (channel.stats?.subscribersCount || channel.subscribersCount || channel.subscribers || 0).toLocaleString() },
+                                    { label: 'Videos', value: (channel.stats?.totalVideos || channel.videosCount || channel.totalVideos || 0).toLocaleString() }
                                 ].map((stat) => (
                                     <div key={stat.label} className="glass-card p-4 rounded-xl flex justify-between items-center group hover:bg-secondary/40 transition-colors">
                                         <span className="text-muted-foreground font-medium">{stat.label}</span>

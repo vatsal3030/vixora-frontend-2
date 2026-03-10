@@ -249,9 +249,9 @@ export default function ProfilePage() {
                 <div className="relative mb-8 flex flex-col md:flex-row items-end gap-6 pb-6 border-b border-white/10">
 
                     {/* Avatar Container with Negative Margin */}
-                    <div className="relative group shrink-0 mx-auto md:mx-0 -mt-16 md:-mt-20">
-                        <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-[4px] border-background overflow-hidden bg-secondary shadow-premium relative z-10">
-                            <Avatar src={getMediaUrl(user.avatar)} fallback={user.username} size="w-full h-full text-5xl" className="rounded-none" />
+                    <div className="relative group shrink-0 mx-auto md:mx-0 -mt-20 md:-mt-24">
+                        <div className="w-36 h-36 md:w-44 md:h-44 rounded-full border-4 border-background overflow-hidden bg-secondary shadow-2xl ring-1 ring-white/10 relative z-10 glass-card">
+                            <Avatar src={getMediaUrl(user.avatar)} fallback={user.username} size="w-full h-full text-5xl" className="rounded-none object-cover" />
                         </div>
                         <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20 cursor-pointer backdrop-blur-[2px] m-1" onClick={() => avatarInputRef.current?.click()}>
                             <Camera className="w-6 h-6 text-white" />
@@ -420,7 +420,7 @@ export default function ProfilePage() {
                                                                     placeholder="e.g. My Website"
                                                                     value={link.title}
                                                                     onChange={(e) => handleLinkChange(index, 'title', e.target.value)}
-                                                                    className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+                                                                    className="w-full glass-input rounded-xl px-4 py-2 text-sm"
                                                                 />
                                                             </div>
                                                             <div className="space-y-1">
@@ -429,7 +429,7 @@ export default function ProfilePage() {
                                                                     placeholder="https://..."
                                                                     value={link.url}
                                                                     onChange={(e) => handleLinkChange(index, 'url', e.target.value)}
-                                                                    className="w-full bg-background/50 border border-white/10 rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-primary outline-none"
+                                                                    className="w-full glass-input rounded-xl px-4 py-2 text-sm"
                                                                 />
                                                             </div>
                                                         </div>

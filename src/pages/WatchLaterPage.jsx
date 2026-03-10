@@ -43,7 +43,10 @@ export default function WatchLaterPage() {
     })
 
     // Derive raw videos for count display
-    const rawVideos = useMemo(() => responseData?.items || [], [responseData])
+    const rawVideos = useMemo(() => {
+        if (Array.isArray(responseData)) return responseData
+        return responseData?.items || responseData?.videos || []
+    }, [responseData])
 
     // Filter and sort videos
     const filteredVideos = useMemo(() => {

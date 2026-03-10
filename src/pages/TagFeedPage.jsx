@@ -78,10 +78,8 @@ export default function TagFeedPage() {
     return (
         <div className="pb-10">
             {/* Tag Header */}
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="flex items-center gap-4 mb-6"
+            <div
+                className="flex items-center gap-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-500"
             >
                 <Button
                     variant="ghost"
@@ -106,7 +104,7 @@ export default function TagFeedPage() {
                         )}
                     </div>
                 </div>
-            </motion.div>
+            </div>
 
             {/* Video Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">

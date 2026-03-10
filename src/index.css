@@ -54,8 +54,8 @@
     --glass-border-hover: rgba(255, 255, 255, 0.1);
 
     /* Blurs - Heavy Apple style */
-    --glass-blur: 24px;
-    --glass-blur-heavy: 48px;
+    --glass-blur: 32px;
+    --glass-blur-heavy: 64px;
 
     /* Shadows - Minimalistic, No Spread */
     /* Shadows - Minimalistic, No Spread */
@@ -158,71 +158,67 @@ h6 {
 
   /* Base Glass */
   .glass {
-    background: var(--glass-bg);
+    background: rgba(15, 15, 15, 0.5);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    box-shadow: none;
-    /* Kept flat */
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
   }
 
   /* Glass Panel - Sidebars, Modals */
   .glass-panel {
-    background: var(--glass-bg);
+    background: rgba(10, 10, 10, 0.5);
     backdrop-filter: blur(var(--glass-blur-heavy));
     -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
-    border-right: 1px solid var(--glass-border);
-    box-shadow: none;
-    /* Kept flat */
+    border: 1px solid var(--glass-border);
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), var(--shadow-soft);
   }
 
   /* Glass Nav - Headers */
   .glass-nav {
-    background: var(--glass-bg);
+    background: rgba(10, 10, 10, 0.6);
     backdrop-filter: blur(var(--glass-blur-heavy));
     -webkit-backdrop-filter: blur(var(--glass-blur-heavy));
     border-bottom: 1px solid var(--glass-border);
     box-shadow: none;
-    /* Kept flat */
   }
 
   /* Glass Card - Interactive Elements */
   .glass-card {
-    background: linear-gradient(145deg, var(--glass-bg) 0%, rgba(255, 255, 255, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-soft);
+    border-top-color: rgba(255, 255, 255, 0.08); /* 3D Lightning effect */
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), var(--shadow-soft);
     border-radius: var(--radius);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.4s ease;
   }
 
   .glass-card:hover {
-    background: var(--glass-bg-hover);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
     border-color: var(--glass-border-hover);
-    /* Keep the border visible */
-    box-shadow: var(--glass-shadow-hover);
-    /* Subtle lift shadow, no glow spread */
-    transform: translateY(-2px);
-    /* Minimalistic move */
+    border-top-color: rgba(255, 255, 255, 0.15); /* Stronger light reflection */
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 8px 30px rgba(0, 0, 0, 0.5); /* Floating shadow */
+    transform: translateY(-4px) scale(1.01);
   }
 
   /* Glass Input */
   .glass-input {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.02);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
     border-radius: var(--radius);
     color: var(--foreground);
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
   .glass-input:focus {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-    box-shadow: none;
-    /* No spread glow on focus either, just border color change */
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.25);
     outline: none;
   }
 

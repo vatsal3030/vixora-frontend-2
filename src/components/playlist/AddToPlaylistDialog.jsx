@@ -25,7 +25,9 @@ export function AddToPlaylistDialog({ videoId, children }) {
         try {
             const res = await playlistService.getMyPlaylists({ limit: 100 })
             if (res.data.success) {
-                setPlaylists(res.data.data.docs || [])
+                const responseData = res.data.data
+                const itemsList = responseData?.items || responseData?.docs || (Array.isArray(responseData) ? responseData : [])
+                setPlaylists(itemsList)
             }
         } catch (error) {
             console.error(error)
