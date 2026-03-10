@@ -93,7 +93,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 onClick={() => window.innerWidth < 1024 && onClose()}
                             >
                                 <item.icon className={cn(
-                                    "w-[18px] h-[18px] flex-shrink-0 transition-all duration-300",
+                                    "w-4 h-4 flex-shrink-0 transition-all duration-300",
                                     isActive(item.path) ? "scale-110" : "group-hover:scale-110"
                                 )} />
                                 {!isCollapsed && <span className="text-[14px]">{item.label}</span>}
@@ -129,8 +129,8 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     onClick={() => window.innerWidth < 1024 && onClose()}
                                 >
                                     <item.icon className={cn(
-                                        "w-4.5 h-4.5 flex-shrink-0 transition-all duration-300",
-                                        isActive(item.path) ? "scale-105" : "group-hover:scale-110"
+                                        "w-[15px] h-[15px] flex-shrink-0 transition-all duration-300 opacity-80",
+                                        isActive(item.path) ? "scale-105 opacity-100" : "group-hover:scale-110 group-hover:opacity-100"
                                     )} />
                                     {!isCollapsed && <span className="text-[13px]">{item.label}</span>}
                                     {isActive(item.path) && !isCollapsed && (

@@ -46,6 +46,7 @@ const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'))
 const LikedVideosPage = lazy(() => import('./pages/LikedVideosPage'))
 const ShortsPage = lazy(() => import('./pages/ShortsPage'))
 const ChannelPage = lazy(() => import('./pages/ChannelPage'))
+const TagFeedPage = lazy(() => import('./pages/TagFeedPage'))
 const LibraryPage = lazy(() => import('./pages/LibraryPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -129,6 +130,9 @@ function App() {
                     {/* User Setting & Profile Route */}
                     <Route path="settings" element={<SettingsPage />} />
                     <Route path="profile" element={<ProfilePage />} />
+
+                    {/* Tag Feed Route */}
+                    <Route path="tags/:tagName" element={<TagFeedPage />} />
 
                     {/* Channel Routes */}
                     <Route path=":username/*" element={<ChannelPage />} />

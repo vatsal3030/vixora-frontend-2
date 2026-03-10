@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Upload, X, Image as ImageIcon, Loader2, Check, ArrowRight, ArrowLeft, FileVideo, Smartphone, MonitorPlay } from 'lucide-react'
+import { Upload, X, Image as ImageIcon, Loader2, Check, ArrowRight, ArrowLeft, FileVideo, Smartphone, MonitorPlay, Tag } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useNavigate } from 'react-router-dom'
 import { videoService } from '../services/api'
@@ -14,10 +14,25 @@ import { Switch } from '../components/ui/Switch' // Assuming we have a Switch co
 import { Video, FileText, Upload as UploadIcon } from 'lucide-react'
 
 const STEPS = [
-    { number: 0, title: 'Category', icon: FileText },
+    { number: 0, title: 'Category', icon: Tag },
     { number: 1, title: 'Upload', icon: Upload },
     { number: 2, title: 'Details', icon: FileVideo },
     { number: 3, title: 'Review', icon: Check }
+]
+
+const CATEGORIES = [
+    { slug: 'music', label: 'Music', icon: '🎵' },
+    { slug: 'gaming', label: 'Gaming', icon: '🎮' },
+    { slug: 'tech', label: 'Tech', icon: '💻' },
+    { slug: 'education', label: 'Education', icon: '📚' },
+    { slug: 'entertainment', label: 'Entertainment', icon: '🎬' },
+    { slug: 'news', label: 'News', icon: '📰' },
+    { slug: 'sports', label: 'Sports', icon: '⚽' },
+    { slug: 'travel', label: 'Travel', icon: '✈️' },
+    { slug: 'food', label: 'Food', icon: '🍕' },
+    { slug: 'science', label: 'Science', icon: '🔬' },
+    { slug: 'howto', label: 'How-To', icon: '🛠️' },
+    { slug: 'comedy', label: 'Comedy', icon: '😂' }
 ]
 
 export default function UploadPage() {
@@ -37,8 +52,9 @@ export default function UploadPage() {
     const [title, setTitle] = useState('')
     const [description, setDescription] = useState('')
     const [tags, setTags] = useState('')
-    const [isShort, setIsShort] = useState(false) // New state for Shorts
-    const [transcript, setTranscript] = useState('') // New state for Transcript
+    const [isShort, setIsShort] = useState(false)
+    const [transcript, setTranscript] = useState('')
+    const [selectedCategories, setSelectedCategories] = useState([])
 
     // Crop State
     const [cropModalOpen, setCropModalOpen] = useState(false)
@@ -115,11 +131,24 @@ export default function UploadPage() {
         setCurrentStep(prev => Math.min(prev + 1, 3))
     }
 
-    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1))
+    const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0))
+
+    const toggleCategory = (slug) => {
+        setSelectedCategories(prev => {
+            if (prev.includes(slug)) return prev.filter(s => s !== slug)
+            if (prev.length >= 3) {
+                toast.error('You can select up to 3 categories')
+                return prev
+            }
+            return [...prev, slug]
+        })
+    }
 
     // --- Direct Cloudinary Upload Logic ---
-    const uploadToCloudinary = async (file, signatureData) => { // Removed onProgress parameter
-        const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${signatureData.resourceType}/upload`
+    const uploadToCloudinary = async (file, signatureData) => {
+        // Cloudinary only accepts 'video' or 'image' as resource type (not 'thumbnail', 'avatar', etc.)
+        const cloudinaryResourceType = signatureData.resourceType === 'video' ? 'video' : 'image'
+        const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${cloudinaryResourceType}/upload`
         const formData = new FormData()
         formData.append('file', file)
 
@@ -221,7 +250,8 @@ export default function UploadPage() {
                 duration: videoData.duration || 0,
                 width: videoData.width || 0,
                 height: videoData.height || 0,
-                isShort
+                isShort,
+                categories: selectedCategories.length > 0 ? selectedCategories : undefined
             }
 
             // Include transcript inline in finalize if provided (backend supports it)
@@ -290,6 +320,57 @@ export default function UploadPage() {
                     {/* Step Content */}
                     <div className="flex-1 p-6 md:p-8">
                         <AnimatePresence mode="wait">
+
+                            {/* STEP 0: CATEGORY */}
+                            {currentStep === 0 && (
+                                <motion.div
+                                    key="step0"
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: 20 }}
+                                    className="space-y-6"
+                                >
+                                    <div className="text-center mb-6">
+                                        <h2 className="text-2xl font-bold mb-2">Choose Categories</h2>
+                                        <p className="text-muted-foreground text-sm">Select up to 3 categories that best describe your video</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                        {CATEGORIES.map((cat) => {
+                                            const isSelected = selectedCategories.includes(cat.slug)
+                                            return (
+                                                <button
+                                                    key={cat.slug}
+                                                    onClick={() => toggleCategory(cat.slug)}
+                                                    className={cn(
+                                                        "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200 hover:scale-[1.03]",
+                                                        isSelected
+                                                            ? "border-primary bg-primary/10 text-primary shadow-lg shadow-primary/10"
+                                                            : "border-white/10 bg-white/5 text-muted-foreground hover:border-white/20 hover:bg-white/10"
+                                                    )}
+                                                >
+                                                    <span className="text-2xl">{cat.icon}</span>
+                                                    <span className="text-sm font-medium">{cat.label}</span>
+                                                    {isSelected && (
+                                                        <div className="w-5 h-5 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
+                                                            <Check className="w-3 h-3" />
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            )
+                                        })}
+                                    </div>
+                                    <div className="flex justify-between items-center pt-4">
+                                        <p className="text-xs text-muted-foreground">
+                                            {selectedCategories.length}/3 selected
+                                            {selectedCategories.length === 0 && ' (optional)'}
+                                        </p>
+                                        <Button onClick={() => setCurrentStep(1)} className="shadow-lg shadow-primary/20">
+                                            {selectedCategories.length > 0 ? 'Continue' : 'Skip'}
+                                            <ArrowRight className="w-4 h-4 ml-2" />
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            )}
 
                             {/* STEP 1: UPLOAD */}
                             {currentStep === 1 && (
@@ -517,7 +598,7 @@ export default function UploadPage() {
 
                     {/* Footer Nav */}
                     {
-                        currentStep > 1 && !uploading && (
+                        currentStep > 0 && !uploading && (
                             <div className="p-6 border-t border-white/5 flex justify-between bg-black/20">
                                 <Button variant="ghost" onClick={prevStep}>
                                     <ArrowLeft className="w-4 h-4 mr-2" />

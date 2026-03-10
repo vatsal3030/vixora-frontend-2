@@ -54,7 +54,7 @@ export function Layout({ children }) {
 
                 <main
                     className={cn(
-                        "flex-1 min-h-screen transition-all duration-300 ease-in-out pt-2 w-full",
+                        "flex-1 min-h-screen transition-all duration-300 ease-in-out pt-2 w-full min-w-0",
                         "lg:ml-[var(--sidebar-width)]"
                     )}
                     style={{

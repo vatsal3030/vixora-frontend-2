@@ -1,40 +1,20 @@
-import { useEffect } from 'react'
-
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import { useEffect, useRef } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
+import { useInfiniteQuery } from '@tanstack/react-query'
 import { useInView } from 'framer-motion'
-import { useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { feedService } from '../services/api'
-import { AlertCircle, RefreshCcw, Video } from 'lucide-react'
+import { ArrowLeft, AlertCircle, RefreshCcw, Video, Hash } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
-// Fallback chips when tag API is unavailable
-const FALLBACK_TAGS = ['Music', 'Gaming', 'Tech', 'Live', 'News', 'Movies']
-
-export default function HomePage() {
-    useDocumentTitle('Vixora')
+export default function TagFeedPage() {
+    const { tagName } = useParams()
     const navigate = useNavigate()
+    const decodedTag = decodeURIComponent(tagName || '')
+    useDocumentTitle(`#${decodedTag} - Vixora`)
 
-    // Fetch dynamic tag chips from backend (separate from video feed)
-    const { data: tagsData, isLoading: tagsLoading } = useQuery({
-        queryKey: ['feed', 'tags'],
-        queryFn: async () => {
-            const response = await feedService.getTags({ limit: 20 })
-            return response.data.data?.items || []
-        },
-        staleTime: 1000 * 60 * 10,
-        retry: 1
-    })
-
-    // Build chip list from backend tags (fallback to hardcoded)
-    const tagChips = tagsData && tagsData.length > 0
-        ? tagsData.map(t => t.displayName || t.name)
-        : FALLBACK_TAGS
-
-    // Home feed — always unfiltered, no tag dependency
     const {
         data,
         error,
@@ -44,9 +24,9 @@ export default function HomePage() {
         status,
         refetch
     } = useInfiniteQuery({
-        queryKey: ['feed', 'home'],
+        queryKey: ['feed', 'tag', decodedTag],
         queryFn: async ({ pageParam = 1 }) => {
-            const response = await feedService.getHomeFeed({
+            const response = await feedService.getTagFeed(decodedTag, {
                 page: pageParam,
                 limit: 20
             })
@@ -60,11 +40,12 @@ export default function HomePage() {
             }
             return undefined
         },
+        enabled: !!decodedTag,
         staleTime: 1000 * 60 * 5,
         initialPageParam: 1
     })
 
-    // Infinite Scroll Trigger
+    // Infinite Scroll
     const loadMoreRef = useRef(null)
     const isInView = useInView(loadMoreRef)
 
@@ -74,10 +55,8 @@ export default function HomePage() {
         }
     }, [isInView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    // Tag chip click → navigate to tag feed page
-    const handleTagClick = (tagName) => {
-        navigate(`/tags/${encodeURIComponent(tagName)}`)
-    }
+    const videos = data?.pages.flatMap(page => page.data?.items || []) || []
+    const tagMeta = data?.pages[0]?.data?.tag
 
     // Error State
     if (status === 'error') {
@@ -96,36 +75,40 @@ export default function HomePage() {
         )
     }
 
-    const videos = data?.pages.flatMap(page => page.data?.items || []) || []
-
     return (
         <div className="pb-10">
-            {/* Tag Discovery Chips Container — width constrained to prevent x-overflow */}
-            <div className="w-full overflow-hidden">
-                <div className="flex items-center gap-2 overflow-x-auto pb-4 py-2 px-3 scrollbar-hide -mx-3 sm:-mx-4 lg:-mx-6 sm:px-4 lg:px-6 mb-2">
-                    {tagsLoading ? (
-                        Array.from({ length: 7 }).map((_, i) => (
-                            <div
-                                key={`tag-skeleton-${i}`}
-                                className="flex-shrink-0 h-9 rounded-full bg-white/5 animate-pulse"
-                                style={{ width: `${60 + (i * 13 % 40)}px` }}
-                            />
-                        ))
-                    ) : (
-                        tagChips.map((tag) => (
-                            <button
-                                key={tag}
-                                onClick={() => handleTagClick(tag)}
-                                className="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 whitespace-nowrap min-h-[36px] glass-badge text-muted-foreground hover:text-foreground hover:bg-white/10"
-                            >
-                                {tag}
-                            </button>
-                        ))
-                    )}
+            {/* Tag Header */}
+            <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="flex items-center gap-4 mb-6"
+            >
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(-1)}
+                    className="shrink-0"
+                >
+                    <ArrowLeft className="w-4 h-4" />
+                </Button>
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                        <Hash className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-bold">
+                            {tagMeta?.displayName || decodedTag}
+                        </h1>
+                        {tagMeta?.videoCount != null && (
+                            <p className="text-sm text-muted-foreground">
+                                {tagMeta.videoCount.toLocaleString()} videos
+                            </p>
+                        )}
+                    </div>
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Video Grid — always shows full unfiltered feed */}
+            {/* Video Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                 {videos.map((video, index) => (
                     <div
@@ -137,7 +120,6 @@ export default function HomePage() {
                     </div>
                 ))}
 
-                {/* Loading State (Initial or Next Page) */}
                 {(status === 'pending' || isFetchingNextPage) && (
                     Array.from({ length: 8 }).map((_, i) => (
                         <div key={`skeleton-${i}`} className="w-full">
@@ -149,9 +131,9 @@ export default function HomePage() {
 
             {/* Empty State */}
             {status === 'success' && videos.length === 0 && (
-                <div className="col-span-full flex flex-col items-center justify-center py-20 text-muted-foreground">
+                <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                     <Video className="w-12 h-12 mb-4 opacity-20" />
-                    <p>No videos yet. Check back soon!</p>
+                    <p>No videos found for #{decodedTag}</p>
                 </div>
             )}
 

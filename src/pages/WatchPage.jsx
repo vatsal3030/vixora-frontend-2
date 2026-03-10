@@ -283,15 +283,15 @@ export default function WatchPage() {
 
                         <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
                             <div className="flex items-center gap-4 w-full md:w-auto">
-                                <Link to={`/@${video.owner.username}`} className="flex-shrink-0">
-                                    <Avatar src={video.owner.avatar} fallback={video.owner.username} size="lg" className="w-10 h-10 md:w-12 md:h-12" />
+                                <Link to={`/@${video.owner?.username || 'unknown'}`} className="flex-shrink-0">
+                                    <Avatar src={video.owner?.avatar} fallback={video.owner?.username || '?'} size="lg" className="w-10 h-10 md:w-12 md:h-12" />
                                 </Link>
                                 <div className="flex flex-col mr-4">
-                                    <Link to={`/@${video.owner.username}`} className="font-bold hover:text-primary transition-colors text-base md:text-lg line-clamp-1">
-                                        {video.owner.fullName}
+                                    <Link to={`/@${video.owner?.username || 'unknown'}`} className="font-bold hover:text-primary transition-colors text-base md:text-lg line-clamp-1">
+                                        {video.owner?.fullName || video.owner?.username || 'Unknown'}
                                     </Link>
                                     <span className="text-xs md:text-sm text-muted-foreground">
-                                        {formatSubscribers(video.owner.subscribersCount)}
+                                        {formatSubscribers(video.owner?.subscribersCount || 0)}
                                     </span>
                                 </div>
                                 <Button

@@ -8,7 +8,7 @@ import ChannelTabs from '../components/channel/ChannelTabs'
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { ChannelCardSkeleton } from '../components/ui/Skeleton'
-import { Share2, Pencil, MoreVertical, Layout, Grid, Smartphone } from 'lucide-react'
+import { Share2, Pencil, MoreVertical, Layout, Grid, Smartphone, ListVideo, MessageSquare, Loader2 } from 'lucide-react'
 
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
@@ -114,7 +114,7 @@ export default function ChannelPage() {
     })
 
 
-    useDocumentTitle(channel?.name ? `${channel.name} - Vixora` : 'Vixora')
+    useDocumentTitle(channel?.fullName ? `${channel.fullName} - Vixora` : 'Vixora')
 
     if (isInvalidProfile) {
         return (
@@ -307,7 +307,7 @@ export default function ChannelPage() {
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="font-semibold text-foreground">{channel.name}</span>
+                                                <span className="font-semibold text-foreground">{channel.fullName || channel.username}</span>
                                                 <span className="text-xs text-muted-foreground">{formatTimeAgo(tweet.createdAt)}</span>
                                                 {/* Add Like button logic here later if needed */}
                                             </div>
@@ -331,17 +331,17 @@ export default function ChannelPage() {
                 {activeTab === 'About' && (
                     <div className="max-w-3xl mx-auto">
                         <div className="glass-panel border-white/5 p-8 rounded-2xl">
-                            <h3 className="text-xl font-bold mb-6 font-display">About {channel.name}</h3>
+                            <h3 className="text-xl font-bold mb-6 font-display">About {channel.fullName || channel.username}</h3>
                             <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                                {channel.description || "No description provided."}
+                                {channel.channelDescription || channel.description || "No description provided."}
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-8 border-t border-border">
                                 {[
-                                    { label: 'Joined', value: new Date(channel.createdAt).toLocaleDateString() },
-                                    { label: 'Views', value: (channel.views || 0).toLocaleString() },
-                                    { label: 'Subscribers', value: (channel.subscribers || channel.subscribersCount || 0).toLocaleString() },
-                                    { label: 'Videos', value: (channel.videosCount || 0).toLocaleString() }
+                                    { label: 'Joined', value: new Date(channel.stats?.joinedAt || channel.createdAt).toLocaleDateString() },
+                                    { label: 'Views', value: (channel.stats?.totalViews || channel.totalViews || 0).toLocaleString() },
+                                    { label: 'Subscribers', value: (channel.stats?.subscribersCount || channel.subscribersCount || 0).toLocaleString() },
+                                    { label: 'Videos', value: (channel.stats?.totalVideos || channel.videosCount || 0).toLocaleString() }
                                 ].map((stat) => (
                                     <div key={stat.label} className="glass-card p-4 rounded-xl flex justify-between items-center group hover:bg-secondary/40 transition-colors">
                                         <span className="text-muted-foreground font-medium">{stat.label}</span>

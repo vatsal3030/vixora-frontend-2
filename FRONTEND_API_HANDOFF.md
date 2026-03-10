@@ -514,11 +514,13 @@ Transcript query params:
 Base: `/api/v1/feed`
 
 | Method | Endpoint         | Auth                          | Query                                                      |
-| ------ | ---------------- | ----------------------------- | ---------------------------------------------------------- | ---------- |
-| GET    | `/home`          | Yes                           | `page,limit,sortBy,sortType`                               |
+| ------ | ---------------- | ----------------------------- | ---------------------------------------------------------- | ---------------------- | ----- |
+| GET    | `/home`          | Yes                           | `page,limit,sortBy,sortType,tag`                           |
 | GET    | `/subscriptions` | Yes                           | `page,limit,isShort`                                       |
-| GET    | `/trending`      | No (optional token supported) | `page,limit,isShort,sortBy,sortType` where `sortBy=views   | createdAt` |
+| GET    | `/trending`      | No (optional token supported) | `page,limit,isShort,sortBy,sortType` where `sortBy=views   | createdAt`             |
 | GET    | `/shorts`        | No (optional token supported) | `page,limit,sortBy,sortType,includeComments,commentsLimit` |
+| GET    | `/tags`          | No (optional token supported) | `page,limit,q`                                             |
+| GET    | `/tags/:tagName` | No (optional token supported) | `page,limit,sortBy=score                                   | createdAt,sortType=asc | desc` |
 
 Feed notes:
 
@@ -527,6 +529,10 @@ Feed notes:
   - `not interested` videos selected by user
   - videos from blocked channels (`don't recommend this channel`)
 - `/shorts` defaults to include comments (`includeComments=true`, `commentsLimit=5`, max `10`).
+- `/home` accepts `tag` query param to filter by a specific tag chip.
+- `/tags` returns ranked tag chips with personalized/trending scores. In low-content environments, backend returns default topics even when no ranked tag pool exists.
+- `/tags/:tagName` returns videos for a specific tag with scoring-aware ordering. Response `data.tag` includes tag metadata.
+- Feed item responses now include `tags: string[]` and `categories: [{id,name,slug,icon}]` on each video item.
 
 ## Public Search
 
@@ -884,10 +890,11 @@ All endpoints below require:
 
 ### Admin dashboard
 
-| Method | Endpoint              | Query      |
-| ------ | --------------------- | ---------- | --- | --- | --- |
-| GET    | `/dashboard/overview` | `period=7d | 30d | 90d | 1y` |
-| GET    | `/dashboard/activity` | `period=7d | 30d | 90d | 1y` |
+| Method | Endpoint              | Query                                                                        |
+| ------ | --------------------- | ---------------------------------------------------------------------------- | --- | --- | --- |
+| GET    | `/dashboard/overview` | `period=7d                                                                   | 30d | 90d | 1y` |
+| GET    | `/dashboard/activity` | `period=7d                                                                   | 30d | 90d | 1y` |
+| POST   | `/feed/topics/seed`   | body (optional): `{ topics: string[] }` — bootstraps default tags+categories |
 
 ### Reports moderation
 

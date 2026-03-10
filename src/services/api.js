@@ -112,7 +112,10 @@ export const feedService = {
     getHomeFeed: (params = {}) => api.get('/feed/home', { params }),
     getSubscriptionsFeed: (params = {}) => api.get('/feed/subscriptions', { params }),
     getTrendingFeed: (params = {}) => api.get('/feed/trending', { params }),
-    getShortsFeed: (params = {}) => api.get('/feed/shorts', { params }) // Corrected endpoint based on handoff
+    getShortsFeed: (params = {}) => api.get('/feed/shorts', { params }),
+    // Tag system
+    getTags: (params = {}) => api.get('/feed/tags', { params }),
+    getTagFeed: (tagName, params = {}) => api.get(`/feed/tags/${encodeURIComponent(tagName)}`, { params })
 }
 
 // Search Service
@@ -136,7 +139,7 @@ export const playlistService = {
     // Watch Later specific APIs
     toggleWatchLater: (videoId) => api.post(`/playlists/watch-later/${videoId}`),
     getWatchLater: () => api.get('/playlists/watch-later'),
-    reorderPlaylistVideos: (playlistId, videoIds) => api.put(`/playlists/${playlistId}/reorder`, { videoIds })
+    // reorderPlaylistVideos: no backend endpoint exists yet
 }
 
 // Tweet Service
@@ -209,7 +212,7 @@ export const aiService = {
     sendMessage: (sessionId, message) => api.post(`/ai/sessions/${sessionId}/messages`, { message }),
     updateSession: (sessionId, data) => api.patch(`/ai/sessions/${sessionId}`, data), // { title }
     deleteSession: (sessionId) => api.delete(`/ai/sessions/${sessionId}`),
-    clearAllSessions: () => api.delete('/ai/sessions/all'),
+    clearAllSessions: (videoId) => api.delete('/ai/sessions', videoId ? { params: { videoId } } : undefined),
 
     // Video-specific AI
     getVideoSummary: (videoId) => api.get(`/ai/videos/${videoId}/summary`),
@@ -279,5 +282,8 @@ export const adminService = {
     getVideo: (videoId) => api.get(`/admin/videos/${videoId}`),
 
     getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
-    getAuditLog: (logId) => api.get(`/admin/audit-logs/${logId}`)
+    getAuditLog: (logId) => api.get(`/admin/audit-logs/${logId}`),
+
+    // Feed management
+    seedFeedTopics: (topics) => api.post('/admin/feed/topics/seed', topics ? { topics } : {})
 }

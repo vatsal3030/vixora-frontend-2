@@ -80,8 +80,10 @@ export const AuthProvider = ({ children }) => {
 
                 setUser(userData)
                 if (switchTokenPayload) {
-                    // It might be a direct string or an object depending on backend shape
-                    const tokenString = typeof switchTokenPayload === 'string' ? switchTokenPayload : switchTokenPayload.token
+                    // Handle all possible shapes: direct string, object with .token, or object with .accountSwitchToken
+                    const tokenString = typeof switchTokenPayload === 'string'
+                        ? switchTokenPayload
+                        : (switchTokenPayload.token || switchTokenPayload.accountSwitchToken || null)
                     if (tokenString) saveAccountLocal(userData, tokenString)
                 }
 

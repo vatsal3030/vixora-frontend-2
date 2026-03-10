@@ -60,8 +60,26 @@ export default function DashboardPage() {
     // cards.videos.value is the authoritative field; fallback to legacy flat key
     const hasData = (overview?.cards?.videos?.value ?? overview?.videosCount ?? 0) > 0
 
-
     const demoAnalytics = DEMO_DATA
+
+    // Moved stats computation above early returns so handleExport can use it
+    const stats = showDemoData ? {
+        subscribers: 1250,
+        views: 45000,
+        likes: 3200,
+        videosCount: 12,
+        recentSubscribers: 45,
+        recentViews: 5200,
+        recentLikes: 350
+    } : {
+        subscribers: overview?.cards?.subscribers?.value ?? overview?.subscribers ?? 0,
+        views: overview?.cards?.views?.value ?? overview?.views ?? 0,
+        likes: overview?.cards?.likes?.value ?? overview?.likes ?? 0,
+        videosCount: overview?.cards?.videos?.value ?? overview?.videosCount ?? 0,
+        recentSubscribers: overview?.cards?.subscribers?.trend?.absChange ?? overview?.recentSubscribers ?? 0,
+        recentViews: overview?.cards?.views?.trend?.absChange ?? overview?.recentViews ?? 0,
+        recentLikes: overview?.cards?.likes?.trend?.absChange ?? overview?.recentLikes ?? 0
+    }
 
 
 
@@ -155,25 +173,7 @@ export default function DashboardPage() {
         )
     }
 
-    // Effective Data (Real or Demo)
-    const stats = showDemoData ? {
-        subscribers: 1250,
-        views: 45000,
-        likes: 3200,
-        videosCount: 12,
-        recentSubscribers: 45,
-        recentViews: 5200,
-        recentLikes: 350
-    } : {
-        // Map from API shape: data.cards.subscribers.value etc. (with fallback to legacy flat keys)
-        subscribers: overview?.cards?.subscribers?.value ?? overview?.subscribers ?? 0,
-        views: overview?.cards?.views?.value ?? overview?.views ?? 0,
-        likes: overview?.cards?.likes?.value ?? overview?.likes ?? 0,
-        videosCount: overview?.cards?.videos?.value ?? overview?.videosCount ?? 0,
-        recentSubscribers: overview?.cards?.subscribers?.trend?.absChange ?? overview?.recentSubscribers ?? 0,
-        recentViews: overview?.cards?.views?.trend?.absChange ?? overview?.recentViews ?? 0,
-        recentLikes: overview?.cards?.likes?.trend?.absChange ?? overview?.recentLikes ?? 0
-    }
+    // stats already computed above early returns
 
     // analytics.chart is the merged timeline from backend (views, subscribers, likes series)
     const chartData = showDemoData ? demoAnalytics : (analytics?.chart || analytics?.viewsChart || [])
@@ -305,7 +305,7 @@ export default function DashboardPage() {
                                     </th>
                                     <th
                                         className="text-right p-4 font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
-                                        onClick={() => handleSort('likesCount')}
+                                        onClick={() => handleSort('likes')}
                                     >
                                         <div className="flex items-center justify-end gap-1">
                                             Likes
@@ -314,7 +314,7 @@ export default function DashboardPage() {
                                     </th>
                                     <th
                                         className="text-right p-4 pr-6 font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors select-none"
-                                        onClick={() => handleSort('commentsCount')}
+                                        onClick={() => handleSort('comments')}
                                     >
                                         <div className="flex items-center justify-end gap-1">
                                             Comments

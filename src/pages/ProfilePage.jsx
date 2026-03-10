@@ -111,15 +111,12 @@ export default function ProfilePage() {
 
         try {
             if (fullName !== user?.fullName) {
-                await userService.updateProfile({ fullName, email: user.email })
+                await userService.updateProfile({ fullName })
             }
 
-            // Map frontend 'description' back to payload
-            // Send both keys to be safe if backend is ambiguous
+            // Backend PATCH /users/update-description only accepts channelDescription + channelLinks
             const channelPayload = {
-                description: channelData.description,
                 channelDescription: channelData.description,
-                channelCategory: channelData.channelCategory,
                 channelLinks: channelData.channelLinks.filter(l => l.title && l.url)
             }
 
@@ -153,7 +150,9 @@ export default function ProfilePage() {
 
     // Generic direct upload helper (could be moved to utils)
     const uploadToCloudinary = async (file, signatureData) => {
-        const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${signatureData.resourceType}/upload`
+        // Cloudinary only accepts 'video' or 'image' as resource type in URL (not 'avatar', 'cover', etc.)
+        const cloudinaryResourceType = signatureData.resourceType === 'video' ? 'video' : 'image'
+        const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${cloudinaryResourceType}/upload`
         const formData = new FormData()
         formData.append('file', file)
         formData.append('api_key', signatureData.api_key)
@@ -180,31 +179,8 @@ export default function ProfilePage() {
         const loadingToast = toast.loading(`Uploading ${cropType}...`)
 
         try {
-            // 1. Get Signature
-            const resourceType = cropType === 'avatar' ? 'avatar' : 'coverImage' // Frontend 'coverImage' -> Backend 'thumbnail'? Wait, handoff says 'video', 'thumbnail', 'avatar', 'post'. Fallback 'misc'.
-            // Actually, for cover, let's use 'thumbnail' or 'post' or check backend mapping. 
-            // Handoff says: video->videos, thumbnail->thumbnails, avatar->avatars, post->posts.
-            // But Cover Image Update expects `covers/<userId>`. 
-            // The backend mapping list in Handoff Step B IS: video, thumbnail, avatar, post.
-            // It DOES NOT explicitly list 'cover' in the signature mapping list, but the update endpoint expects it in `covers/`.
-            // Wait, looking closer at Handoff Step B: "resourceType to Cloudinary folder mapping from backend... video, thumbnail, avatar, post".
-            // It seems 'cover' isn't a top-level resource type in the signature endpoint's documented switch case?
-            // BUT Section 3.2 says "Upload cover image to Cloudinary under covers/<userId>".
-            // If the signature endpoint doesn't support 'cover' type, we might have an issue.
-            // HOWEVER, usually 'post' or 'thumbnail' is just an image. 
-            // Let's try sending 'cover' as resourceType to signature endpoint first, assuming the backend documentation list was non-exhaustive or we use 'post' as a generic image if cover fails.
-            // Actually, let's try 'post' if 'cover' isn't listed, or just assume the backend developer handled 'cover'. 
-            // Let's try 'cover' first. If that fails (400), we know.
-            // *Correction*: Handoff 3.2 says "Upload cover image to Cloudinary under covers/<userId>".
-            // Let's assume we pass 'cover' to `getUploadSignature` and hope the backend supports it.
-            // If not, I'll default to 'image' or 'post'.
-
-            // Re-reading Handoff "3.2 Image metadata finalize APIs": 
-            // "1. Upload cover image to Cloudinary under covers/<userId>"
-            // This implies the signature MUST return a publicId starting with `covers/`.
-            // So `getUploadSignature('cover')` is the most logical guess.
-
-            const sigRes = await videoService.getUploadSignature(cropType === 'avatar' ? 'avatar' : 'cover') // 'cover' or 'coverImage'? Let's try 'cover'.
+            // 1. Get Signature — pass 'avatar' or 'cover' to get correct Cloudinary folder mapping
+            const sigRes = await videoService.getUploadSignature(cropType === 'avatar' ? 'avatar' : 'cover')
             const sigData = sigRes.data.data
 
             // 2. Upload to Cloudinary

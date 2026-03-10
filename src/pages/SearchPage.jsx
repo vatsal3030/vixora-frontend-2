@@ -5,10 +5,14 @@ import { useSearchParams } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import { searchService } from '../services/api'
 import { VideoCard } from '../components/video/VideoCard'
-import { Loader2, SearchX } from 'lucide-react'
+import { Loader2, SearchX, Users } from 'lucide-react'
 import { toast } from 'sonner'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { Button } from '../components/ui/Button'
+import { Avatar } from '../components/ui/Avatar'
+import { Link } from 'react-router-dom'
+import { getMediaUrl } from '../lib/media'
+import { formatSubscribers } from '../lib/utils'
 
 export default function SearchPage() {
     const [searchParams] = useSearchParams()
@@ -113,14 +117,37 @@ export default function SearchPage() {
                 </motion.div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
-                    {displayItems.map((video, index) => (
+                    {displayItems.map((item, index) => (
                         <motion.div
-                            key={video.id || video._id || index}
+                            key={item.id || item._id || index}
                             initial={{ opacity: 0, y: 30 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: index * 0.05, type: "spring", stiffness: 100 }}
                         >
-                            <VideoCard video={video} />
+                            {filter === 'Channels' ? (
+                                // Channel Card
+                                <Link
+                                    to={`/@${item.username}`}
+                                    className="flex flex-col items-center p-6 glass-panel rounded-2xl hover:bg-white/5 transition-all group border border-white/5"
+                                >
+                                    <Avatar
+                                        src={getMediaUrl(item.avatar)}
+                                        fallback={item.username}
+                                        size="xl"
+                                        className="mb-4 ring-2 ring-white/10 group-hover:ring-primary/30 transition-all"
+                                    />
+                                    <h3 className="font-semibold text-foreground text-lg group-hover:text-primary transition-colors">
+                                        {item.fullName || item.username}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">@{item.username}</p>
+                                    <div className="flex items-center gap-1 mt-2 text-xs text-muted-foreground">
+                                        <Users className="w-3.5 h-3.5" />
+                                        {formatSubscribers(item.subscribersCount || 0)}
+                                    </div>
+                                </Link>
+                            ) : (
+                                <VideoCard video={item} />
+                            )}
                         </motion.div>
                     ))}
                 </div>
