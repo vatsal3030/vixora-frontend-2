@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
 import { tweetService, videoService } from '../services/api'
+import { uploadToCloudinary } from '../lib/cloudinaryUpload'
 import { useAuth } from '../context/AuthContext'
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
@@ -65,29 +66,6 @@ export default function TweetsPage() {
         setImagePreview(null)
     }
 
-    const uploadToCloudinary = async (file, signatureData) => {
-        const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${signatureData.resourceType}/upload`
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('api_key', signatureData.api_key)
-        formData.append('timestamp', signatureData.timestamp)
-        formData.append('signature', signatureData.signature)
-        formData.append('public_id', signatureData.publicId)
-
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest()
-            xhr.open('POST', url)
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve(JSON.parse(xhr.responseText))
-                } else {
-                    reject(new Error(`Cloudinary upload failed: ${xhr.statusText}`))
-                }
-            }
-            xhr.onerror = () => reject(new Error('Network error'))
-            xhr.send(formData)
-        })
-    }
 
     const handleCreateTweet = async (e) => {
         e.preventDefault()

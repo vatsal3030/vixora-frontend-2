@@ -47,7 +47,9 @@ export const videoService = {
     updateVideo: (videoId, data) => api.patch(`/videos/${videoId}`, data),
     deleteVideo: (videoId) => api.delete(`/videos/${videoId}`),
     restoreVideo: (videoId) => api.patch(`/videos/${videoId}/restore`),
-    getUserVideos: (userId, params = {}) => api.get(`/videos/user/${userId}`, { params })
+    getUserVideos: (userId, params = {}) => api.get(`/videos/user/${userId}`, { params }),
+    // PATCH /videos/:videoId/publish  — toggles publish state (per api_contract.md section 7.3)
+    togglePublish: (videoId) => api.patch(`/videos/${videoId}/publish`),
 }
 
 // Comment Service  

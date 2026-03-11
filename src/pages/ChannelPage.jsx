@@ -102,8 +102,9 @@ export default function ChannelPage() {
         initialPageParam: 1
     })
 
-    const videos = videosData?.pages.flatMap(page => page?.videos || page?.items || page?.docs || []) || []
-    const shorts = shortsData?.pages.flatMap(page => page?.shorts || page?.items || page?.docs || []) || []
+    // Backend contract: list endpoints return `items` only (api_contract §26 rule 2, §16)
+    const videos = videosData?.pages.flatMap(page => page?.items || page?.videos || page?.docs || []) || []
+    const shorts = shortsData?.pages.flatMap(page => page?.items || page?.shorts || page?.docs || []) || []
 
 
     // 3. Fetch Channel Playlists

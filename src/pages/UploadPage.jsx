@@ -3,6 +3,7 @@ import { Upload, X, Image as ImageIcon, Loader2, Check, ArrowRight, ArrowLeft, F
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { videoService, tweetService } from '../services/api'
+import { uploadToCloudinary } from '../lib/cloudinaryUpload'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { toast } from 'sonner'
@@ -194,55 +195,6 @@ export default function UploadPage() {
         })
     }
 
-    // --- Direct Cloudinary Upload Logic ---
-    const uploadToCloudinary = async (file, signatureData) => {
-        // Cloudinary only accepts 'video' or 'image' as resource type (not 'thumbnail', 'avatar', etc.)
-        const cloudinaryResourceType = signatureData.resourceType === 'video' ? 'video' : 'image'
-        const url = `https://api.cloudinary.com/v1_1/${signatureData.cloudName}/${cloudinaryResourceType}/upload`
-        const formData = new FormData()
-        formData.append('file', file)
-
-        if (signatureData.uploadPreset) {
-            formData.append('upload_preset', signatureData.uploadPreset)
-        }
-
-        if (signatureData.signature) {
-            formData.append('api_key', signatureData.api_key || signatureData.apiKey)
-            formData.append('timestamp', signatureData.timestamp)
-            formData.append('signature', signatureData.signature)
-        }
-
-        // Always append folder if provided
-        if (signatureData.folder) {
-            formData.append('folder', signatureData.folder)
-        }
-
-        // Handle public_id logic
-        if (signatureData.publicId) {
-            formData.append('public_id', signatureData.publicId)
-        }
-
-        return new Promise((resolve, reject) => {
-            const xhr = new XMLHttpRequest()
-            xhr.open('POST', url)
-
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    resolve(JSON.parse(xhr.responseText))
-                } else {
-                    try {
-                        const err = JSON.parse(xhr.responseText)
-                        reject(new Error(err.error?.message || `Cloudinary Error: ${xhr.statusText}`))
-                    } catch {
-                        reject(new Error(`Cloudinary upload failed: ${xhr.statusText}`))
-                    }
-                }
-            }
-
-            xhr.onerror = () => reject(new Error('Cloudinary upload network error'))
-            xhr.send(formData)
-        })
-    }
 
     const handleSubmit = async () => {
         if (!videoFile || !thumbnailFile || !title) return

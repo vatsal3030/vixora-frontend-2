@@ -6,17 +6,14 @@ import { motion } from 'framer-motion'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
 import { Label } from '../../components/ui/Label'
-import { Loader2, Upload, AlertCircle, Check, X } from 'lucide-react'
+import { Loader2, AlertCircle, Check, X } from 'lucide-react'
 import { BrandLogo } from '../../components/common/BrandLogo'
-import toast from '../../lib/toast'
+import { toast } from 'sonner'
 import { validatePassword } from '../../utils/validators'
-import { FILE_SIZE_LIMITS } from '../../lib/constants'
 
 
 
 export default function SignUpPage() {
-    const [avatar, setAvatar] = useState(null)
-    const [avatarPreview, setAvatarPreview] = useState(null)
     const [passwordStrength, setPasswordStrength] = useState({ isValid: false, strength: 'weak', errors: [] })
 
     const { register: authRegister, getGoogleAuthUrl } = useAuth()
@@ -54,43 +51,19 @@ export default function SignUpPage() {
         }
     }, [passwordValue])
 
-    const handleFileChange = (e) => {
-        const file = e.target.files[0]
-        if (file) {
-            if (file.size > FILE_SIZE_LIMITS.AVATAR) {
-                toast.error('Avatar size must be less than 5MB')
-                return
-            }
-            if (!file.type.startsWith('image/')) {
-                toast.error('Please upload an image file')
-                return
-            }
-            setAvatar(file)
-            const reader = new FileReader()
-            reader.onloadend = () => {
-                setAvatarPreview(reader.result)
-            }
-            reader.readAsDataURL(file)
-        }
-    }
 
     const onSubmit = async (data) => {
         try {
-            // Create FormData for multipart upload
-            const formData = new FormData()
-            formData.append('fullName', data.fullName)
-            formData.append('username', data.username)
-            formData.append('email', data.email)
-            formData.append('password', data.password)
-            if (avatar) {
-                formData.append('avatar', avatar)
-            }
+            // Backend POST /users/register ONLY accepts JSON — not FormData/multipart
+            // Avatar must be uploaded separately after registration via PATCH /users/update-avatar
+            await authRegister({
+                fullName: data.fullName,
+                username: data.username,
+                email: data.email,
+                password: data.password
+            })
 
-            await authRegister(formData)
-
-            toast.success('Account created successfully! Please verify your email.')
-
-            // Navigate to verify email page with email in state
+            toast.success('Account created! Please verify your email.')
             navigate('/verify-email', {
                 state: { email: data.email, from: 'register' }
             })
@@ -131,25 +104,7 @@ export default function SignUpPage() {
                 transition={{ delay: 0.1 }}
             >
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                    {/* Avatar Upload */}
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="relative group cursor-pointer">
-                            <div className={`w-24 h-24 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden hover:border-primary transition-colors glass-panel ${avatarPreview ? 'border-solid border-primary' : ''}`}>
-                                {avatarPreview ? (
-                                    <img src={avatarPreview} alt="Avatar Preview" className="w-full h-full object-cover" />
-                                ) : (
-                                    <Upload className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
-                                )}
-                            </div>
-                            <input
-                                type="file"
-                                accept="image/png, image/jpeg, image/jpg, image/webp"
-                                onChange={handleFileChange}
-                                className="absolute inset-0 opacity-0 cursor-pointer"
-                            />
-                            {!avatarPreview && <div className="absolute -bottom-6 w-full text-center text-xs text-muted-foreground">Upload Avatar (Optional)</div>}
-                        </div>
-                    </div>
+
 
                     {/* Full Name */}
                     <div className="space-y-2">

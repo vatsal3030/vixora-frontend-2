@@ -31,7 +31,7 @@ export default function LibraryPage() {
         queryKey: ['watchHistory', 'recent'],
         queryFn: async () => {
             const res = await watchHistoryService.getHistory()
-            return res.data.data?.items || res.data.data?.videos || res.data.data || []
+            return res.data.data?.items || res.data.data || []
         }
     })
     const recentHistory = historyData?.slice(0, 8) || []
@@ -42,7 +42,7 @@ export default function LibraryPage() {
         queryFn: async () => {
             const res = await playlistService.getWatchLater()
             // Assume array resolution
-            return res.data.data?.items || res.data.data?.videos || res.data.data || []
+            return res.data.data?.items || res.data.data || []
         }
     })
     const watchLaterVideos = watchLaterData?.slice(0, 8).map(item => item.video || item) || []
@@ -52,7 +52,7 @@ export default function LibraryPage() {
         queryKey: ['likedVideos'],
         queryFn: async () => {
             const res = await likeService.getLikedVideos()
-            return res.data.data?.items || res.data.data?.videos || res.data.data || []
+            return res.data.data?.items || res.data.data || []
         }
     })
     const likedVideos = likedData?.slice(0, 8).map(item => item.video || item) || []

@@ -8,7 +8,6 @@ import {
     ThumbsUp,
     ListVideo,
     BarChart2,
-    Video,
     Trash2,
     Settings,
     Menu,
@@ -16,7 +15,8 @@ import {
     Search,
     Film,
     ChevronRight,
-    MessageCircle
+    MessageCircle,
+    SquareUser
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
@@ -33,7 +33,7 @@ const libraryItems = [
     { icon: Clock, label: 'Watch Later', path: '/watch-later' },
     { icon: ThumbsUp, label: 'Liked Videos', path: '/liked' },
     { icon: ListVideo, label: 'Playlists', path: '/playlists' },
-    { icon: Video, label: 'Your Videos', path: '/my-videos' },
+    { icon: SquareUser, label: 'Yours', path: '/my-videos' },
     { icon: BarChart2, label: 'Dashboard', path: '/dashboard' },
     { icon: Trash2, label: 'Trash', path: '/trash' },
     { icon: Settings, label: 'Settings', path: '/settings' },

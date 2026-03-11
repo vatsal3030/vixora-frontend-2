@@ -32,7 +32,7 @@ export default function PlaylistDetailPage() {
     // Sync localVideos with playlist data on load
     useEffect(() => {
         if (playlist) {
-            setLocalVideos(playlist.videos || [])
+            setLocalVideos(playlist.items || playlist.videos || [])
         }
     }, [playlist])
 

@@ -139,10 +139,11 @@ export default function WatchPage() {
     const handleVideoEnd = () => {
         if (!autoPlayNext) return
         let nextVideo = null
-        if (playlistId && playlist?.videos) {
-            const currentIndex = playlist.videos.findIndex(v => v._id === videoId)
-            if (currentIndex !== -1 && currentIndex < playlist.videos.length - 1) {
-                nextVideo = playlist.videos[currentIndex + 1]
+        if (playlistId && (playlist?.items || playlist?.videos)) {
+            const playlistVideos = playlist.items || playlist.videos || []
+            const currentIndex = playlistVideos.findIndex(v => v._id === videoId)
+            if (currentIndex !== -1 && currentIndex < playlistVideos.length - 1) {
+                nextVideo = playlistVideos[currentIndex + 1]
             }
         }
         if (!nextVideo && recommended.length > 0) {
@@ -520,7 +521,7 @@ export default function WatchPage() {
                                             <p className="text-[10px] text-muted-foreground truncate">{playlist.owner?.username} - {playlist.videos.length} videos</p>
                                         </div>
                                         <div className="max-h-[300px] overflow-y-auto">
-                                            {playlist.videos?.map((v, i) => (
+                                            {(playlist.items || playlist.videos || []).map((v, i) => (
                                                 <Link key={v._id} to={`/watch/${v._id}?list=${playlist._id}`}
                                                     className={`flex gap-2 p-2 hover:bg-white/5 ${v._id === videoId && 'bg-white/10'}`}>
                                                     <span className="text-[10px] text-gray-400 w-4 flex-shrink-0 flex items-center">{v._id === videoId ? <Play className="w-2.5 h-2.5 fill-white" /> : i + 1}</span>
