@@ -23,6 +23,7 @@ const SignUpPage = lazy(() => import('./pages/auth/SignUpPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
 const VerifyEmailPage = lazy(() => import('./pages/auth/VerifyEmailPage'))
 const RestoreAccountPage = lazy(() => import('./pages/auth/RestoreAccountPage'))
+const TermsPage = lazy(() => import('./pages/legal/TermsPage'))
 
 // Lazy load main pages
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -77,6 +78,7 @@ function App() {
                     <Route path="/verify-email" element={<VerifyEmailPage />} />
                     <Route path="/restore-account" element={<RestoreAccountPage />} />
                   </Route>
+                  <Route path="/terms" element={<TermsPage />} />
 
                   {/* Admin Routes - Wrapped in AdminLayout and AdminRoute */}
                   <Route path="/admin" element={

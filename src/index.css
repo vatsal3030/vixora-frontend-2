@@ -102,8 +102,16 @@ img {
 
 /* Smooth Theme Transition */
 /* Smooth Theme Transition */
+/* Prevent layout shift from Radix UI adding padding-right when scroll is locked */
+html[data-scroll-locked],
+body[data-scroll-locked] {
+  padding-right: 0px !important;
+  margin-right: 0px !important;
+}
+
+/* Ensure scrollbar-gutter is respected globally to prevent layout jumps */
 html {
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable !important;
 }
 
 body {
@@ -111,14 +119,6 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   transition: background-color 0.5s ease-in-out, color 0.5s ease-in-out;
-  overflow-y: scroll;
-  /* Force scrollbar to always be visible as fallback */
-}
-
-/* Prevent layout shift from Radix UI adding padding-right */
-body[data-scroll-locked] {
-  padding-right: 0px !important;
-  margin-right: 0px !important;
 }
 
 h1,
@@ -205,11 +205,11 @@ h6 {
 
   /* Glass Input */
   .glass-input {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     border-radius: var(--radius);
     color: var(--foreground);
     transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -217,9 +217,21 @@ h6 {
 
   .glass-input:focus {
     background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
     outline: none;
+  }
+
+  /* Browser Autofill Overrides */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  textarea:-webkit-autofill:hover,
+  textarea:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--foreground) !important;
+    -webkit-box-shadow: 0 0 0px 1000px rgba(22, 22, 22, 0.95) inset !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
 
   /* Glass Button */

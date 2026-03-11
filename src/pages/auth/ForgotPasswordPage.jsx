@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
         register: registerEmail,
         handleSubmit: handleSubmitEmail,
         formState: { errors: emailErrors }
-    } = useForm()
+    } = useForm({ mode: 'onSubmit' })
 
     const requestOtpMutation = useMutation({
         mutationFn: (data) => authService.forgotPassword(data.email),
@@ -106,7 +106,7 @@ export default function ForgotPasswordPage() {
         handleSubmit: handleSubmitPassword,
         watch: watchPassword,
         formState: { errors: passwordErrors }
-    } = useForm()
+    } = useForm({ mode: 'onSubmit' })
 
     const passwordValue = watchPassword('password', '')
     const [passwordStrength, setPasswordStrength] = useState({ strength: 'weak' })
@@ -151,37 +151,32 @@ export default function ForgotPasswordPage() {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="w-full space-y-8"
+            className="w-full"
         >
-            <div className="text-center space-y-2">
-                <Link to="/login" className="inline-flex items-center text-sm text-primary hover:text-primary/80 mb-6 transition-colors">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+            <div className="mb-6">
+                <Link to="/login" className="inline-flex items-center text-xs font-medium text-muted-foreground hover:text-primary mb-4 transition-colors group">
+                    <ArrowLeft className="w-3 h-3 mr-1 group-hover:-translate-x-0.5 transition-transform" />
                     Back to Login
                 </Link>
-
-                <div className="flex justify-center mb-6">
-                    <BrandLogo size="xl" />
-                </div>
-
-                <h1 className="text-3xl font-bold tracking-tight">
+                <h1 className="text-3xl font-display font-bold tracking-tight">
                     {step === 1 && 'Forgot Password?'}
                     {step === 2 && 'Verify Code'}
                     {step === 3 && 'Set New Password'}
                 </h1>
-                <p className="text-muted-foreground">
-                    {step === 1 && 'Enter your email address and we\'ll send you a code to reset your password.'}
+                <p className="text-muted-foreground mt-1">
+                    {step === 1 && 'No worries, we\'ll send you instructions to reset your password.'}
                     {step === 2 && `Enter the 6-digit code sent to ${email}`}
                     {step === 3 && 'Create a strong password for your account'}
                 </p>
             </div>
 
             <motion.div
-                className="glass-card rounded-2xl p-6 sm:p-8 shadow-glass-heavy"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                className="glass-card rounded-3xl p-5 sm:p-10 shadow-glass-heavy border-white/5"
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.1 }}
             >
                 <AnimatePresence mode="wait">
@@ -196,19 +191,19 @@ export default function ForgotPasswordPage() {
                         >
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="name@example.com"
-                                    {...registerEmail('email', {
-                                        required: 'Email is required',
-                                        pattern: {
-                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                            message: 'Invalid email address'
-                                        }
-                                    })}
-                                    className={emailErrors.email ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
-                                />
+                                    <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder=""
+                                        error={emailErrors.email?.message}
+                                        {...registerEmail('email', {
+                                            required: 'Email is required',
+                                            pattern: {
+                                                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                                message: 'Invalid email address'
+                                            }
+                                        })}
+                                    />
                                 {emailErrors.email && (
                                     <p className="text-xs text-destructive flex items-center gap-1">
                                         <Loader2 className="w-3 h-3" />
@@ -284,11 +279,11 @@ export default function ForgotPasswordPage() {
                                     id="password"
                                     type="password"
                                     placeholder="••••••••"
+                                    error={passwordErrors.password?.message}
                                     {...registerPassword('password', {
                                         required: 'Password is required',
                                         minLength: { value: 8, message: 'At least 8 characters' }
                                     })}
-                                    className={passwordErrors.password ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
                                 />
                                 {passwordValue && (
                                     <div className="h-1 w-full bg-muted/50 rounded-full overflow-hidden mt-2">
@@ -312,11 +307,11 @@ export default function ForgotPasswordPage() {
                                     id="confirmPassword"
                                     type="password"
                                     placeholder="••••••••"
+                                    error={passwordErrors.confirmPassword?.message}
                                     {...registerPassword('confirmPassword', {
                                         required: 'Please confirm your password',
                                         validate: value => value === passwordValue || 'Passwords do not match'
                                     })}
-                                    className={passwordErrors.confirmPassword ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
                                 />
                                 {passwordErrors.confirmPassword && (
                                     <p className="text-xs text-destructive flex items-center gap-1">

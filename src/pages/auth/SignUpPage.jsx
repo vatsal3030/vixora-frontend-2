@@ -22,6 +22,12 @@ export default function SignUpPage() {
 
     useEffect(() => {
         const error = searchParams.get('error')
+        const accepted = searchParams.get('accepted')
+
+        if (accepted === 'true') {
+            setValue('terms', true, { shouldValidate: true })
+        }
+
         if (error === 'oauth_state_mismatch') {
             toast.error('Google login expired or domain mismatch. Please try again.')
             // Optional: Clean up the URL
@@ -36,18 +42,21 @@ export default function SignUpPage() {
         register,
         handleSubmit,
         watch,
+        setValue,
         formState: { errors, isSubmitting }
     } = useForm({
-        mode: 'onChange'
+        mode: 'onSubmit'
     })
 
     const passwordValue = watch('password', '')
 
     // Update password strength as user types
-    useState(() => {
+    useEffect(() => {
         if (passwordValue) {
             const strength = validatePassword(passwordValue)
             setPasswordStrength(strength)
+        } else {
+            setPasswordStrength({ isValid: false, strength: 'weak', errors: [] })
         }
     }, [passwordValue])
 
@@ -75,35 +84,31 @@ export default function SignUpPage() {
 
     const getPasswordStrengthColor = () => {
         switch (passwordStrength.strength) {
-            case 'strong': return 'bg-green-500'
-            case 'medium': return 'bg-yellow-500'
-            default: return 'bg-red-500'
+            case 'strong': return 'bg-emerald-500'
+            case 'medium': return 'bg-amber-500'
+            default: return 'bg-rose-500'
         }
     }
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="w-full space-y-8"
+            className="w-full"
         >
-            <div className="text-center space-y-2">
-                <Link to="/" className="inline-flex items-center gap-2 group">
-                    <BrandLogo size="lg" className="group-hover:scale-105 transition-transform" />
-                    <span className="text-2xl font-display font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">Vixora</span>
-                </Link>
-                <h1 className="text-3xl font-bold tracking-tight mt-4">Create an account</h1>
-                <p className="text-muted-foreground">Join the Vixora community today</p>
+            <div className="mb-4">
+                <h1 className="text-3xl font-display font-bold tracking-tight">Create an account</h1>
+                <p className="text-muted-foreground mt-1 text-sm">Start your creative journey today</p>
             </div>
 
             <motion.div
-                className="glass-card rounded-2xl p-6 sm:p-8 shadow-glass-heavy"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                className="glass-card rounded-3xl p-3 sm:p-5 shadow-glass-heavy border-white/5"
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.1 }}
             >
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
 
 
                     {/* Full Name */}
@@ -111,20 +116,15 @@ export default function SignUpPage() {
                         <Label htmlFor="fullName">Full Name</Label>
                         <Input
                             id="fullName"
-                            placeholder="John Doe"
+                            placeholder="e.g. Vixora Marketing"
+                            error={errors.fullName?.message}
                             {...register('fullName', {
                                 required: 'Full name is required',
                                 minLength: { value: 3, message: 'Name must be at least 3 characters' },
                                 maxLength: { value: 50, message: 'Name must be at most 50 characters' }
                             })}
-                            className={errors.fullName ? 'glass-input border-red-500' : 'glass-input'}
                         />
-                        {errors.fullName && (
-                            <p className="text-xs text-red-500 flex items-center gap-1">
-                                <X className="w-3 h-3" />
-                                {errors.fullName.message}
-                            </p>
-                        )}
+
                     </div>
 
                     {/* Username */}
@@ -132,7 +132,8 @@ export default function SignUpPage() {
                         <Label htmlFor="username">Username</Label>
                         <Input
                             id="username"
-                            placeholder="johndoe_123"
+                            placeholder="vixora_pro"
+                            error={errors.username?.message}
                             {...register('username', {
                                 required: 'Username is required',
                                 minLength: { value: 3, message: 'Username must be at least 3 characters' },
@@ -142,14 +143,8 @@ export default function SignUpPage() {
                                     message: 'Username can only contain letters, numbers, and underscores'
                                 }
                             })}
-                            className={errors.username ? 'glass-input border-red-500' : 'glass-input'}
                         />
-                        {errors.username && (
-                            <p className="text-xs text-red-500 flex items-center gap-1">
-                                <X className="w-3 h-3" />
-                                {errors.username.message}
-                            </p>
-                        )}
+
                     </div>
 
                     {/* Email */}
@@ -158,7 +153,8 @@ export default function SignUpPage() {
                         <Input
                             id="email"
                             type="email"
-                            placeholder="name@example.com"
+                            placeholder="marketing@vixora.sh"
+                            error={errors.email?.message}
                             {...register('email', {
                                 required: 'Email is required',
                                 pattern: {
@@ -166,14 +162,8 @@ export default function SignUpPage() {
                                     message: 'Invalid email address'
                                 }
                             })}
-                            className={errors.email ? 'glass-input border-red-500' : 'glass-input'}
                         />
-                        {errors.email && (
-                            <p className="text-xs text-red-500 flex items-center gap-1">
-                                <X className="w-3 h-3" />
-                                {errors.email.message}
-                            </p>
-                        )}
+
                     </div>
 
                     {/* Password */}
@@ -183,6 +173,8 @@ export default function SignUpPage() {
                             id="password"
                             type="password"
                             placeholder="••••••••"
+                            showPasswordToggle
+                            error={errors.password?.message}
                             {...register('password', {
                                 required: 'Password is required',
                                 minLength: { value: 6, message: 'Password must be at least 6 characters' },
@@ -191,11 +183,6 @@ export default function SignUpPage() {
                                     return result.isValid || result.errors[0]
                                 }
                             })}
-                            onChange={(e) => {
-                                const strength = validatePassword(e.target.value)
-                                setPasswordStrength(strength)
-                            }}
-                            className={errors.password ? 'glass-input border-red-500' : 'glass-input'}
                         />
 
                         {/* Password Strength Indicator */}
@@ -227,12 +214,35 @@ export default function SignUpPage() {
                             </div>
                         )}
 
-                        {errors.password && (
-                            <p className="text-xs text-red-500 flex items-center gap-1">
-                                <X className="w-3 h-3" />
-                                {errors.password.message}
+
+                    </div>
+
+                    {/* Terms and Conditions */}
+                    <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                            <input
+                                type="checkbox"
+                                id="terms"
+                                {...register('terms', { required: 'You must accept the terms and conditions' })}
+                                className="mt-1 w-4 h-4 rounded border-white/10 bg-white/5 text-primary focus:ring-primary/50 focus:ring-offset-0 transition-all cursor-pointer"
+                            />
+                            <Label htmlFor="terms" className="text-xs leading-relaxed text-muted-foreground font-normal cursor-pointer select-none">
+                                I accept the <Link to="/terms" className="text-primary hover:underline">Terms and Conditions</Link> and understand that this platform is currently in <strong>Development Mode</strong>.
+                            </Label>
+                        </div>
+                        {errors.terms && (
+                            <p className="text-[10px] text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                                <X className="w-2.5 h-2.5" />
+                                {errors.terms.message}
                             </p>
                         )}
+                    </div>
+
+                    <div className="bg-white/5 border border-white/5 rounded-xl p-3">
+                        <p className="text-[10px] text-muted-foreground leading-relaxed">
+                            <span className="text-primary font-bold uppercase tracking-wider mr-1">Notice:</span>
+                            This platform is in experimental development. We are not responsible for any unwanted, undesired, or unexpected outputs or data loss.
+                        </p>
                     </div>
 
                     <Button
@@ -252,7 +262,7 @@ export default function SignUpPage() {
                 </form>
 
                 {/* Divider */}
-                <div className="mt-6 relative">
+                <div className="mt-4 relative">
                     <div className="absolute inset-0 flex items-center">
                         <span className="w-full border-t border-glass-border"></span>
                     </div>
@@ -264,7 +274,7 @@ export default function SignUpPage() {
                 </div>
 
                 {/* Google Login */}
-                <div className="mt-6 flex justify-center">
+                <div className="mt-4 flex justify-center">
                     <Button
                         type="button"
                         variant="outline"
@@ -293,7 +303,7 @@ export default function SignUpPage() {
                     </Button>
                 </div>
 
-                <p className="text-center text-sm text-muted-foreground mt-6">
+                <p className="text-center text-sm text-muted-foreground mt-4">
                     Already have an account?{' '}
                     <Link to="/login" className="font-semibold text-primary hover:text-red-400 hover:underline transition-all duration-200 hover:bg-primary/10 py-1 px-2 rounded">
                         Sign in

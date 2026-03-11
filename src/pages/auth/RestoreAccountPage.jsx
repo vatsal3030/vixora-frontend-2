@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { motion, AnimatePresence } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useMutation } from '@tanstack/react-query'
 import { userService } from '../../services/api'
 import { Button } from '../../components/ui/Button'
@@ -21,7 +21,7 @@ export default function RestoreAccountPage() {
         register: registerIdentifier,
         handleSubmit: handleSubmitIdentifier,
         formState: { errors: identifierErrors }
-    } = useForm()
+    } = useForm({ mode: 'onSubmit' })
 
     const requestRestoreMutation = useMutation({
         mutationFn: (data) => {
@@ -148,23 +148,18 @@ export default function RestoreAccountPage() {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="w-full space-y-8"
+            className="w-full"
         >
-            <div className="text-center space-y-2">
-                <Link to="/login" className="inline-flex items-center text-sm text-primary hover:text-primary/80 mb-6 transition-colors">
-                    <ArrowLeft className="w-4 h-4 mr-2" />
+            <div className="mb-6">
+                <Link to="/login" className="inline-flex items-center text-xs font-medium text-muted-foreground hover:text-primary mb-4 transition-colors group">
+                    <ArrowLeft className="w-3 h-3 mr-1 group-hover:-translate-x-0.5 transition-transform" />
                     Back to Login
                 </Link>
-
-                <div className="flex justify-center mb-6">
-                    <BrandLogo size="xl" />
-                </div>
-
-                <h1 className="text-2xl font-bold">Restore Account</h1>
-                <p className="text-muted-foreground text-sm">
+                <h1 className="text-3xl font-display font-bold tracking-tight">Restore Account</h1>
+                <p className="text-muted-foreground mt-1">
                     {step === 1
                         ? 'Recover your deleted or deactivated account data.'
                         : `Enter the code sent to ${identifier} to confirm restoration.`}
@@ -172,9 +167,9 @@ export default function RestoreAccountPage() {
             </div>
 
             <motion.div
-                className="glass-card rounded-2xl p-6 sm:p-8 shadow-glass-heavy"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                className="glass-card rounded-3xl p-5 sm:p-10 shadow-glass-heavy border-white/5"
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.1 }}
             >
                 <AnimatePresence mode="wait">
@@ -198,9 +193,9 @@ export default function RestoreAccountPage() {
                                 <Label htmlFor="identifier">Email or Username</Label>
                                 <Input
                                     id="identifier"
-                                    placeholder="name@example.com"
+                                    placeholder=""
+                                    error={identifierErrors.identifier?.message}
                                     {...registerIdentifier('identifier', { required: 'Email or Username is required' })}
-                                    className={identifierErrors.identifier ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
                                 />
                                 {identifierErrors.identifier && (
                                     <p className="text-xs text-destructive flex items-center gap-1">

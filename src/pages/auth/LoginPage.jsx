@@ -1,4 +1,5 @@
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { useForm } from 'react-hook-form'
 import { useAuth } from '../../context/AuthContext'
 
@@ -8,17 +9,12 @@ import { Label } from '../../components/ui/Label'
 import { Loader2, X, Eye, EyeOff } from 'lucide-react'
 import { BrandLogo } from '../../components/common/BrandLogo'
 import toast from '../../lib/toast'
-import { useState, useEffect } from 'react'
-
-
-import { motion } from 'framer-motion'
+import { useEffect } from 'react'
 
 export default function LoginPage() {
     const { login, getGoogleAuthUrl } = useAuth()
     const navigate = useNavigate()
     const location = useLocation()
-    const [showPassword, setShowPassword] = useState(false)
-
     const from = location.state?.from?.pathname || '/'
     const [searchParams] = useSearchParams()
 
@@ -38,7 +34,9 @@ export default function LoginPage() {
         register,
         handleSubmit,
         formState: { errors, isSubmitting }
-    } = useForm()
+    } = useForm({
+        mode: 'onSubmit'
+    })
 
     const onSubmit = async (data) => {
         try {
@@ -76,85 +74,56 @@ export default function LoginPage() {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="w-full space-y-8"
+            className="w-full"
         >
-            <div className="text-center space-y-2">
-                <Link to="/" className="inline-flex items-center gap-2 group">
-                    <BrandLogo size="lg" className="group-hover:scale-105 transition-transform" />
-                    <span className="text-2xl font-display font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">Vixora</span>
-                </Link>
-                <h1 className="text-3xl font-bold tracking-tight mt-4">Welcome back</h1>
-                <p className="text-muted-foreground">Sign in to continue to your account</p>
+            <div className="mb-6">
+                <h1 className="text-3xl font-display font-bold tracking-tight">Welcome back</h1>
+                <p className="text-muted-foreground mt-1">Sign in to continue to your account</p>
             </div>
 
             <motion.div
-                className="glass-card rounded-2xl p-6 shadow-glass-heavy"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                className="glass-card rounded-3xl p-5 sm:p-10 shadow-glass-heavy border-white/5"
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.1 }}
             >
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                    {/* Email or Username */}
-                    <div className="space-y-2">
-                        <Label htmlFor="identifier">Email or Username</Label>
-                        <Input
-                            id="identifier"
-                            type="text"
-                            placeholder="name@example.com"
-                            {...register('identifier', {
-                                required: 'Email or username is required'
-                            })}
-                            className={errors.identifier ? 'glass-input border-destructive focus-visible:ring-destructive' : 'glass-input'}
-                        />
-                        {errors.identifier && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                                <X className="w-3 h-3" />
-                                {errors.identifier.message}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Password */}
-                    <div className="space-y-2">
-                        <div className="flex justify-between items-center">
-                            <Label htmlFor="password">Password</Label>
-                            <Link to="/forgot-password" className="text-xs text-primary hover:underline">
-                                Forgot password?
-                            </Link>
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                        <div className="space-y-2">
+                            <Label htmlFor="identifier">Email or Username</Label>
+                            <Input
+                                id="identifier"
+                                type="text"
+                                placeholder="Email or username"
+                                error={errors.identifier?.message}
+                                {...register('identifier', {
+                                    required: 'Email or username is required'
+                                })}
+                            />
                         </div>
-                        <div className="relative">
+
+                        <div className="space-y-2">
+                            <Label htmlFor="password">Password</Label>
                             <Input
                                 id="password"
-                                type={showPassword ? "text" : "password"}
+                                type="password"
                                 placeholder="••••••••"
+                                showPasswordToggle
+                                error={errors.password?.message}
                                 {...register('password', {
                                     required: 'Password is required',
                                     minLength: { value: 6, message: 'Password must be at least 6 characters' }
                                 })}
-                                className={`pr-10 glass-input ${errors.password ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                             />
-                            <button
-                                type="button"
-                                onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                                tabIndex={-1}
-                            >
-                                {showPassword ? (
-                                    <EyeOff className="w-4 h-4" />
-                                ) : (
-                                    <Eye className="w-4 h-4" />
-                                )}
-                            </button>
                         </div>
-                        {errors.password && (
-                            <p className="text-xs text-destructive flex items-center gap-1">
-                                <X className="w-3 h-3" />
-                                {errors.password.message}
-                            </p>
-                        )}
+
+                    <div className="bg-white/5 border border-white/5 rounded-xl p-3">
+                        <p className="text-[10px] text-muted-foreground leading-relaxed">
+                            <span className="text-primary font-bold uppercase tracking-wider mr-1">Notice:</span> 
+                            The platform is in experimental development. Account behavior and data may change without notice.
+                        </p>
                     </div>
 
                     {/* Sign In Button */}

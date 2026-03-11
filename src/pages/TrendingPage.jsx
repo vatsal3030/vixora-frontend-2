@@ -5,7 +5,7 @@ import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { feedService } from '../services/api'
 import { Flame, AlertCircle } from 'lucide-react'
 import { Button } from '../components/ui/Button'
-import { motion } from 'framer-motion' // eslint-disable-line
+import { motion } from 'framer-motion'
 
 export default function TrendingPage() {
     useDocumentTitle('Trending - Vixora')

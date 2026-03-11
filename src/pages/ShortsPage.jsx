@@ -75,37 +75,42 @@ export default function ShortsPage() {
     // Derived active index for windowing
     const activeIndex = shorts.findIndex(s => s._id === activeShortId)
 
-    // Manual Scroll Handling (Infinite Scroll keying off scroll position)
+    // Intersection Observer for Active Short Detection
+    useEffect(() => {
+        if (!containerRef.current) return;
+
+        const observerOptions = {
+            root: containerRef.current,
+            rootMargin: '0px',
+            threshold: 0.6 // Trigger when 60% of the video is in view
+        }
+
+        const handleIntersect = (entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    const shortId = entry.target.getAttribute('data-short-id')
+                    if (shortId) {
+                        setActiveShortId(prev => (prev !== shortId ? shortId : prev))
+                    }
+                }
+            })
+        }
+
+        const observer = new IntersectionObserver(handleIntersect, observerOptions)
+        
+        // Observe current elements tightly restricted to this container
+        const elements = containerRef.current.querySelectorAll('[data-short-id]')
+        elements.forEach((el) => observer.observe(el))
+
+        return () => observer.disconnect()
+    }, [shorts])
+
+    // Infinite Scroll trigger remains on scroll
     const onScroll = useCallback(() => {
         if (!containerRef.current) return
         const { scrollTop, scrollHeight, clientHeight } = containerRef.current
 
-        // Active Short Detection
-        const shortElements = containerRef.current.querySelectorAll('[data-short-id]')
-        let closestShort = null
-        let minDistance = Infinity
-
-        shortElements.forEach(el => {
-            // Find center distance relative to viewport center
-            const elCenter = el.offsetTop + el.offsetHeight / 2
-            const viewportCenter = scrollTop + clientHeight / 2
-            const distance = Math.abs(viewportCenter - elCenter)
-
-            if (distance < minDistance) {
-                minDistance = distance
-                closestShort = el.getAttribute('data-short-id')
-            }
-        })
-
-        // Debounce or threshold check could go here, but direct update is usually fine for snap UI
-        if (closestShort && closestShort !== activeShortId) {
-            // Only switch if we are sufficiently close (e.g., < 30% of height away) 
-            // to prevent rapid switching during fast scroll? 
-            // Actually, closest is usually best for "snap" feeling.
-            setActiveShortId(closestShort)
-        }
-
-        // Infinite Load Trigger (1.5 viewports from bottom as requested)
+        // Infinite Load Trigger (1.5 viewports from bottom)
         if (hasMore && !loading && (scrollHeight - scrollTop <= clientHeight * 1.5)) {
             setPage(prev => {
                 const nextPage = prev + 1
@@ -113,7 +118,7 @@ export default function ShortsPage() {
                 return nextPage
             })
         }
-    }, [activeShortId, hasMore, loading, fetchShorts])
+    }, [hasMore, loading, fetchShorts])
 
     // Add scroll listener
     useEffect(() => {

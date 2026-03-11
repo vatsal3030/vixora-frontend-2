@@ -5,7 +5,7 @@ import { authService } from '../../services/api'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Button } from '../../components/ui/Button'
 import { Input } from '../../components/ui/Input'
-import { CheckCircle2, Loader2, Mail, RefreshCw, ArrowRight, AlertCircle, Clock } from 'lucide-react'
+import { CheckCircle2, Loader2, Mail, RefreshCw, ArrowRight, ArrowLeft, AlertCircle, Clock } from 'lucide-react'
 import { BrandLogo } from '../../components/common/BrandLogo'
 import toast from '../../lib/toast'
 
@@ -198,25 +198,24 @@ export default function VerifyEmailPage() {
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ duration: 0.4 }}
-            className="w-full space-y-8"
+            className="w-full"
         >
-            <div className="text-center space-y-2">
-                <Link to="/" className="inline-flex items-center gap-2 group">
-                    <BrandLogo size="lg" className="group-hover:scale-105 transition-transform" />
-                    <span className="text-2xl font-display font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">Vixora</span>
+            <div className="mb-6">
+                <Link to="/" className="inline-flex items-center text-xs font-medium text-muted-foreground hover:text-primary mb-4 transition-colors group">
+                    <ArrowLeft className="w-3 h-3 mr-1 group-hover:-translate-x-0.5 transition-transform" />
+                    Back to Home
                 </Link>
-                <div className="absolute top-0 right-0 p-4">
-                    {/* Theme toggle could go here */}
-                </div>
+                <h1 className="text-3xl font-display font-bold tracking-tight">Verify your email</h1>
+                <p className="text-muted-foreground mt-1">Complete your registration to start creating</p>
             </div>
 
             <motion.div
-                className="glass-card rounded-2xl p-6 sm:p-8 shadow-glass-heavy"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                className="glass-card rounded-3xl p-5 sm:p-10 shadow-glass-heavy border-white/5"
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
                 transition={{ delay: 0.1 }}
             >
                 <AnimatePresence mode="wait">
@@ -241,11 +240,10 @@ export default function VerifyEmailPage() {
                                     <Input
                                         autoFocus
                                         type="text"
-                                        placeholder="name@example.com"
+                                        placeholder=""
                                         value={identifier}
                                         onChange={(e) => setIdentifier(e.target.value)}
                                         disabled={loading}
-                                        className="h-11 glass-input"
                                     />
                                 </div>
                                 <Button

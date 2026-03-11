@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { ReportDialog } from '../common/ReportDialog'
 import { Avatar } from '../ui/Avatar'
 import { Button } from '../ui/Button'
-import { formatViews } from '../../lib/utils'
+import { formatNumber } from '../../lib/utils'
 import { getMediaUrl } from '../../lib/media'
 import { likeService, subscriptionService } from '../../services/api'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
@@ -15,7 +15,7 @@ import { useAuth } from '../../context/AuthContext'
 export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
     const videoRef = useRef(null)
     const [isPlaying, setIsPlaying] = useState(false)
-    const [isMuted, setIsMuted] = useState(false) // Default to unmuted usually, but maybe start muted for autoplay policy? User pref?
+    const [isMuted, setIsMuted] = useState(true) // Start muted for guaranteed autoplay
     const [progress, setProgress] = useState(0)
     const { user } = useAuth()
     const queryClient = useQueryClient()
@@ -29,21 +29,11 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                 if (!videoRef.current) return
                 try {
                     setError(false) // Reset error on new attempt
+                    // Force DOM to muted to guarantee browser autoplay policies are appeased
+                    if (isMuted) videoRef.current.muted = true
                     await videoRef.current.play()
-                } catch {
-                    console.log("Autoplay blocked, attempting muted fallback")
-                    setIsMuted(true)
-                    // The muted attribute will be applied via React re-render
-                    // We wait for the next frame to try playing again
-                    requestAnimationFrame(async () => {
-                        if (videoRef.current) {
-                            try {
-                                await videoRef.current.play()
-                            } catch (_err) {
-                                console.log("Muted autoplay also failed", _err)
-                            }
-                        }
-                    })
+                } catch (err) {
+                    console.warn("Autoplay blocked or failed", err)
                 }
             }
             playVideo()
@@ -53,6 +43,7 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                 videoRef.current.currentTime = 0
             }
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isActive])
 
     const togglePlay = () => {
@@ -126,10 +117,11 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
     return (
         <div className="relative w-full h-full flex justify-center bg-black sm:bg-[#0f0f0f] snap-center shrink-0 sm:py-4">
 
-            <div className="flex h-full w-full sm:w-auto relative justify-center">
+            {/* Main Flex Container: Column on mobile (stacked), Row on Desktop (Video + Sidebar) */}
+            <div className="flex flex-col sm:flex-row h-full w-full sm:w-auto relative justify-center gap-0 sm:gap-4">
 
-                {/* Video Container */}
-                <div className="relative h-full w-full sm:w-auto sm:aspect-[9/16] sm:rounded-2xl overflow-hidden bg-black group shadow-2xl">
+                {/* Video Container (9:16 aspect ratio on Desktop) */}
+                <div className="relative h-full w-full sm:w-auto sm:aspect-[9/16] sm:rounded-2xl overflow-hidden bg-black group shadow-2xl flex-shrink-0">
                     {!error ? (
                         <video
                             ref={videoRef}
@@ -139,7 +131,6 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                             loop
                             playsInline
                             muted={isMuted}
-                            onClick={togglePlay}
                             onTimeUpdate={handleTimeUpdate}
                             onError={handleError}
                             onPlay={() => setIsPlaying(true)}
@@ -164,6 +155,12 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                         </div>
                     )}
 
+                    {/* Play/Pause Click Handler Overlay */}
+                    <div 
+                        className="absolute inset-0 z-10 cursor-pointer" 
+                        onClick={togglePlay} 
+                    />
+
                     {/* Play/Pause Center Icon */}
                     {!isPlaying && !error && (
                         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
@@ -173,16 +170,16 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                         </div>
                     )}
 
-                    {/* Top Controls */}
+                    {/* Top Controls (Mute button) */}
                     <div className="absolute top-4 right-4 flex gap-4 z-20">
-                        {/* Mute Button */}
-                        <button onClick={toggleMute} className="p-2 bg-black/40 rounded-full text-white backdrop-blur-sm hover:bg-black/60 transition-colors">
+                        {/* Mute Button overlays video on all screens */}
+                        <button onClick={toggleMute} className="p-2 bg-black/40 xl:bg-black/20 rounded-full text-white backdrop-blur-sm sm:hover:bg-black/60 transition-colors">
                             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                         </button>
                     </div>
 
-                    {/* Bottom Info Overlay inside Player */}
-                    <div className="absolute flex flex-col justify-end bottom-0 left-0 right-0 z-20 text-white p-4 pt-12 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none sm:pr-4 pr-16">
+                    {/* Bottom Info Overlay inside Player (Always over video) */}
+                    <div className="absolute flex flex-col justify-end bottom-0 left-0 right-0 z-20 text-white p-4 pt-12 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none sm:pr-4 pr-16 pb-6 sm:pb-4">
                         {/* Channel Info */}
                         <div className="flex items-center gap-3 mb-3 pointer-events-auto">
                             <Link to={`/@${video?.owner?.username}`} className="flex-shrink-0">
@@ -200,59 +197,70 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                                 {video?.isSubscribed ? "Subscribed" : "Subscribe"}
                             </Button>
                         </div>
-                        {/* Title */}
-                        <div className="line-clamp-2 text-sm font-medium drop-shadow-md mb-1">
-                            {video.title}
+                        {/* Title & Description Structure */}
+                        <div className="flex flex-col gap-2">
+                            <h2 className="line-clamp-2 text-sm sm:text-base font-medium drop-shadow-md leading-snug">
+                                {video.title}
+                            </h2>
+                            {video.description && (
+                                <p className="line-clamp-2 text-xs sm:text-sm text-white/80 drop-shadow-md font-light leading-relaxed">
+                                    {video.description}
+                                </p>
+                            )}
                         </div>
                     </div>
                 </div>
 
                 {/* Right Side Actions (Overlaid on Mobile, Outside on Desktop) */}
-                <div className="absolute bottom-4 right-2 sm:-right-[72px] sm:bottom-0 flex flex-col gap-5 items-center z-20 sm:pb-4">
+                <div className="
+                    absolute bottom-4 right-2 z-20 flex flex-col items-center gap-5 pb-4  /* Mobile overlay styling */
+                    sm:relative sm:bottom-auto sm:right-auto sm:flex sm:flex-col sm:justify-end sm:pb-0 sm:pt-4 sm:pr-2 sm:gap-6 /* Desktop sidebar styling */
+                ">
                     <div className="flex flex-col items-center gap-1">
                         <button
                             onClick={handleLike}
-                            className={`p-3 rounded-full bg-black/40 sm:bg-secondary/40 backdrop-blur-sm sm:hover:bg-secondary/80 hover:bg-black/60 transition-colors ${video.isLiked ? 'text-blue-500' : 'text-white'}`}
+                            className={`p-3 rounded-full bg-black/40 sm:bg-white/[0.05] sm:border sm:border-white/5 backdrop-blur-sm sm:hover:bg-white/10 hover:bg-black/60 transition-colors ${video.isLiked ? 'text-blue-500' : 'text-white'}`}
                         >
-                            <ThumbsUp className={`w-6 h-6 ${video.isLiked ? 'fill-current' : ''}`} />
+                            <ThumbsUp className={`w-6 h-6 sm:w-7 sm:h-7 ${video.isLiked ? 'fill-current' : ''}`} />
                         </button>
-                        <span className="text-white sm:text-muted-foreground text-xs font-bold">{formatViews(video.likesCount, true)}</span>
+                        <span className="text-white sm:text-muted-foreground text-xs font-bold sm:mt-1">{formatNumber(video.likesCount)}</span>
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
-                        <button className="p-3 rounded-full bg-black/40 sm:bg-secondary/40 backdrop-blur-sm sm:hover:bg-secondary/80 hover:bg-black/60 transition-colors text-white">
-                            <ThumbsDown className="w-6 h-6" />
+                        <button className="p-3 rounded-full bg-black/40 sm:bg-white/[0.05] sm:border sm:border-white/5 backdrop-blur-sm sm:hover:bg-white/10 hover:bg-black/60 transition-colors text-white">
+                            <ThumbsDown className="w-6 h-6 sm:w-7 sm:h-7" />
                         </button>
-                        <span className="text-white sm:text-muted-foreground text-xs font-bold">Dislike</span>
+                        <span className="text-white sm:text-muted-foreground text-xs font-bold sm:mt-1">Dislike</span>
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
                         <Link
                             to={`/watch/${video._id}`}
-                            className="p-3 rounded-full bg-black/40 sm:bg-secondary/40 backdrop-blur-sm sm:hover:bg-secondary/80 hover:bg-black/60 transition-colors text-white"
+                            className="p-3 rounded-full bg-black/40 sm:bg-white/[0.05] sm:border sm:border-white/5 backdrop-blur-sm sm:hover:bg-white/10 hover:bg-black/60 transition-colors text-white"
                         >
-                            <MessageSquare className="w-6 h-6" />
+                            <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7" />
                         </Link>
-                        <span className="text-white sm:text-muted-foreground text-xs font-bold">{formatViews(video.commentsCount, true)}</span>
+                        <span className="text-white sm:text-muted-foreground text-xs font-bold sm:mt-1">{formatNumber(video.commentsCount)}</span>
                     </div>
 
                     <div className="flex flex-col items-center gap-1">
-                        <button className="p-3 rounded-full bg-black/40 sm:bg-secondary/40 backdrop-blur-sm sm:hover:bg-secondary/80 hover:bg-black/60 transition-colors text-white">
-                            <Share2 className="w-6 h-6" />
+                        <button className="p-3 rounded-full bg-black/40 sm:bg-white/[0.05] sm:border sm:border-white/5 backdrop-blur-sm sm:hover:bg-white/10 hover:bg-black/60 transition-colors text-white">
+                            <Share2 className="w-6 h-6 sm:w-7 sm:h-7" />
                         </button>
-                        <span className="text-white sm:text-muted-foreground text-xs font-bold">Share</span>
+                        <span className="text-white sm:text-muted-foreground text-xs font-bold sm:mt-1">Share</span>
                     </div>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <button className="p-3 rounded-full bg-black/40 sm:bg-secondary/40 backdrop-blur-sm sm:hover:bg-secondary/80 hover:bg-black/60 transition-colors text-white">
-                                <MoreVertical className="w-6 h-6" />
+                            <button className="p-3 rounded-full bg-black/40 sm:bg-white/[0.05] sm:border sm:border-white/5 backdrop-blur-sm sm:hover:bg-white/10 hover:bg-black/60 transition-colors text-white">
+                                <MoreVertical className="w-6 h-6 sm:w-7 sm:h-7" />
                             </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48 glass-panel border-white/5 text-white bg-black/80 backdrop-blur-xl rounded-xl shadow-premium">
+                        <DropdownMenuContent align="end" className="w-[180px] glass-panel border-white/5 text-white bg-black/80 backdrop-blur-xl rounded-2xl shadow-premium p-2">
                             <ReportDialog targetType="VIDEO" targetId={video._id} trigger={
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
-                                    <Flag className="w-4 h-4 mr-3" /> Report
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3 px-4 rounded-xl flex items-center">
+                                    <Flag className="w-4 h-4 mr-3 text-muted-foreground" /> 
+                                    <span className="font-medium">Report</span>
                                 </DropdownMenuItem>
                             } />
                         </DropdownMenuContent>

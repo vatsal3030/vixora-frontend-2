@@ -12,7 +12,7 @@ import { EmptyDashboardState } from '../components/dashboard/EmptyDashboardState
 import { Button } from '../components/ui/Button'
 import { toast } from 'sonner'
 import { DashboardSkeleton } from '../components/dashboard/DashboardSkeleton'
-import { motion } from 'framer-motion' // eslint-disable-line
+import { motion } from 'framer-motion'
 const PERIODS = [
     { value: '7d', label: 'Last 7 Days' },
     { value: '30d', label: 'Last 30 Days' },

@@ -3,7 +3,7 @@ import {
     Gauge, Subtitles, MonitorPlay, Keyboard
 } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
-import { AnimatePresence, motion } from 'framer-motion' // eslint-disable-line
+import { AnimatePresence, motion } from 'framer-motion'
 
 // Sub-components defined outside to prevent re-creation on render
 const SubMenuHeader = ({ title, onBack }) => (

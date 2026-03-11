@@ -1,3 +1,4 @@
+﻿import { motion } from 'framer-motion'
 import { useState, useMemo, useEffect } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
@@ -167,7 +168,7 @@ export default function SearchPage() {
                                 <h3 className="font-medium text-xl text-foreground group-hover:text-primary transition-colors truncate mb-1">{topChannel.fullName || topChannel.username}</h3>
                                 <div className="flex flex-wrap justify-center sm:justify-start items-center gap-1.5 text-sm text-muted-foreground font-medium">
                                     <span>@{topChannel.username}</span>
-                                    <span>•</span>
+                                    <span>â€¢</span>
                                     <span>{formatSubscribers(topChannel.subscribersCount || 0)} subscribers</span>
                                 </div>
                                 <p className="mt-3 text-sm text-muted-foreground line-clamp-2 max-w-2xl">{topChannel.description}</p>
@@ -347,7 +348,7 @@ export default function SearchPage() {
                                     </div>
                                     <div className="flex-1 min-w-0 flex flex-col justify-center h-full sm:mt-2 text-center sm:text-left">
                                         <h3 className="font-medium text-xl text-foreground group-hover:text-primary transition-colors">{item.fullName || item.username}</h3>
-                                        <div className="text-sm text-muted-foreground mt-1 tracking-wide">@{item.username} • {formatSubscribers(item.subscribersCount || 0)} subscribers</div>
+                                        <div className="text-sm text-muted-foreground mt-1 tracking-wide">@{item.username} â€¢ {formatSubscribers(item.subscribersCount || 0)} subscribers</div>
                                         <p className="mt-3 text-sm text-muted-foreground line-clamp-2 max-w-2xl">{item.description}</p>
                                     </div>
                                     <div className="hidden sm:flex flex-col justify-center h-28 shrink-0 pr-8">
