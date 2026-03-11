@@ -15,7 +15,8 @@ import {
     X,
     Search,
     Film,
-    ChevronRight
+    ChevronRight,
+    MessageCircle
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
@@ -23,6 +24,7 @@ const sidebarItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: TrendingUp, label: 'Trending', path: '/trending' },
     { icon: Film, label: 'Shorts', path: '/shorts' }, // Added Shorts
+    { icon: MessageCircle, label: 'Community', path: '/tweets' }, 
     { icon: Users, label: 'Subscriptions', path: '/subscriptions' },
 ]
 

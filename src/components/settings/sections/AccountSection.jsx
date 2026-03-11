@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation } from '@tanstack/react-query'
 import { userService } from '../../../services/api'
 import { toast } from 'sonner'
 import { SettingCard, SettingSectionHeader, SettingDivider } from '../SettingCard'
@@ -10,75 +10,28 @@ import { User, Mail, AtSign, ExternalLink, Loader2, CheckCircle, XCircle } from 
 import { cn } from '../../../lib/utils'
 
 export function AccountSection() {
-    const { user, checkAuth } = useAuth()
+    const { user } = useAuth()
     const navigate = useNavigate()
-    const queryClient = useQueryClient()
 
-    // Local state
     const [email, setEmail] = useState(user?.email || '')
-    const [username, setUsername] = useState(user?.username || '')
-    const [usernameAvailable, setUsernameAvailable] = useState(null)
-    const [checkingUsername, setCheckingUsername] = useState(false)
 
-    // Update profile mutation
-    const updateProfileMutation = useMutation({
-        mutationFn: (data) => userService.updateProfile(data),
-        onSuccess: (data, variables) => {
-            if (variables.email) {
-                toast.success('Verification email sent. Please check your inbox.')
-            } else {
-                toast.success('Profile updated successfully')
-            }
-            checkAuth()
-            queryClient.invalidateQueries({ queryKey: ['currentUser'] })
+    const requestEmailChangeMutation = useMutation({
+        mutationFn: (email) => userService.requestEmailChange({ email }),
+        onSuccess: () => {
+            toast.success('Verification email sent. Please check your inbox.')
+            setEmail(user?.email || '')
         },
-        onError: (error) => toast.error(error.response?.data?.message || 'Failed to update profile')
+        onError: (error) => toast.error(error.response?.data?.message || 'Failed to request email change')
     })
 
-    // Check username availability
-    useEffect(() => {
-        if (username === user?.username) {
-            setUsernameAvailable(null)
-            return
-        }
-
-        if (username.length < 3) {
-            setUsernameAvailable(null)
-            return
-        }
-
-        const timeoutId = setTimeout(async () => {
-            setCheckingUsername(true)
-            try {
-                // Simulating availability check
-                setUsernameAvailable(true)
-            } catch {
-                setUsernameAvailable(false)
-            } finally {
-                setCheckingUsername(false)
-            }
-        }, 500)
-
-        return () => clearTimeout(timeoutId)
-    }, [username, user?.username])
+    // Username checking removed as there is no backend route for changing it.
 
     const handleEmailChange = (e) => {
         e.preventDefault()
         if (email === user?.email) {
             return toast.error('Email is the same as current')
         }
-        updateProfileMutation.mutate({ email })
-    }
-
-    const handleUsernameChange = (e) => {
-        e.preventDefault()
-        if (username === user?.username) {
-            return toast.error('Username is the same as current')
-        }
-        if (!usernameAvailable) {
-            return toast.error('Username is not available')
-        }
-        updateProfileMutation.mutate({ username })
+        requestEmailChangeMutation.mutate(email)
     }
 
     return (
@@ -170,9 +123,9 @@ export function AccountSection() {
 
                         <Button
                             type="submit"
-                            disabled={updateProfileMutation.isPending || email === user?.email}
+                            disabled={requestEmailChangeMutation.isPending || email === user?.email}
                         >
-                            {updateProfileMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                            {requestEmailChangeMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                             Update Email
                         </Button>
                     </form>
@@ -187,67 +140,18 @@ export function AccountSection() {
                         <h3 className="text-lg font-medium">Username</h3>
                     </div>
 
-                    <form onSubmit={handleUsernameChange} className="space-y-4">
+                    <div className="space-y-4">
                         <div>
                             <label className="block text-sm font-medium text-muted-foreground mb-1">
                                 Current Username
                             </label>
-                            <p className="text-foreground">@{user?.username}</p>
+                            <p className="text-foreground flex items-center gap-2">
+                                <span>@{user?.username}</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground">Read-only</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-2">Username cannot be changed after registration.</p>
                         </div>
-
-                        <div>
-                            <label className="block text-sm font-medium mb-1">New Username</label>
-                            <div className="relative">
-                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">@</span>
-                                <input
-                                    type="text"
-                                    value={username}
-                                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                                    required
-                                    minLength={3}
-                                    maxLength={30}
-                                    className={cn(
-                                        "w-full bg-secondary/50 border border-border rounded-lg pl-8 pr-10 py-3",
-                                        "focus:ring-2 focus:ring-primary focus:outline-none focus:border-transparent",
-                                        "transition-all duration-200"
-                                    )}
-                                    placeholder="newusername"
-                                />
-                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                    {checkingUsername && (
-                                        <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-                                    )}
-                                    {!checkingUsername && usernameAvailable === true && username !== user?.username && (
-                                        <CheckCircle className="w-4 h-4 text-green-500" />
-                                    )}
-                                    {!checkingUsername && usernameAvailable === false && (
-                                        <XCircle className="w-4 h-4 text-red-500" />
-                                    )}
-                                </div>
-                            </div>
-                            {username !== user?.username && (
-                                <p className={cn(
-                                    "text-xs mt-2",
-                                    usernameAvailable === true ? 'text-green-500' :
-                                        usernameAvailable === false ? 'text-red-500' :
-                                            'text-muted-foreground'
-                                )}>
-                                    {checkingUsername ? 'Checking availability...' :
-                                        usernameAvailable === true ? '✓ Username is available' :
-                                            usernameAvailable === false ? '✗ Username is taken' :
-                                                'Only lowercase letters, numbers, and underscores allowed'}
-                                </p>
-                            )}
-                        </div>
-
-                        <Button
-                            type="submit"
-                            disabled={updateProfileMutation.isPending || username === user?.username || usernameAvailable !== true}
-                        >
-                            {updateProfileMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                            Update Username
-                        </Button>
-                    </form>
+                    </div>
                 </div>
             </SettingCard>
         </div>

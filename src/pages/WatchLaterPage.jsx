@@ -55,16 +55,17 @@ export default function WatchLaterPage() {
         // Search
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase()
-            result = result.filter(item =>
-                item.video?.title?.toLowerCase().includes(query) ||
-                item.video?.owner?.username?.toLowerCase().includes(query)
-            )
+            result = result.filter(item => {
+                const vid = item.video || item
+                return vid?.title?.toLowerCase().includes(query) ||
+                    vid?.owner?.username?.toLowerCase().includes(query)
+            })
         }
 
         // Sort
         result.sort((a, b) => {
             if (sortBy === 'addedAt') {
-                return new Date(b.addedAt) - new Date(a.addedAt)
+                return new Date(b.addedAt || b.createdAt) - new Date(a.addedAt || a.createdAt)
             }
             return 0
         })
@@ -169,21 +170,24 @@ export default function WatchLaterPage() {
                             ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
                             : "grid-cols-1"
                     )}>
-                        {filteredVideos.map((item, index) => (
-                            <div key={item._id || index} className="relative group">
-                                <VideoCard video={item.video} />
-                                <button
-                                    onClick={(e) => {
-                                        e.preventDefault()
-                                        removeMutation.mutate(item.video._id)
-                                    }}
-                                    className="absolute top-2 right-2 p-2 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 text-white hover:text-destructive z-10"
-                                    title="Remove from Watch Later"
-                                >
-                                    <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
-                        ))}
+                        {filteredVideos.map((item, index) => {
+                            const actualVideo = item.video || item
+                            return (
+                                <div key={actualVideo._id || index} className="relative group">
+                                    <VideoCard video={actualVideo} />
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            removeMutation.mutate(actualVideo._id)
+                                        }}
+                                        className="absolute top-2 right-2 p-2 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 text-white hover:text-destructive z-10"
+                                        title="Remove from Watch Later"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            )
+                        })}
                     </div>
                 )}
             </div>

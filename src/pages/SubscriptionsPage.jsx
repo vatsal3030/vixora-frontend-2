@@ -18,7 +18,8 @@ export default function SubscriptionsPage() {
         queryKey: ['subscriptionsFeed'],
         queryFn: async () => {
             const response = await subscriptionService.getSubscribedVideos()
-            return response.data.data?.items || []
+            const data = response.data.data
+            return data?.items || (Array.isArray(data) ? data : [])
         }
     })
 
@@ -27,7 +28,10 @@ export default function SubscriptionsPage() {
         queryKey: ['subscribedChannels'],
         queryFn: async () => {
             const response = await subscriptionService.getSubscriptions()
-            return response.data.data?.items || []
+            const data = response.data.data
+            const items = data?.items || (Array.isArray(data) ? data : [])
+            // Handle if the endpoint returns Subscription models with populated `channel`
+            return items.map(item => item.channel ? item.channel : item)
         }
     })
 

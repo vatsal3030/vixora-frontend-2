@@ -103,13 +103,15 @@ export default function WatchPage() {
         queryKey: ['recommendations', videoId],
         queryFn: async () => {
             const res = await feedService.getHomeFeed({ limit: 12 })
-            return res.data.data?.items || []
+            const items = res.data.data?.items || []
+            // Shuffle recommended videos so they are different each time
+            return [...items].sort(() => Math.random() - 0.5)
         },
         enabled: !!videoId,
         staleTime: 1000 * 60 * 5
     })
 
-    const recommended = recommendedRaw?.filter(v => v._id !== videoId) || []
+    const recommended = recommendedRaw?.filter(v => String(v._id) !== String(videoId) && String(v.id) !== String(videoId)) || []
 
     const { data: playlist } = useQuery({
         queryKey: ['playlist', playlistId],

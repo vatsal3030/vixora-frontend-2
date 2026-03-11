@@ -12,21 +12,25 @@ export function Skeleton({ className, ...props }) {
 // Video Card Skeleton
 export function VideoCardSkeleton() {
     return (
-        <div className="flex flex-col gap-3 glass-card rounded-xl p-2">
+        <div className="flex flex-col animate-pulse">
             {/* Thumbnail */}
-            <Skeleton className="aspect-video w-full rounded-xl" />
+            <Skeleton className="w-full aspect-video rounded-xl" />
 
-            <div className="flex gap-3">
+            {/* Info row */}
+            <div className="flex gap-3 mt-3 items-start">
                 {/* Avatar */}
-                <Skeleton className="h-9 w-9 rounded-full flex-shrink-0" />
+                <Skeleton className="h-9 w-9 rounded-full flex-shrink-0 mt-0.5" />
 
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 min-w-0 space-y-2">
                     {/* Title */}
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-11/12 rounded" />
+                    <Skeleton className="h-4 w-3/4 rounded" />
 
                     {/* Channel name & views */}
-                    <Skeleton className="h-3 w-1/2" />
+                    <div className="space-y-1.5 pt-1">
+                        <Skeleton className="h-3 w-1/3 rounded" />
+                        <Skeleton className="h-3 w-1/2 rounded" />
+                    </div>
                 </div>
             </div>
         </div>

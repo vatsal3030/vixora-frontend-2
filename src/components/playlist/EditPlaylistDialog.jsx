@@ -49,11 +49,16 @@ export function EditPlaylistDialog({ playlist, onPlaylistUpdated, children }) {
         e.preventDefault()
         if (!name.trim()) return
 
-        updateMutation.mutate({
-            name,
-            description,
-            isPrivate
-        })
+        const payload = { name, description }
+        updateMutation.mutate(payload)
+
+        if (playlist && isPrivate !== playlist.isPrivate) {
+            try {
+                await playlistService.togglePlaylistPrivacy(playlist._id)
+            } catch (err) {
+                console.error("Failed to toggle privacy", err)
+            }
+        }
     }
 
     return (

@@ -167,8 +167,8 @@ export const VideoCard = memo(function VideoCard({
     // ── COMPACT ───────────────────────────────────────────────────────────────
     if (isCompact) {
         return (
-            <div className="group flex gap-3 cursor-pointer" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-                <Link to={`/watch/${videoId}`} className="relative min-w-[168px] w-[168px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 transition-transform duration-300 group-hover:scale-[1.02]">
+            <div className="group flex gap-3 cursor-pointer">
+                <Link to={`/watch/${videoId}`} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="relative min-w-[168px] w-[168px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 transition-transform duration-300 group-hover:scale-[1.02]">
                     <img
                         src={getMediaUrl(video.thumbnail)} alt={video.title}
                         className={`w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-0' : 'opacity-100'}`}
@@ -218,12 +218,87 @@ export const VideoCard = memo(function VideoCard({
         )
     }
 
+    // ── SEARCH (HORIZONTAL LARGE) ─────────────────────────────────────────────
+    if (type === 'search') {
+        return (
+            <div className="group flex flex-col sm:flex-row gap-4 sm:gap-6 cursor-pointer">
+                {/* Thumbnail Side - using min-w array of roughly 360px on desktop matching YouTube proportions */}
+                <Link to={`/watch/${videoId}`} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="relative w-full sm:w-[320px] md:w-[360px] sm:min-w-[320px] md:min-w-[360px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 transition-transform duration-300">
+                    <img
+                        src={getMediaUrl(video.thumbnail)} alt={video.title}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-0' : 'opacity-100'}`}
+                        loading="lazy" decoding="async" onError={e => { e.target.src = THUMBNAIL_FALLBACK }}
+                    />
+                    <video
+                        ref={videoRef}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-100' : 'opacity-0'}`}
+                        muted playsInline loop preload="none"
+                    />
+                    {isHovered && isFetchingUrl && !previewUrl && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        </div>
+                    )}
+                    <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs font-medium px-1.5 py-0.5 rounded">
+                        {formatDuration(video.duration)}
+                    </div>
+                    {isHovered && previewUrl && (
+                        <div className="absolute top-2 right-2 flex flex-col gap-2 z-10">
+                            <button onClick={toggleMute} className="p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors">
+                                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                            </button>
+                            <button
+                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); openPlayer(video) }}
+                                className="p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
+                            >
+                                <Info className="w-4 h-4" />
+                            </button>
+                        </div>
+                    )}
+                    {progress > 0 && (
+                        <div className="absolute bottom-0 left-0 right-0 h-[3px] bg-white/20">
+                            <div className="h-full bg-red-600" style={{ width: `${progress}%` }} />
+                        </div>
+                    )}
+                </Link>
+
+                {/* Info Side */}
+                <div className="flex flex-col min-w-0 flex-1 relative py-1 md:py-2">
+                    <Link to={`/watch/${videoId}`} className="pr-6">
+                        <h3 className="text-[1.1rem] font-medium text-foreground line-clamp-2 leading-tight mb-1 group-hover:text-primary transition-colors">{video.title}</h3>
+                    </Link>
+                    <div className="text-[0.85rem] text-muted-foreground mb-3 tracking-wide">
+                        {formatViews(video.views)} • {formatTimeAgo(video.createdAt)}
+                    </div>
+                    
+                    <Link to={`/@${video.owner?.username}`} className="flex items-center gap-2 mb-3 w-fit group/owner">
+                        <Avatar src={getMediaUrl(video.owner?.avatar)} fallback={video.owner?.username} size="sm" className="w-6 h-6 ring-1 ring-white/10 group-hover/owner:ring-white/30 transition-all" />
+                        <span className="text-[0.85rem] text-muted-foreground group-hover/owner:text-foreground transition-colors truncate">
+                            {video.owner?.fullName || video.owner?.username}
+                        </span>
+                        <CheckCircle2 className="w-3.5 h-3.5 text-muted-foreground ml-0.5" />
+                    </Link>
+
+                    {video.description && (
+                        <p className="text-[0.85rem] text-muted-foreground line-clamp-1 md:line-clamp-2 hidden sm:block">
+                            {video.description}
+                        </p>
+                    )}
+
+                    <div className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+                        <VideoMenu videoId={videoId} title={video.title} video={video} onNotInterested={handleNotInterested} onBlock={handleBlockChannel} showEditButton={showEditButton} onDelete={onDelete} onTogglePublish={onTogglePublish} />
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
     // ── DEFAULT — YouTube-style grid card ─────────────────────────────────────
     return (
-        <div className="group flex flex-col cursor-pointer" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+        <div className="group flex flex-col cursor-pointer">
 
             {/* Thumbnail + video container */}
-            <Link to={`/watch/${videoId}`} className="relative aspect-video rounded-xl overflow-hidden bg-muted/20 block">
+            <Link to={`/watch/${videoId}`} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="relative aspect-video rounded-xl overflow-hidden bg-muted/20 block">
 
                 {/* Thumbnail */}
                 <img

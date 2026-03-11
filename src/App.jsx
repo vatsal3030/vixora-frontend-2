@@ -53,6 +53,8 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
+const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
+const AdminVideos = lazy(() => import('./pages/admin/AdminVideos'))
 
 function App() {
   return (
@@ -86,8 +88,8 @@ function App() {
                     <Route path="dashboard" element={<AdminDashboard />} />
                     {/* Stubs for future admin tabs, navigating back to dashboard for now */}
                     <Route path="reports" element={<div>Reports (WIP)</div>} />
-                    <Route path="users" element={<div>Users (WIP)</div>} />
-                    <Route path="videos" element={<div>Videos (WIP)</div>} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="videos" element={<AdminVideos />} />
                     <Route path="tweets" element={<div>Tweets (WIP)</div>} />
                     <Route path="playlists" element={<div>Playlists (WIP)</div>} />
                     <Route path="audit-logs" element={<div>Audit Logs (WIP)</div>} />

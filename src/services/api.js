@@ -96,6 +96,7 @@ export const userService = {
     deleteAccount: (data) => api.delete('/users/delete-account', { data }),
     restoreAccountRequest: (data) => api.patch('/users/restore-account/request', data),
     restoreAccountConfirm: (data) => api.patch('/users/restore-account/confirm', data),
+    requestEmailChange: (data) => api.post('/users/change-email/request', data),
 
     // Updated for direct upload flow - expects { avatarPublicId } or { coverImagePublicId }
     updateAvatar: (data) => api.patch('/users/update-avatar', data),
@@ -145,6 +146,9 @@ export const playlistService = {
 // Tweet Service
 export const tweetService = {
     createTweet: (data) => api.post('/tweets', data),
+    getFeed: (params = {}) => api.get('/tweets/feed', { params }), // { mode, page, limit, topic, sortType }
+    getExplore: (params = {}) => api.get('/tweets/explore', { params }),
+    getHotTopics: (params = {}) => api.get('/tweets/topics/hot', { params }), // { limit, windowHours, q }
     getUserTweets: (userId, params = {}) => api.get(`/tweets/user/${userId}`, { params }),
     getTweetById: (tweetId) => api.get(`/tweets/${tweetId}`),
     updateTweet: (tweetId, content) => api.patch(`/tweets/${tweetId}`, { content }),

@@ -17,10 +17,15 @@ if (!import.meta.env.DEV) {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 1,
-      refetchOnWindowFocus: false,
+      staleTime: 30 * 1000,          // 30 seconds — data stays fresh
+      gcTime: 5 * 60 * 1000,         // 5 minutes — cache kept in memory
+      retry: 1,                       // retry once on failure
+      refetchOnWindowFocus: false,    // don't refetch when tab regains focus
+      refetchOnReconnect: true,       // do refetch when internet reconnects
     },
+    mutations: {
+      retry: 0,                       // don't retry mutations
+    }
   },
 })
 

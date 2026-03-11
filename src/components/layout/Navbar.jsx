@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useState, useRef, useEffect } from 'react'
 import {
     Search,
@@ -31,7 +31,13 @@ import { useAuth } from '../../context/AuthContext'
 export function Navbar({ onMenuClick, user }) {
     const { logout, availableAccounts, switchAccount } = useAuth()
 
-    const [searchQuery, setSearchQuery] = useState('')
+    const [searchParams] = useSearchParams()
+    const urlQuery = searchParams.get('q') || ''
+    const [searchQuery, setSearchQuery] = useState(urlQuery)
+
+    useEffect(() => {
+        setSearchQuery(urlQuery)
+    }, [urlQuery])
     const [showMobileSearch, setShowMobileSearch] = useState(false)
     const mobileSearchRef = useRef(null)
     const navigate = useNavigate()
@@ -41,7 +47,6 @@ export function Navbar({ onMenuClick, user }) {
         if (searchQuery.trim()) {
             navigate(`/search?q=${encodeURIComponent(searchQuery)}`)
             setShowMobileSearch(false)
-            setSearchQuery('')
         }
     }
 

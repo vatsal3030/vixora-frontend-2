@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
-    Heart, Trash2, Search, Grid3X3, List, ThumbsUp
+    Heart, Trash2, Search, Grid3X3, List, ThumbsUp, ArrowUpDown
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { likeService } from '../services/api'
@@ -11,6 +11,12 @@ import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { Button } from '../components/ui/Button'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { cn } from '../lib/utils'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../components/ui/DropdownMenu"
 
 export default function LikedVideosPage() {
     useDocumentTitle('Liked Videos - Vixora')
@@ -19,6 +25,7 @@ export default function LikedVideosPage() {
     // State
     const [searchQuery, setSearchQuery] = useState('')
     const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
+    const [sortBy, setSortBy] = useState('recent') // 'recent' | 'oldest'
 
     // Fetch liked videos
     const { data: responseData, isLoading } = useQuery({
@@ -58,8 +65,15 @@ export default function LikedVideosPage() {
                 )
             })
         }
+
+        result.sort((a, b) => {
+            const dateA = new Date((a.video || a).createdAt || 0)
+            const dateB = new Date((b.video || b).createdAt || 0)
+            return sortBy === 'oldest' ? dateA - dateB : dateB - dateA
+        })
+
         return result
-    }, [responseData, searchQuery])
+    }, [responseData, searchQuery, sortBy])
 
     return (
         <div className="min-h-screen pb-10">
@@ -92,6 +106,26 @@ export default function LikedVideosPage() {
                             />
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
                         </div>
+                        
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="gap-2 border-white/10 hover:bg-white/5">
+                                    <ArrowUpDown className="w-4 h-4" />
+                                    <span className="hidden sm:inline">
+                                        {sortBy === 'recent' ? 'Latest' : 'Oldest'}
+                                    </span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-[#1f1f1f]/95 border-white/10 w-32">
+                                <DropdownMenuItem onClick={() => setSortBy('recent')} className={cn("cursor-pointer", sortBy === 'recent' && "text-primary")}>
+                                    Latest
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setSortBy('oldest')} className={cn("cursor-pointer", sortBy === 'oldest' && "text-primary")}>
+                                    Oldest
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
                         <div className="flex glass-panel rounded-lg p-1 border border-white/10 ml-auto">
                             <button
                                 onClick={() => setViewMode('grid')}

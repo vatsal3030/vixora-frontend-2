@@ -17,7 +17,6 @@ export default function EditVideoPage() {
     const [description, setDescription] = useState('')
     const [tags, setTags] = useState('')
     const [isPublished, setIsPublished] = useState(true)
-    const [thumbnailFile, setThumbnailFile] = useState(null)
     const [thumbnailPreview, setThumbnailPreview] = useState(null)
 
     const thumbnailInputRef = useRef(null)
@@ -68,7 +67,6 @@ export default function EditVideoPage() {
 
     const handleThumbnailSelect = (file) => {
         if (file && file.type.startsWith('image/')) {
-            setThumbnailFile(file)
             setThumbnailPreview(URL.createObjectURL(file))
         } else {
             toast.error('Please upload a valid image file')
@@ -82,17 +80,7 @@ export default function EditVideoPage() {
             return
         }
 
-        const formData = new FormData()
-        formData.append('title', title)
-        formData.append('description', description)
-        formData.append('tags', tags)
-        formData.append('isPublished', isPublished)
-
-        if (thumbnailFile) {
-            formData.append('thumbnail', thumbnailFile)
-        }
-
-        updateMutation.mutate(formData)
+        updateMutation.mutate({ title, description })
     }
 
     if (loading) {

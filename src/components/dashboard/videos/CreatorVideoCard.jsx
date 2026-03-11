@@ -107,10 +107,7 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
 
     // GRID VIEW
     return (
-        <div className={cn(
-            "group relative rounded-xl overflow-hidden glass-card border transition-all duration-200 hover:shadow-lg",
-            isSelected ? "border-primary ring-1 ring-primary" : "border-white/5 hover:border-primary/50"
-        )}>
+        <div className="group relative flex flex-col">
             {/* Selection Overlay */}
             <div className={cn(
                 "absolute top-2 left-2 z-20 transition-opacity duration-200",
@@ -123,8 +120,10 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                 />
             </div>
 
-            {/* Thumbnail */}
-            <Link to={`/watch/${video.id || video._id}`} className="block relative aspect-video bg-muted/20">
+            <Link to={`/watch/${video.id || video._id}`} className={cn(
+                "relative aspect-video rounded-xl overflow-hidden bg-muted/20 block transition-all",
+                isSelected ? "ring-2 ring-primary border border-primary" : "border border-transparent group-hover:border-white/10"
+            )}>
                 <img
                     src={video.thumbnail}
                     alt={video.title}
@@ -139,24 +138,25 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                 <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
                     {formatDuration(video.duration)}
                 </div>
-
-                {/* Hover Play Icon */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="bg-black/60 rounded-full p-3 backdrop-blur-sm">
-                        <Eye className="w-6 h-6 text-white" />
-                    </div>
-                </div>
             </Link>
 
             {/* Content */}
-            <div className="p-3">
-                <div className="flex justify-between items-start gap-2 mb-2">
-                    <Link to={`/watch/${video.id || video._id}`} className="font-semibold text-sm line-clamp-2 leading-tight hover:text-primary transition-colors">
+            <div className="flex gap-3 mt-3 items-start relative px-1">
+                <div className="flex-1 min-w-0 pr-6">
+                    <Link to={`/watch/${video.id || video._id}`} className="font-semibold text-sm line-clamp-2 leading-snug hover:text-primary transition-colors">
                         {video.title}
                     </Link>
+
+                    <div className="text-xs text-muted-foreground mt-1">
+                        {formatViews(video.views)} views • {formatTimeAgo(video.createdAt)}
+                    </div>
+                </div>
+
+                {/* Actions Dropdown */}
+                <div className="absolute top-0 right-0">
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button size="icon" variant="ghost" className="h-6 w-6 -mr-1 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button size="icon" variant="ghost" className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                                 <MoreVertical className="w-4 h-4" />
                             </Button>
                         </DropdownMenuTrigger>
@@ -178,23 +178,6 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                </div>
-
-                {/* Stats Row */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-2 mt-2">
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1" title="Views">
-                            <Eye className="w-3.5 h-3.5" />
-                            {formatViews(video.views)}
-                        </div>
-                        <div className="flex items-center gap-1" title="Likes">
-                            <ThumbsUp className="w-3.5 h-3.5" />
-                            {formatViews(video.likesCount || 0)}
-                        </div>
-                    </div>
-                    <div className="text-[10px]">
-                        {formatTimeAgo(video.createdAt)}
-                    </div>
                 </div>
             </div>
         </div>

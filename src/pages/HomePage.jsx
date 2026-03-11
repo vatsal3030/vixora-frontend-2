@@ -50,6 +50,11 @@ export default function HomePage() {
                 page: pageParam,
                 limit: 20
             })
+            // Shuffle items to introduce randomness in the feed
+            if (response.data && response.data.data && Array.isArray(response.data.data.items)) {
+                // Determine a seeded or simple random shuffle
+                response.data.data.items = [...response.data.data.items].sort(() => Math.random() - 0.5)
+            }
             return response.data
         },
         getNextPageParam: (lastPage) => {

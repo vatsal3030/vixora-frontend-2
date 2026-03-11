@@ -5,6 +5,7 @@ import { BarChart3, Users, Play, ThumbsUp, TrendingUp, ArrowUpDown, ArrowUp, Arr
 import { Link } from 'react-router-dom'
 import { formatSubscribers, formatViews } from '../lib/utils'
 import { useQuery } from '@tanstack/react-query'
+import { QUERY_KEYS } from '../lib/queryKeys'
 import { DashboardStatsCard } from '../components/dashboard/DashboardStatsCard'
 import { DashboardCharts } from '../components/dashboard/DashboardCharts'
 import { EmptyDashboardState } from '../components/dashboard/EmptyDashboardState'
@@ -39,7 +40,7 @@ export default function DashboardPage() {
 
     // Fetch Full Dashboard Payload (Reduces Network Waterfall)
     const { data: fullDashboard, isLoading: loading } = useQuery({
-        queryKey: ['dashboardFull', period],
+        queryKey: QUERY_KEYS.DASHBOARD(period),
         queryFn: async () => {
             try {
                 const res = await dashboardService.getFullDashboard({ period })
@@ -48,6 +49,7 @@ export default function DashboardPage() {
                 return null
             }
         },
+        staleTime: 60 * 1000,
         retry: 1
     })
 
@@ -76,9 +78,9 @@ export default function DashboardPage() {
         views: overview?.cards?.views?.value ?? overview?.views ?? 0,
         likes: overview?.cards?.likes?.value ?? overview?.likes ?? 0,
         videosCount: overview?.cards?.videos?.value ?? overview?.videosCount ?? 0,
-        recentSubscribers: overview?.cards?.subscribers?.trend?.absChange ?? overview?.recentSubscribers ?? 0,
-        recentViews: overview?.cards?.views?.trend?.absChange ?? overview?.recentViews ?? 0,
-        recentLikes: overview?.cards?.likes?.trend?.absChange ?? overview?.recentLikes ?? 0
+        recentSubscribers: overview?.cards?.subscribers?.trend?.change ?? overview?.recentSubscribers ?? 0,
+        recentViews: overview?.cards?.views?.trend?.change ?? overview?.recentViews ?? 0,
+        recentLikes: overview?.cards?.likes?.trend?.change ?? overview?.recentLikes ?? 0
     }
 
 
@@ -129,7 +131,7 @@ export default function DashboardPage() {
                 const date = new Date(v.createdAt).toLocaleDateString()
                 // Escape quotes and wrap in quotes for CSV safety
                 const title = `"${(v.title || '').replace(/"/g, '""')}"`
-                csvContent += `${title},${date},${v.metrics?.views || v.views || 0},${v.metrics?.likes || v.likesCount || 0},${v.commentsCount || 0}\n`
+                csvContent += `${title},${date},${v.metrics?.views || v.views || 0},${v.metrics?.likes || v.likesCount || 0},${v.metrics?.comments || v.commentsCount || 0}\n`
             })
 
             // Add summary section
@@ -369,7 +371,7 @@ export default function DashboardPage() {
                                                     {formatViews(v.metrics?.likes || v.likesCount).replace('views', '')}
                                                 </td>
                                                 <td className="p-4 pr-6 text-right text-muted-foreground tabular-nums">
-                                                    {v.commentsCount || 0}
+                                                    {v.metrics?.comments || v.commentsCount || 0}
                                                 </td>
                                             </tr>
                                         )

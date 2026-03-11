@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import {
     History, Trash2, Search, Calendar, Grid3X3, List, X,
-    Clock, Play, MoreVertical, ChevronDown, Pause, Filter,
+    Clock, Play, MoreVertical, ChevronDown, Pause, Filter, ArrowUpDown,
     AlertCircle, RefreshCcw, Check, CheckSquare, Square
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -81,7 +81,7 @@ export default function HistoryPage() {
     const [searchQuery, setSearchQuery] = useState('')
     const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
     const [dateFilter, setDateFilter] = useState('all') // 'all' | 'today' | 'week' | 'month'
-    // const [sortBy, setSortBy] = useState('recent') // 'recent' | 'oldest' | 'mostWatched'
+    const [sortBy, setSortBy] = useState('recent') // 'recent' | 'oldest'
     const [selectedVideos, setSelectedVideos] = useState(new Set())
     const [showClearDialog, setShowClearDialog] = useState(false)
     // const [isSelectMode, setIsSelectMode] = useState(false)
@@ -143,15 +143,15 @@ export default function HistoryPage() {
             })
         }
 
-        // Sort - always recent for now as we removed the sort control
+        // Sort
         result.sort((a, b) => {
             const dateA = new Date(a.watchedAt || a.updatedAt || a.createdAt)
             const dateB = new Date(b.watchedAt || b.updatedAt || b.createdAt)
-            return dateB - dateA
+            return sortBy === 'oldest' ? dateA - dateB : dateB - dateA
         })
 
         return result
-    }, [rawVideos, searchQuery, dateFilter])
+    }, [rawVideos, searchQuery, dateFilter, sortBy])
 
     // Group videos by date
     const groupedVideos = useMemo(() => groupVideosByDate(filteredVideos), [filteredVideos])
@@ -308,6 +308,32 @@ export default function HistoryPage() {
                                         key={opt.value}
                                         onClick={() => setDateFilter(opt.value)}
                                         className={cn("cursor-pointer rounded-lg text-sm mb-0.5", dateFilter === opt.value && "text-primary bg-primary/10")}
+                                    >
+                                        {opt.label}
+                                    </DropdownMenuItem>
+                                ))}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        {/* Sort Dropdown */}
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-10 glass-btn hover:bg-white/10 gap-2 px-4 border border-white/5 rounded-xl">
+                                    <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
+                                    <span className="hidden sm:inline whitespace-nowrap text-sm font-medium">
+                                        {sortBy === 'recent' ? 'Latest' : 'Oldest'}
+                                    </span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-[#1f1f1f]/95 backdrop-blur-xl border-white/10 p-1 rounded-xl shadow-premium w-32">
+                                {[
+                                    { value: 'recent', label: 'Latest' },
+                                    { value: 'oldest', label: 'Oldest' }
+                                ].map(opt => (
+                                    <DropdownMenuItem
+                                        key={opt.value}
+                                        onClick={() => setSortBy(opt.value)}
+                                        className={cn("cursor-pointer rounded-lg text-sm mb-0.5", sortBy === opt.value && "text-primary bg-primary/10")}
                                     >
                                         {opt.label}
                                     </DropdownMenuItem>

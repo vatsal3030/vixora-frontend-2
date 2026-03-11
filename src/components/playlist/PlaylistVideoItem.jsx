@@ -14,6 +14,7 @@ import {
 import { cn } from '../../lib/utils'
 
 export function PlaylistVideoItem({ video, index, onRemove }) {
+    const actualVideo = video?.video || video
     const {
         attributes,
         listeners,
@@ -21,7 +22,7 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
         transform,
         transition,
         isDragging
-    } = useSortable({ id: video._id })
+    } = useSortable({ id: actualVideo?._id })
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -32,7 +33,7 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
     }
 
     // Handle case where video might be null/populated incorrectly
-    if (!video) return null
+    if (!actualVideo) return null
 
     return (
         <div
@@ -52,10 +53,10 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
             </div>
 
             {/* Thumbnail */}
-            <Link to={`/watch/${video._id}`} className="relative h-[68px] w-[120px] rounded-lg overflow-hidden flex-shrink-0 cursor-pointer">
-                <img src={video.thumbnail} alt={video.title} className="bg-zinc-900 object-cover w-full h-full" />
+            <Link to={`/watch/${actualVideo._id}`} className="relative h-[68px] w-[120px] rounded-lg overflow-hidden flex-shrink-0 cursor-pointer">
+                <img src={actualVideo.thumbnail} alt={actualVideo.title} className="bg-zinc-900 object-cover w-full h-full" />
                 <div className="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-[10px] text-white font-medium">
-                    {formatDuration(video.duration)}
+                    {formatDuration(actualVideo.duration || 0)}
                 </div>
                 <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                     <Play className="w-5 h-5 fill-white" />
@@ -64,19 +65,19 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
 
             {/* Metadata */}
             <div className="flex-1 min-w-0 pr-2">
-                <Link to={`/watch/${video._id}`}>
+                <Link to={`/watch/${actualVideo._id}`}>
                     <h4 className="font-semibold text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">
-                        {video.title}
+                        {actualVideo.title}
                     </h4>
                 </Link>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-muted-foreground">
                     <span className="hover:text-foreground cursor-pointer transition-colors">
-                        {video.owner?.username || video.owner?.fullName || 'Unknown Channel'}
+                        {actualVideo.owner?.username || actualVideo.owner?.fullName || 'Unknown Channel'}
                     </span>
                     <span className="hidden sm:inline">•</span>
-                    <span>{formatViews(video.views)}</span>
+                    <span>{formatViews(actualVideo.views || 0)}</span>
                     <span className="hidden sm:inline">•</span>
-                    <span>{video.createdAt ? formatDistanceToNow(new Date(video.createdAt), { addSuffix: true }) : ''}</span>
+                    <span>{actualVideo.createdAt ? formatDistanceToNow(new Date(actualVideo.createdAt), { addSuffix: true }) : ''}</span>
                 </div>
             </div>
 
@@ -88,7 +89,7 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onRemove(video._id)}>
+                    <DropdownMenuItem onClick={() => onRemove(actualVideo._id)}>
                         <Trash2 className="w-4 h-4 mr-2" />
                         Remove from playlist
                     </DropdownMenuItem>

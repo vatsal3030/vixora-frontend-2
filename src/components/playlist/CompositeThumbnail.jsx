@@ -34,15 +34,18 @@ export function CompositeThumbnail({ videos = [], videoCount = 0, className, sho
 
     return (
         <div className={cn("w-full aspect-video grid grid-cols-2 grid-rows-2 gap-[1px] bg-background/10", className)}>
-            {displayVideos.map((video, idx) => (
-                <div key={video._id || idx} className="relative w-full h-full overflow-hidden">
-                    <img
-                        src={video.thumbnail}
-                        alt=""
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-            ))}
+            {displayVideos.map((video, idx) => {
+                const actualVideo = video.video || video;
+                return (
+                    <div key={actualVideo._id || idx} className="relative w-full h-full overflow-hidden">
+                        <img
+                            src={actualVideo.thumbnail}
+                            alt=""
+                            className="w-full h-full object-cover"
+                        />
+                    </div>
+                )
+            })}
             {/* Fill remaining slots with placeholder if less than 4 */}
             {Array.from({ length: 4 - displayVideos.length }).map((_, idx) => (
                 <div key={`placeholder-${idx}`} className="bg-secondary/30 w-full h-full" />

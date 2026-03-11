@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, List, PlaySquare, User, Archive, Loader2, Music2 } from 'lucide-react' // Music2 as generic playlist icon
+import { Plus, List, PlaySquare, User, Archive, Loader2, Music2, ArrowUpDown } from 'lucide-react' // Music2 as generic playlist icon
 import { Button } from '../components/ui/Button'
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs'
 import { PlaylistGrid } from '../components/playlist/PlaylistGrid'
@@ -9,11 +9,19 @@ import { PlaylistModal } from '../components/playlist/PlaylistModal'
 import { playlistService } from '../services/api' // Adjust path if needed (pages/PlaylistsPage.jsx -> ../services/api)
 import { toast } from 'sonner'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "../components/ui/DropdownMenu"
+import { cn } from '../lib/utils'
 
 export default function PlaylistsPage() {
     useDocumentTitle('Playlists - Vixora')
     const queryClient = useQueryClient()
     const [activeTab, setActiveTab] = useState('all') // 'all', 'owned', 'saved'
+    const [sortBy, setSortBy] = useState('recent') // 'recent', 'oldest', 'a-z'
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false)
@@ -38,7 +46,11 @@ export default function PlaylistsPage() {
             if (activeTab === 'playlists') return true
             return true
         })
-        .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+        .sort((a, b) => {
+            if (sortBy === 'oldest') return new Date(a.updatedAt) - new Date(b.updatedAt)
+            if (sortBy === 'a-z') return a.name.localeCompare(b.name)
+            return new Date(b.updatedAt) - new Date(a.updatedAt)
+        })
 
     // Mutations
     const createMutation = useMutation({
@@ -130,6 +142,31 @@ export default function PlaylistsPage() {
                     ))}
                 </TabsList>
             </Tabs>
+
+            {/* Sort Controls */}
+            <div className="flex justify-end mb-6">
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2 border-white/10 hover:bg-white/5">
+                            <ArrowUpDown className="w-4 h-4" />
+                            <span>
+                                {sortBy === 'recent' ? 'Recently Updated' : sortBy === 'oldest' ? 'Oldest Updated' : 'Alphabetical (A-Z)'}
+                            </span>
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="bg-[#1f1f1f]/95 border-white/10 w-48">
+                        <DropdownMenuItem onClick={() => setSortBy('recent')} className={cn("cursor-pointer", sortBy === 'recent' && "text-primary")}>
+                            Recently Updated
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSortBy('oldest')} className={cn("cursor-pointer", sortBy === 'oldest' && "text-primary")}>
+                            Oldest Updated
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setSortBy('a-z')} className={cn("cursor-pointer", sortBy === 'a-z' && "text-primary")}>
+                            Alphabetical (A-Z)
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </div>
 
             {/* Content */}
             {sortedPlaylists.length === 0 ? (

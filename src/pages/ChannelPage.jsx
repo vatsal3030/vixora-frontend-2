@@ -36,11 +36,22 @@ export default function ChannelPage() {
     const { data: channel, isLoading: loadingChannel, error: channelError } = useQuery({
         queryKey: ['channel', username],
         queryFn: async () => {
-
             try {
+                // 1. Get base user profile from username
                 const res = await channelService.getChannelByUsername(username)
+                const userData = res.data.data || res.data // fallback
+                const channelId = userData?._id || userData?.id
 
-                return res.data.data
+                if (!channelId) return userData
+
+                // 2. Try fetching the full channel profile (with stats, etc)
+                try {
+                    const fullChannelRes = await channelService.getChannel(channelId)
+                    return { ...userData, ...fullChannelRes.data?.data }
+                } catch (fullChannelErr) {
+                    console.warn('Could not fetch full channel profile:', fullChannelErr)
+                    return userData
+                }
             } catch (err) {
                 console.error('Channel fetch error:', err)
                 throw err
@@ -50,6 +61,8 @@ export default function ChannelPage() {
         retry: 1
     })
 
+    const activeChannelId = channel?._id || channel?.id
+
     // 2. Fetch Channel Videos (Infinite)
     const {
         data: videosData,
@@ -58,12 +71,12 @@ export default function ChannelPage() {
         isFetchingNextPage: loadingMoreVideos,
         isLoading: loadingVideos
     } = useInfiniteQuery({
-        queryKey: ['channelVideos', channel?._id],
+        queryKey: ['channelVideos', activeChannelId],
         queryFn: async ({ pageParam = 1 }) => {
-            const res = await channelService.getChannelVideos(channel._id, { page: pageParam, limit: 12 })
-            return res.data.data
+            const res = await channelService.getChannelVideos(activeChannelId, { page: pageParam, limit: 12 })
+            return res.data.data || res.data
         },
-        enabled: !!channel?._id && activeTab === 'Videos',
+        enabled: !!activeChannelId && activeTab === 'Videos',
         getNextPageParam: (lastPage) => {
             const p = lastPage?.pagination
             return p?.hasNextPage ? (p.currentPage || p.page) + 1 : undefined
@@ -76,12 +89,12 @@ export default function ChannelPage() {
         data: shortsData,
         isLoading: loadingShorts
     } = useInfiniteQuery({
-        queryKey: ['channelShorts', channel?._id],
+        queryKey: ['channelShorts', activeChannelId],
         queryFn: async ({ pageParam = 1 }) => {
-            const res = await channelService.getChannelShorts(channel._id, { page: pageParam, limit: 20 })
-            return res.data.data
+            const res = await channelService.getChannelShorts(activeChannelId, { page: pageParam, limit: 20 })
+            return res.data.data || res.data
         },
-        enabled: !!channel?._id && activeTab === 'Shorts',
+        enabled: !!activeChannelId && activeTab === 'Shorts',
         getNextPageParam: (lastPage) => {
             const p = lastPage?.pagination
             return p?.hasNextPage ? (p.currentPage || p.page) + 1 : undefined
@@ -95,23 +108,24 @@ export default function ChannelPage() {
 
     // 3. Fetch Channel Playlists
     const { data: playlists = [], isLoading: loadingPlaylists } = useQuery({
-        queryKey: ['channelPlaylists', channel?._id],
+        queryKey: ['channelPlaylists', activeChannelId],
         queryFn: async () => {
-            const res = await channelService.getChannelPlaylists(channel._id)
-            const responseData = res.data.data
+            const res = await channelService.getChannelPlaylists(activeChannelId)
+            const responseData = res.data.data || res.data
             return responseData?.items || responseData?.docs || (Array.isArray(responseData) ? responseData : [])
         },
-        enabled: !!channel?._id && activeTab === 'Playlists'
+        enabled: !!activeChannelId && activeTab === 'Playlists'
     })
 
     // 4. Fetch Channel Tweets/Community
     const { data: tweets = [], isLoading: loadingTweets } = useQuery({
-        queryKey: ['channelTweets', channel?._id],
+        queryKey: ['channelTweets', activeChannelId],
         queryFn: async () => {
-            const res = await channelService.getChannelTweets(channel._id)
-            return res.data.data?.items || []
+            const res = await channelService.getChannelTweets(activeChannelId)
+            const responseData = res.data.data || res.data
+            return responseData?.items || responseData?.docs || (Array.isArray(responseData) ? responseData : [])
         },
-        enabled: !!channel?._id && activeTab === 'Tweets'
+        enabled: !!activeChannelId && activeTab === 'Tweets'
     })
 
 

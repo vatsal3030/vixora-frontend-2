@@ -28,7 +28,7 @@ export default function ShortsPage() {
                 const res = await feedService.getShortsFeed({ page: pageNum, limit: 10 })
                 const data = res.data?.data
                 newShorts = data?.items || (Array.isArray(data) ? data : [])
-            } catch (feedError) {
+            } catch {
                 // Silently handle — empty array will trigger "No Shorts found" UI
             }
 
@@ -164,7 +164,7 @@ export default function ShortsPage() {
         <div
             ref={containerRef}
             tabIndex={-1}
-            className="h-[calc(100vh-64px)] overflow-y-scroll snap-y snap-mandatory scrollbar-hide bg-[#0f0f0f] outline-none"
+            className="h-[calc(100vh-64px)] w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide bg-[#0f0f0f] outline-none"
         >
             {shorts.map((short, index) => {
                 // Aggressive Windowing: Keep +/- 1
@@ -174,7 +174,7 @@ export default function ShortsPage() {
                     <div
                         key={short._id}
                         data-short-id={short._id}
-                        className="w-full h-full snap-start snap-always flex justify-center py-4 relative"
+                        className="w-full h-[calc(100vh-64px)] snap-start snap-always flex justify-center relative"
                     >
                         {shouldRender ? (
                             <ShortsPlayer
@@ -182,8 +182,8 @@ export default function ShortsPage() {
                                 isActive={activeShortId === short._id}
                             />
                         ) : (
-                            <div className="relative h-full aspect-[9/16] bg-zinc-900 flex items-center justify-center">
-                                {/* Placeholder */}
+                            <div className="w-full h-full flex justify-center sm:py-4">
+                                <div className="relative h-full w-full sm:w-auto sm:aspect-[9/16] bg-zinc-900 sm:rounded-2xl" />
                             </div>
                         )}
                     </div>

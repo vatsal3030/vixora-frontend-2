@@ -199,7 +199,9 @@ Notes:
   "transcriptLanguage": "en",
   "transcriptSource": "IMPORTED",
   "transcript": "Optional plain text or SRT/VTT transcript",
-  "transcriptCues": [{ "startMs": 0, "endMs": 2500, "text": "Intro line" }],
+  "transcriptCues": [
+    { "startMs": 0, "endMs": 2500, "text": "Intro line" }
+  ],
   "tags": ["news", "daily"]
 }
 ```
@@ -303,16 +305,13 @@ Use **Flow B** only if your frontend already uses upload sessions for all media.
 3. Send only `publicId` to user update route:
    - Avatar: `PATCH /api/v1/users/update-avatar`
    - Body:
-
 ```json
 {
   "avatarPublicId": "avatars/<userId>/<uuid>"
 }
 ```
-
-- Cover: `PATCH /api/v1/users/update-coverImage`
-- Body:
-
+   - Cover: `PATCH /api/v1/users/update-coverImage`
+   - Body:
 ```json
 {
   "coverImagePublicId": "covers/<userId>/<uuid>"
@@ -332,7 +331,6 @@ Backend rules:
 
 1. Create session:
    - `POST /api/v1/upload/session`
-
 ```json
 {
   "fileName": "avatar.png",
@@ -341,23 +339,18 @@ Backend rules:
   "uploadType": "AVATAR"
 }
 ```
-
-- For cover, use `"uploadType": "COVER_IMAGE"`.
-
+   - For cover, use `"uploadType": "COVER_IMAGE"`.
 2. Get signature (`resourceType=avatar` or `cover`).
 3. Upload directly to Cloudinary.
 4. Finalize:
    - `POST /api/v1/media/finalize/:sessionId`
-
 ```json
 {
   "uploadType": "avatar",
   "publicId": "avatars/<userId>/<uuid>"
 }
 ```
-
-- Cover example:
-
+   - Cover example:
 ```json
 {
   "uploadType": "coverImage",
@@ -384,52 +377,52 @@ Backend rules:
 
 ## System
 
-| Method | Endpoint   | Auth | Purpose        |
-| ------ | ---------- | ---- | -------------- |
-| GET    | `/healthz` | No   | Liveness check |
-| GET    | `/`        | No   | Backend status |
+| Method | Endpoint | Auth | Purpose |
+|---|---|---|---|
+| GET | `/healthz` | No | Liveness check |
+| GET | `/` | No | Backend status |
 
 ## OAuth
 
 Base: `/api/v1/auth`
 
-| Method | Endpoint           | Auth | Purpose                                            |
-| ------ | ------------------ | ---- | -------------------------------------------------- |
-| GET    | `/google`          | No   | Start Google OAuth                                 |
-| GET    | `/google/callback` | No   | OAuth callback (sets cookies + redirects frontend) |
+| Method | Endpoint | Auth | Purpose |
+|---|---|---|---|
+| GET | `/google` | No | Start Google OAuth |
+| GET | `/google/callback` | No | OAuth callback (sets cookies + redirects frontend) |
 
 ## Users/Auth
 
 Base: `/api/v1/users`
 
-| Method | Endpoint                   | Auth | Request body                                                                   |
-| ------ | -------------------------- | ---- | ------------------------------------------------------------------------------ |
-| POST   | `/register`                | No   | `{ fullName, email, username, password }`                                      |
-| POST   | `/verify-email`            | No   | `{ identifier, otp }`                                                          |
-| POST   | `/resend-otp`              | No   | `{ identifier }`                                                               |
-| POST   | `/login`                   | No   | `{ email? OR username?, password }`                                            |
-| POST   | `/logout`                  | Yes  | none                                                                           |
-| POST   | `/refresh-token`           | No   | `{ refreshToken? }` or cookie                                                  |
-| GET    | `/current-user`            | Yes  | none                                                                           |
-| POST   | `/forgot-password`         | No   | `{ email }`                                                                    |
-| POST   | `/forgot-password/verify`  | No   | `{ email, otp }`                                                               |
-| POST   | `/reset-password`          | No   | `{ email, newPassword, resetToken? }` (`otp` accepted only as legacy fallback) |
-| POST   | `/change-password`         | Yes  | `{ oldPassword, newPassword }`                                                 |
-| PATCH  | `/update-account`          | Yes  | `{ fullName }`                                                                 |
-| PATCH  | `/update-avatar`           | Yes  | `{ avatarPublicId }`                                                           |
-| PATCH  | `/update-coverImage`       | Yes  | `{ coverImagePublicId }`                                                       |
-| PATCH  | `/update-description`      | Yes  | `{ channelDescription?, channelLinks? }`                                       |
-| GET    | `/u/:username`             | Yes  | none                                                                           |
-| GET    | `/id/:userId`              | Yes  | none                                                                           |
-| DELETE | `/delete-account`          | Yes  | none                                                                           |
-| PATCH  | `/restore-account/request` | No   | `{ email? OR username? }`                                                      |
-| PATCH  | `/restore-account/confirm` | No   | `{ email? OR username?, otp }`                                                 |
-| POST   | `/change-email/request`    | Yes  | `{ email }`                                                                    |
-| POST   | `/change-email/confirm`    | Yes  | `{ otp }`                                                                      |
-| POST   | `/change-email/cancel`     | Yes  | none                                                                           |
-| GET    | `/account-switch-token`    | Yes  | none                                                                           |
-| POST   | `/switch-account`          | Yes  | `{ accountSwitchToken }`                                                       |
-| POST   | `/switch-account/resolve`  | Yes  | `{ tokens: string[] }`                                                         |
+| Method | Endpoint | Auth | Request body |
+|---|---|---|---|
+| POST | `/register` | No | `{ fullName, email, username, password }` |
+| POST | `/verify-email` | No | `{ identifier, otp }` |
+| POST | `/resend-otp` | No | `{ identifier }` |
+| POST | `/login` | No | `{ email? OR username?, password }` |
+| POST | `/logout` | Yes | none |
+| POST | `/refresh-token` | No | `{ refreshToken? }` or cookie |
+| GET | `/current-user` | Yes | none |
+| POST | `/forgot-password` | No | `{ email }` |
+| POST | `/forgot-password/verify` | No | `{ email, otp }` |
+| POST | `/reset-password` | No | `{ email, newPassword, resetToken? }` (`otp` accepted only as legacy fallback) |
+| POST | `/change-password` | Yes | `{ oldPassword, newPassword }` |
+| PATCH | `/update-account` | Yes | `{ fullName }` |
+| PATCH | `/update-avatar` | Yes | `{ avatarPublicId }` |
+| PATCH | `/update-coverImage` | Yes | `{ coverImagePublicId }` |
+| PATCH | `/update-description` | Yes | `{ channelDescription?, channelLinks? }` |
+| GET | `/u/:username` | Yes | none |
+| GET | `/id/:userId` | Yes | none |
+| DELETE | `/delete-account` | Yes | none |
+| PATCH | `/restore-account/request` | No | `{ email? OR username? }` |
+| PATCH | `/restore-account/confirm` | No | `{ email? OR username?, otp }` |
+| POST | `/change-email/request` | Yes | `{ email }` |
+| POST | `/change-email/confirm` | Yes | `{ otp }` |
+| POST | `/change-email/cancel` | Yes | none |
+| GET | `/account-switch-token` | Yes | none |
+| POST | `/switch-account` | Yes | `{ accountSwitchToken }` |
+| POST | `/switch-account/resolve` | Yes | `{ tokens: string[] }` |
 
 Auth response additions:
 
@@ -450,22 +443,22 @@ Forgot-password flow notes:
 
 Base: `/api/v1/upload`
 
-| Method | Endpoint                       | Auth      | Request                                         |
-| ------ | ------------------------------ | --------- | ----------------------------------------------- | ----- | ---------- | ---- | ------ | --- | ----------- |
-| POST   | `/session`                     | Yes       | `{ fileName, fileSize, mimeType, uploadType? }` |
-| PATCH  | `/session/:sessionId/cancel`   | Yes       | none                                            |
-| GET    | `/signature?resourceType=video | thumbnail | avatar                                          | cover | coverimage | post | tweet` | Yes | query param |
-| PATCH  | `/progress/:sessionId`         | Yes       | `{ uploadedBytes }`                             |
-| POST   | `/finalize/:sessionId`         | Yes       | video + thumbnail metadata payload              |
+| Method | Endpoint | Auth | Request |
+|---|---|---|---|
+| POST | `/session` | Yes | `{ fileName, fileSize, mimeType, uploadType? }` |
+| PATCH | `/session/:sessionId/cancel` | Yes | none |
+| GET | `/signature?resourceType=video|thumbnail|avatar|cover|coverimage|post|tweet` | Yes | query param |
+| PATCH | `/progress/:sessionId` | Yes | `{ uploadedBytes }` |
+| POST | `/finalize/:sessionId` | Yes | video + thumbnail metadata payload |
 
 ## Media
 
 Base: `/api/v1/media`
 
-| Method | Endpoint               | Auth | Request                                             |
-| ------ | ---------------------- | ---- | --------------------------------------------------- | ----------- |
-| POST   | `/finalize/:sessionId` | Yes  | `{ uploadType, publicId }` where `uploadType=avatar | coverImage` |
-| DELETE | `/:type`               | Yes  | `type=avatar                                        | coverImage` |
+| Method | Endpoint | Auth | Request |
+|---|---|---|---|
+| POST | `/finalize/:sessionId` | Yes | `{ uploadType, publicId }` where `uploadType=avatar|coverImage` |
+| DELETE | `/:type` | Yes | `type=avatar|coverImage` |
 
 Media finalize notes:
 
@@ -477,19 +470,19 @@ Media finalize notes:
 
 Base: `/api/v1/videos` (all protected)
 
-| Method | Endpoint                      | Query/body                                             |
-| ------ | ----------------------------- | ------------------------------------------------------ | --- | ----- | ---- | ---- | ---- | ---- | ----- |
-| GET    | `/`                           | query: `page,limit,query,sortBy,sortType,isShort,tags` |
-| GET    | `/me`                         | query: `page,limit,query,sortBy,sortType,isShort,tags` |
-| GET    | `/user/:userId`               | query: `page,limit,query,sortBy,sortType,isShort`      |
-| GET    | `/trash/me`                   | query: `page,limit,sortBy,sortType,isShort`            |
-| GET    | `/:videoId/processing-status` | none                                                   |
-| PATCH  | `/:videoId/cancel-processing` | none                                                   |
-| PATCH  | `/:videoId/publish`           | none                                                   |
-| PATCH  | `/:videoId/restore`           | none                                                   |
-| GET    | `/:videoId`                   | query (optional): `quality=auto                        | max | 1080p | 720p | 480p | 360p | 240p | 144p` |
-| PATCH  | `/:videoId`                   | body: `{ title?, description? }`                       |
-| DELETE | `/:videoId`                   | none                                                   |
+| Method | Endpoint | Query/body |
+|---|---|---|
+| GET | `/` | query: `page,limit,query,sortBy,sortType,isShort,tags` |
+| GET | `/me` | query: `page,limit,query,sortBy,sortType,isShort,tags` |
+| GET | `/user/:userId` | query: `page,limit,query,sortBy,sortType,isShort` |
+| GET | `/trash/me` | query: `page,limit,sortBy,sortType,isShort` |
+| GET | `/:videoId/processing-status` | none |
+| PATCH | `/:videoId/cancel-processing` | none |
+| PATCH | `/:videoId/publish` | none |
+| PATCH | `/:videoId/restore` | none |
+| GET | `/:videoId` | query (optional): `quality=auto|max|1080p|720p|480p|360p|240p|144p` |
+| PATCH | `/:videoId` | body: `{ title?, description? }` |
+| DELETE | `/:videoId` | none |
 
 Note: There is no `POST /api/v1/videos` route in current backend. Video creation is via `/api/v1/upload/finalize/:sessionId`.
 
@@ -497,11 +490,11 @@ Note: There is no `POST /api/v1/videos` route in current backend. Video creation
 
 Base: `/api/v1/watch`
 
-| Method | Endpoint               | Auth                          | Purpose                                                                  |
-| ------ | ---------------------- | ----------------------------- | ------------------------------------------------------------------------ |
-| GET    | `/:videoId`            | No (optional token supported) | Public watch payload + increments views + quality selection              |
-| GET    | `/:videoId/stream`     | No (optional token supported) | Stream payload only (quality URLs + selected quality, no view increment) |
-| GET    | `/:videoId/transcript` | No (optional token supported) | Transcript payload with segments + search + time filters                 |
+| Method | Endpoint | Auth | Purpose |
+|---|---|---|---|
+| GET | `/:videoId` | No (optional token supported) | Public watch payload + increments views + quality selection |
+| GET | `/:videoId/stream` | No (optional token supported) | Stream payload only (quality URLs + selected quality, no view increment) |
+| GET | `/:videoId/transcript` | No (optional token supported) | Transcript payload with segments + search + time filters |
 
 Transcript query params:
 
@@ -513,14 +506,12 @@ Transcript query params:
 
 Base: `/api/v1/feed`
 
-| Method | Endpoint         | Auth                          | Query                                                      |
-| ------ | ---------------- | ----------------------------- | ---------------------------------------------------------- | ---------------------- | ----- |
-| GET    | `/home`          | Yes                           | `page,limit,sortBy,sortType,tag`                           |
-| GET    | `/subscriptions` | Yes                           | `page,limit,isShort`                                       |
-| GET    | `/trending`      | No (optional token supported) | `page,limit,isShort,sortBy,sortType` where `sortBy=views   | createdAt`             |
-| GET    | `/shorts`        | No (optional token supported) | `page,limit,sortBy,sortType,includeComments,commentsLimit` |
-| GET    | `/tags`          | No (optional token supported) | `page,limit,q`                                             |
-| GET    | `/tags/:tagName` | No (optional token supported) | `page,limit,sortBy=score                                   | createdAt,sortType=asc | desc` |
+| Method | Endpoint | Auth | Query |
+|---|---|---|---|
+| GET | `/home` | Yes | `page,limit,sortBy,sortType` |
+| GET | `/subscriptions` | Yes | `page,limit,isShort` |
+| GET | `/trending` | No (optional token supported) | `page,limit,isShort,sortBy,sortType` where `sortBy=views|createdAt` |
+| GET | `/shorts` | No (optional token supported) | `page,limit,sortBy,sortType,includeComments,commentsLimit` |
 
 Feed notes:
 
@@ -529,29 +520,27 @@ Feed notes:
   - `not interested` videos selected by user
   - videos from blocked channels (`don't recommend this channel`)
 - `/shorts` defaults to include comments (`includeComments=true`, `commentsLimit=5`, max `10`).
-- `/home` accepts `tag` query param to filter by a specific tag chip.
-- `/tags` returns ranked tag chips with personalized/trending scores. In low-content environments, backend returns default topics even when no ranked tag pool exists.
-- `/tags/:tagName` returns videos for a specific tag with scoring-aware ordering. Response `data.tag` includes tag metadata.
-- Feed item responses now include `tags: string[]` and `categories: [{id,name,slug,icon}]` on each video item.
 
 ## Public Search
 
 Base: `/api/v1/search` (public; optional token supported)
 
-| Method | Endpoint | Query                                                        |
-| ------ | -------- | ------------------------------------------------------------ | -------- | ------ | ----------- |
-| GET    | `/`      | `q,scope,type,tags,category,channelCategory,sortBy,sortType` |
-| GET    | `/`      | for `scope=all`: `perTypeLimit` (default `5`, max `15`)      |
-| GET    | `/`      | for typed scope: `page,limit` (`videos                       | channels | tweets | playlists`) |
+| Method | Endpoint | Query |
+|---|---|---|
+| GET | `/` | `q,scope,type,tags,category,channelCategory,sortBy,sortType` |
+| GET | `/` | for `scope=all`: `perTypeLimit` (default `5`, max `15`) |
+| GET | `/` | for typed scope: `page,limit` (`videos|shorts|channels|tweets|playlists`) |
 
 Notes:
 
-- `scope` (or alias `type`): `all|videos|channels|tweets|playlists`
+- `scope` (or alias `type`): `all|videos|shorts|channels|tweets|playlists`
+- sort supports `sortBy=relevance` for all scopes
 - search is public-only:
-  - videos: published + completed + non-deleted
-  - channels: non-deleted
-  - playlists: public + non-deleted
-  - tweets: non-deleted
+  - videos: published + completed + non-deleted + public owner
+  - shorts: same as videos + `isShort=true`
+  - channels: non-deleted + `moderationStatus=ACTIVE` + public profile
+  - playlists: public + non-deleted + public owner
+  - tweets: non-deleted + public owner
 - `tags` and `category` primarily affect video search.
 - `channelCategory` is alias of `category` for channel filtering.
 - response is cached briefly (L1/Redis) to reduce DB load on free tier.
@@ -568,12 +557,14 @@ Notes:
   "limits": { "perTypeLimit": 5 },
   "results": {
     "videos": [],
+    "shorts": [],
     "channels": [],
     "tweets": [],
     "playlists": []
   },
   "totals": {
     "videos": 12,
+    "shorts": 6,
     "channels": 3,
     "tweets": 8,
     "playlists": 2
@@ -581,7 +572,7 @@ Notes:
 }
 ```
 
-#### `scope=videos|channels|tweets|playlists`
+#### `scope=videos|shorts|channels|tweets|playlists`
 
 Returns normalized list payload:
 
@@ -596,23 +587,23 @@ Returns normalized list payload:
 
 Base: `/api/v1/ai` (protected)
 
-| Method | Endpoint                                   | Request                                             |
-| ------ | ------------------------------------------ | --------------------------------------------------- | --------------------- |
-| POST   | `/sessions`                                | body: `{ videoId?, title? }`                        |
-| GET    | `/sessions`                                | query: `page,limit`                                 |
-| DELETE | `/sessions`                                | query: `videoId?` (optional scoped clear)           |
-| PATCH  | `/sessions/:sessionId`                     | body: `{ title }`                                   |
-| DELETE | `/sessions/:sessionId`                     | none                                                |
-| GET    | `/sessions/:sessionId/messages`            | query: `page,limit`                                 |
-| POST   | `/sessions/:sessionId/messages`            | body: `{ message }`                                 |
-| DELETE | `/sessions/:sessionId/messages`            | query: `keepSystem=true                             | false`(default`true`) |
-| DELETE | `/sessions/:sessionId/messages/:messageId` | query: `cascade=true                                | false`(default`true`) |
-| GET    | `/videos/:videoId/summary`                 | none                                                |
-| POST   | `/videos/:videoId/summary`                 | body: `{ force? }`                                  |
-| POST   | `/videos/:videoId/ask`                     | body: `{ question }`                                |
-| GET    | `/videos/:videoId/transcript`              | query: `q,from,to,fromSeconds,toSeconds,page,limit` |
-| POST   | `/videos/:videoId/transcript`              | body: `{ transcript, language? }` (owner only)      |
-| DELETE | `/videos/:videoId/transcript`              | none (owner only)                                   |
+| Method | Endpoint | Request |
+|---|---|---|
+| POST | `/sessions` | body: `{ videoId?, title? }` |
+| GET | `/sessions` | query: `page,limit` |
+| DELETE | `/sessions` | query: `videoId?` (optional scoped clear) |
+| PATCH | `/sessions/:sessionId` | body: `{ title }` |
+| DELETE | `/sessions/:sessionId` | none |
+| GET | `/sessions/:sessionId/messages` | query: `page,limit` |
+| POST | `/sessions/:sessionId/messages` | body: `{ message }` |
+| DELETE | `/sessions/:sessionId/messages` | query: `keepSystem=true|false` (default `true`) |
+| DELETE | `/sessions/:sessionId/messages/:messageId` | query: `cascade=true|false` (default `true`) |
+| GET | `/videos/:videoId/summary` | none |
+| POST | `/videos/:videoId/summary` | body: `{ force? }` |
+| POST | `/videos/:videoId/ask` | body: `{ question }` |
+| GET | `/videos/:videoId/transcript` | query: `q,from,to,fromSeconds,toSeconds,page,limit` |
+| POST | `/videos/:videoId/transcript` | body: `{ transcript, language? }` (owner only) |
+| DELETE | `/videos/:videoId/transcript` | none (owner only) |
 
 AI notes:
 
@@ -809,7 +800,6 @@ Response `data`:
 - `POST /api/v1/ai/videos/:videoId/transcript`
   - owner-only upsert
   - body examples:
-
 ```json
 {
   "transcript": "WEBVTT\n\n00:00:01.000 --> 00:00:03.000\nHello everyone",
@@ -817,7 +807,6 @@ Response `data`:
   "source": "IMPORTED"
 }
 ```
-
 ```json
 {
   "language": "en",
@@ -827,7 +816,6 @@ Response `data`:
   ]
 }
 ```
-
 - `DELETE /api/v1/ai/videos/:videoId/transcript`
   - owner-only delete transcript
 
@@ -835,16 +823,16 @@ Response `data`:
 
 Base: `/api/v1/feedback` (protected)
 
-| Method | Endpoint                       | Request                                                |
-| ------ | ------------------------------ | ------------------------------------------------------ |
-| GET    | `/not-interested`              | query: `page,limit`                                    |
-| POST   | `/not-interested/:videoId`     | body: `{ reason? }`                                    |
-| DELETE | `/not-interested/:videoId`     | none                                                   |
-| GET    | `/blocked-channels`            | query: `page,limit`                                    |
-| POST   | `/blocked-channels/:channelId` | none                                                   |
-| DELETE | `/blocked-channels/:channelId` | none                                                   |
-| POST   | `/reports`                     | body: `{ targetType, targetId, reason, description? }` |
-| GET    | `/reports/me`                  | query: `page,limit`                                    |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/not-interested` | query: `page,limit` |
+| POST | `/not-interested/:videoId` | body: `{ reason? }` |
+| DELETE | `/not-interested/:videoId` | none |
+| GET | `/blocked-channels` | query: `page,limit` |
+| POST | `/blocked-channels/:channelId` | none |
+| DELETE | `/blocked-channels/:channelId` | none |
+| POST | `/reports` | body: `{ targetType, targetId, reason, description? }` |
+| GET | `/reports/me` | query: `page,limit` |
 
 Feedback notes:
 
@@ -856,9 +844,9 @@ Feedback notes:
 
 Base: `/api/v1/internal`
 
-| Method | Endpoint | Auth         | Request                                                  |
-| ------ | -------- | ------------ | -------------------------------------------------------- |
-| GET    | `/usage` | token header | `x-internal-token: <INTERNAL_METRICS_TOKEN>` (or bearer) |
+| Method | Endpoint | Auth | Request |
+|---|---|---|---|
+| GET | `/usage` | token header | `x-internal-token: <INTERNAL_METRICS_TOKEN>` (or bearer) |
 
 Notes:
 
@@ -884,25 +872,24 @@ All endpoints below require:
 
 ### Admin session/profile
 
-| Method | Endpoint | Purpose                                 |
-| ------ | -------- | --------------------------------------- |
-| GET    | `/me`    | Current admin profile + permission list |
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | `/me` | Current admin profile + permission list |
 
 ### Admin dashboard
 
-| Method | Endpoint              | Query                                                                        |
-| ------ | --------------------- | ---------------------------------------------------------------------------- | --- | --- | --- |
-| GET    | `/dashboard/overview` | `period=7d                                                                   | 30d | 90d | 1y` |
-| GET    | `/dashboard/activity` | `period=7d                                                                   | 30d | 90d | 1y` |
-| POST   | `/feed/topics/seed`   | body (optional): `{ topics: string[] }` — bootstraps default tags+categories |
+| Method | Endpoint | Query |
+|---|---|---|
+| GET | `/dashboard/overview` | `period=7d|30d|90d|1y` |
+| GET | `/dashboard/activity` | `period=7d|30d|90d|1y` |
 
 ### Reports moderation
 
-| Method | Endpoint                     | Request                                                         |
-| ------ | ---------------------------- | --------------------------------------------------------------- |
-| GET    | `/reports`                   | query: `page,limit,status,targetType,q,sortBy,sortType,from,to` |
-| GET    | `/reports/:reportId`         | none                                                            |
-| PATCH  | `/reports/:reportId/resolve` | body: `{ status, note?, action? }`                              |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/reports` | query: `page,limit,status,targetType,q,sortBy,sortType,from,to` |
+| GET | `/reports/:reportId` | none |
+| PATCH | `/reports/:reportId/resolve` | body: `{ status, note?, action? }` |
 
 `status` must be one of:
 
@@ -929,45 +916,45 @@ All endpoints below require:
 
 ### Users moderation
 
-| Method | Endpoint                              | Request                                                     |
-| ------ | ------------------------------------- | ----------------------------------------------------------- | ---------- | -------------------- | ----------------------- |
-| GET    | `/users`                              | query: `page,limit,q,status,role,isDeleted,sortBy,sortType` |
-| GET    | `/users/:userId`                      | none                                                        |
-| PATCH  | `/users/:userId/status`               | body: `{ status: ACTIVE                                     | RESTRICTED | SUSPENDED, reason }` |
-| PATCH  | `/users/:userId/verify-pending-email` | body: `{ reason? }`                                         |
-| PATCH  | `/users/:userId/soft-delete`          | body: `{ reason }`                                          |
-| PATCH  | `/users/:userId/restore`              | body: `{ reason? }`                                         |
-| PATCH  | `/users/:userId/role`                 | body: `{ role: USER                                         | MODERATOR  | ADMIN                | SUPER_ADMIN, reason? }` |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/users` | query: `page,limit,q,status,role,isDeleted,sortBy,sortType` |
+| GET | `/users/:userId` | none |
+| PATCH | `/users/:userId/status` | body: `{ status: ACTIVE|RESTRICTED|SUSPENDED, reason }` |
+| PATCH | `/users/:userId/verify-pending-email` | body: `{ reason? }` |
+| PATCH | `/users/:userId/soft-delete` | body: `{ reason }` |
+| PATCH | `/users/:userId/restore` | body: `{ reason? }` |
+| PATCH | `/users/:userId/role` | body: `{ role: USER|MODERATOR|ADMIN|SUPER_ADMIN, reason? }` |
 
 ### Content moderation
 
-| Method | Endpoint                             | Request                                                                                      |
-| ------ | ------------------------------------ | -------------------------------------------------------------------------------------------- |
-| GET    | `/videos`                            | query: `page,limit,q,ownerId,isShort,isPublished,isDeleted,processingStatus,sortBy,sortType` |
-| GET    | `/videos/:videoId`                   | none                                                                                         |
-| PATCH  | `/videos/:videoId/unpublish`         | body: `{ reason? }`                                                                          |
-| PATCH  | `/videos/:videoId/publish`           | body: `{ reason? }`                                                                          |
-| PATCH  | `/videos/:videoId/soft-delete`       | body: `{ reason }`                                                                           |
-| PATCH  | `/videos/:videoId/restore`           | body: `{ reason? }`                                                                          |
-| GET    | `/tweets`                            | query: `page,limit,q,ownerId,isDeleted,sortBy,sortType`                                      |
-| GET    | `/tweets/:tweetId`                   | none                                                                                         |
-| PATCH  | `/tweets/:tweetId/soft-delete`       | body: `{ reason }`                                                                           |
-| PATCH  | `/tweets/:tweetId/restore`           | body: `{ reason? }`                                                                          |
-| GET    | `/comments`                          | query: `page,limit,q,ownerId,videoId,isDeleted,sortBy,sortType`                              |
-| GET    | `/comments/:commentId`               | none                                                                                         |
-| PATCH  | `/comments/:commentId/soft-delete`   | body: `{ reason }`                                                                           |
-| PATCH  | `/comments/:commentId/restore`       | body: `{ reason? }`                                                                          |
-| GET    | `/playlists`                         | query: `page,limit,q,ownerId,isDeleted,isPublic,sortBy,sortType`                             |
-| GET    | `/playlists/:playlistId`             | none                                                                                         |
-| PATCH  | `/playlists/:playlistId/soft-delete` | body: `{ reason }`                                                                           |
-| PATCH  | `/playlists/:playlistId/restore`     | body: `{ reason? }`                                                                          |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/videos` | query: `page,limit,q,ownerId,isShort,isPublished,isDeleted,processingStatus,sortBy,sortType` |
+| GET | `/videos/:videoId` | none |
+| PATCH | `/videos/:videoId/unpublish` | body: `{ reason? }` |
+| PATCH | `/videos/:videoId/publish` | body: `{ reason? }` |
+| PATCH | `/videos/:videoId/soft-delete` | body: `{ reason }` |
+| PATCH | `/videos/:videoId/restore` | body: `{ reason? }` |
+| GET | `/tweets` | query: `page,limit,q,ownerId,isDeleted,sortBy,sortType` |
+| GET | `/tweets/:tweetId` | none |
+| PATCH | `/tweets/:tweetId/soft-delete` | body: `{ reason }` |
+| PATCH | `/tweets/:tweetId/restore` | body: `{ reason? }` |
+| GET | `/comments` | query: `page,limit,q,ownerId,videoId,isDeleted,sortBy,sortType` |
+| GET | `/comments/:commentId` | none |
+| PATCH | `/comments/:commentId/soft-delete` | body: `{ reason }` |
+| PATCH | `/comments/:commentId/restore` | body: `{ reason? }` |
+| GET | `/playlists` | query: `page,limit,q,ownerId,isDeleted,isPublic,sortBy,sortType` |
+| GET | `/playlists/:playlistId` | none |
+| PATCH | `/playlists/:playlistId/soft-delete` | body: `{ reason }` |
+| PATCH | `/playlists/:playlistId/restore` | body: `{ reason? }` |
 
 ### Audit logs
 
-| Method | Endpoint             | Request                                                                        |
-| ------ | -------------------- | ------------------------------------------------------------------------------ |
-| GET    | `/audit-logs`        | query: `page,limit,actorId,action,targetType,targetId,from,to,sortBy,sortType` |
-| GET    | `/audit-logs/:logId` | none                                                                           |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/audit-logs` | query: `page,limit,actorId,action,targetType,targetId,from,to,sortBy,sortType` |
+| GET | `/audit-logs/:logId` | none |
 
 Admin moderation policy notes:
 
@@ -980,49 +967,49 @@ Admin moderation policy notes:
 
 Base: `/api/v1/comments`
 
-| Method | Endpoint        | Auth                          | Request                      |
-| ------ | --------------- | ----------------------------- | ---------------------------- |
-| GET    | `/:videoId`     | No (optional token supported) | query: `page,limit,sortType` |
-| POST   | `/:videoId`     | Yes                           | body: `{ content }`          |
-| PATCH  | `/c/:commentId` | Yes                           | body: `{ content }`          |
-| DELETE | `/c/:commentId` | Yes                           | none                         |
+| Method | Endpoint | Auth | Request |
+|---|---|---|---|
+| GET | `/:videoId` | No (optional token supported) | query: `page,limit,sortType` |
+| POST | `/:videoId` | Yes | body: `{ content }` |
+| PATCH | `/c/:commentId` | Yes | body: `{ content }` |
+| DELETE | `/c/:commentId` | Yes | none |
 
 ## Likes
 
 Base: `/api/v1/likes` (protected)
 
-| Method | Endpoint               | Purpose             |
-| ------ | ---------------------- | ------------------- |
-| POST   | `/toggle/v/:videoId`   | Toggle video like   |
-| POST   | `/toggle/c/:commentId` | Toggle comment like |
-| POST   | `/toggle/t/:tweetId`   | Toggle tweet like   |
-| GET    | `/videos`              | Liked videos list   |
+| Method | Endpoint | Purpose |
+|---|---|---|
+| POST | `/toggle/v/:videoId` | Toggle video like |
+| POST | `/toggle/c/:commentId` | Toggle comment like |
+| POST | `/toggle/t/:tweetId` | Toggle tweet like |
+| GET | `/videos` | Liked videos list |
 
 ## Subscriptions
 
 Base: `/api/v1/subscriptions` (protected)
 
-| Method | Endpoint                          | Request                      |
-| ------ | --------------------------------- | ---------------------------- | ------------ | ----- |
-| GET    | `/`                               | query: `page,limit`          |
-| POST   | `/c/:channelId/subscribe`         | none                         |
-| GET    | `/c/:channelId/subscribers/count` | none                         |
-| GET    | `/u/subscriptions`                | query: `page,limit`          |
-| PATCH  | `/c/:channelId/notifications`     | body: `{ level }` where `ALL | PERSONALIZED | NONE` |
-| GET    | `/c/:channelId/status`            | none                         |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/` | query: `page,limit` |
+| POST | `/c/:channelId/subscribe` | none |
+| GET | `/c/:channelId/subscribers/count` | none |
+| GET | `/u/subscriptions` | query: `page,limit` |
+| PATCH | `/c/:channelId/notifications` | body: `{ level }` where `ALL|PERSONALIZED|NONE` |
+| GET | `/c/:channelId/status` | none |
 
 ## Channels
 
 Base: `/api/v1/channels` (public; optional token on `/:channelId` and `/:channelId/about` for `isSubscribed`)
 
-| Method | Endpoint                | Auth                          | Query                             |
-| ------ | ----------------------- | ----------------------------- | --------------------------------- | ------- | ------------------------------------- |
-| GET    | `/:channelId`           | No (optional token supported) | none                              |
-| GET    | `/:channelId/about`     | No (optional token supported) | none                              |
-| GET    | `/:channelId/videos`    | No                            | `sort=latest                      | popular | oldest,page,limit`(default`limit=20`) |
-| GET    | `/:channelId/shorts`    | No                            | `sort=latest                      | popular | oldest,page,limit`(default`limit=30`) |
-| GET    | `/:channelId/playlists` | No                            | `page,limit` (default `limit=50`) |
-| GET    | `/:channelId/tweets`    | No                            | `page,limit` (default `limit=20`) |
+| Method | Endpoint | Auth | Query |
+|---|---|---|---|
+| GET | `/:channelId` | No (optional token supported) | none |
+| GET | `/:channelId/about` | No (optional token supported) | none |
+| GET | `/:channelId/videos` | No | `sort=latest|popular|oldest,page,limit` (default `limit=20`) |
+| GET | `/:channelId/shorts` | No | `sort=latest|popular|oldest,page,limit` (default `limit=30`) |
+| GET | `/:channelId/playlists` | No | `page,limit` (default `limit=50`) |
+| GET | `/:channelId/tweets` | No | `page,limit` (default `limit=20`) |
 
 `GET /:channelId` and `GET /:channelId/about` include:
 
@@ -1041,49 +1028,59 @@ No secondary duplicate arrays (`data.videos`, `data.playlists`, etc.) are return
 
 Base: `/api/v1/playlists` (protected)
 
-| Method | Endpoint                         | Request                                   |
-| ------ | -------------------------------- | ----------------------------------------- |
-| POST   | `/watch-later/:videoId`          | toggle watch later                        |
-| GET    | `/watch-later`                   | query: `page,limit`                       |
-| POST   | `/`                              | body: `{ name, description?, isPublic? }` |
-| GET    | `/user/me`                       | query: `page,limit,query,sortBy,sortType` |
-| GET    | `/user/:userId`                  | query: `page,limit,query,sortBy,sortType` |
-| GET    | `/trash/me`                      | query: `page,limit`                       |
-| PATCH  | `/:playlistId/restore`           | none                                      |
-| PATCH  | `/add/:videoId/:playlistId`      | none                                      |
-| PATCH  | `/remove/:videoId/:playlistId`   | none                                      |
-| PATCH  | `/:playlistId/toggle-visibility` | none                                      |
-| GET    | `/:playlistId`                   | query: `page,limit`                       |
-| PATCH  | `/:playlistId`                   | body: `{ name?, description? }`           |
-| DELETE | `/:playlistId`                   | none                                      |
+| Method | Endpoint | Request |
+|---|---|---|
+| POST | `/watch-later/:videoId` | toggle watch later |
+| GET | `/watch-later` | query: `page,limit` |
+| POST | `/` | body: `{ name, description?, isPublic? }` |
+| GET | `/user/me` | query: `page,limit,query,sortBy,sortType` |
+| GET | `/user/:userId` | query: `page,limit,query,sortBy,sortType` |
+| GET | `/trash/me` | query: `page,limit` |
+| PATCH | `/:playlistId/restore` | none |
+| PATCH | `/add/:videoId/:playlistId` | none |
+| PATCH | `/remove/:videoId/:playlistId` | none |
+| PATCH | `/:playlistId/toggle-visibility` | none |
+| GET | `/:playlistId` | query: `page,limit` |
+| PATCH | `/:playlistId` | body: `{ name?, description? }` |
+| DELETE | `/:playlistId` | none |
 
 ## Tweets
 
-Base: `/api/v1/tweets` (protected)
+Base: `/api/v1/tweets` (public feed + protected CRUD)
 
-| Method | Endpoint            | Request                             |
-| ------ | ------------------- | ----------------------------------- |
-| POST   | `/`                 | body: `{ content, imagePublicId? }` |
-| GET    | `/user/:userId`     | query: `page,limit,sortBy,sortType` |
-| GET    | `/trash/me`         | query: `page,limit`                 |
-| PATCH  | `/:tweetId/restore` | none                                |
-| GET    | `/:tweetId`         | none                                |
-| PATCH  | `/:tweetId`         | body: `{ content }`                 |
-| DELETE | `/:tweetId`         | none                                |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/feed` | query: `mode(forYou|following|latest|hot),page,limit,topic,sortType` |
+| GET | `/explore` | alias of `/feed` |
+| GET | `/topics/hot` | query: `limit,windowHours,q` |
+| GET | `/:tweetId` | public detail (optional auth; returns `isLikedByMe` when logged in) |
+| POST | `/` | body: `{ content, imagePublicId? }` |
+| GET | `/user/:userId` | query: `page,limit,sortBy,sortType` |
+| GET | `/trash/me` | query: `page,limit` |
+| PATCH | `/:tweetId/restore` | none |
+| PATCH | `/:tweetId` | body: `{ content }` |
+| DELETE | `/:tweetId` | none |
+
+Tweet feed notes:
+- `/feed` supports optional auth: guests get public hot/latest style, logged users can use personalized `forYou`.
+- `mode=following` requires auth.
+- Feed response is normalized list shape with extras: `mode`, `filters.topic`, `ranking`, `followingChannelsCount`, `blockedChannels`.
+- Each tweet item includes `likesCount`, `commentsCount`, `isLikedByMe`, and extracted `topics`.
+- `/topics/hot` returns `{ windowHours, generatedAt, items[] }`; each topic has `mentions`, `engagement`, `trendScore`, and `sampleTweetIds`.
 
 ## Notifications
 
 Base: `/api/v1/notifications` (protected)
 
-| Method | Endpoint                | Request                                                             |
-| ------ | ----------------------- | ------------------------------------------------------------------- |
-| GET    | `/`                     | query: `page,limit,sortBy,sortType,isRead,type,channelId,q,from,to` |
-| GET    | `/unread-count`         | query: `type,channelId,q,from,to` (optional)                        |
-| GET    | `/unread`               | query: `page,limit,sortBy,sortType,type,channelId,q,from,to`        |
-| PATCH  | `/:notificationId/read` | none                                                                |
-| PATCH  | `/read-all`             | none                                                                |
-| DELETE | `/:notificationId`      | none                                                                |
-| DELETE | `/`                     | none                                                                |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/` | query: `page,limit,sortBy,sortType,isRead,type,channelId,q,from,to` |
+| GET | `/unread-count` | query: `type,channelId,q,from,to` (optional) |
+| GET | `/unread` | query: `page,limit,sortBy,sortType,type,channelId,q,from,to` |
+| PATCH | `/:notificationId/read` | none |
+| PATCH | `/read-all` | none |
+| DELETE | `/:notificationId` | none |
+| DELETE | `/` | none |
 
 Supported notification filters:
 
@@ -1144,14 +1141,14 @@ Current activity triggers:
 
 Base: `/api/v1/dashboard` (protected)
 
-| Method | Endpoint      | Query      |
-| ------ | ------------- | ---------- | --- | --- | ------------------------------------------------------------------- | ----- | -------- | ------------------------ | ---------------- |
-| GET    | `/full`       | `period=7d | 30d | 90d | 1y,topVideosPage,topVideosLimit,topVideosSortBy,topVideosSortOrder` |
-| GET    | `/overview`   | `period=7d | 30d | 90d | 1y`                                                                 |
-| GET    | `/analytics`  | `period=7d | 30d | 90d | 1y`                                                                 |
-| GET    | `/top-videos` | `period=7d | 30d | 90d | 1y,sortBy=views                                                     | likes | comments | engagement,sortOrder=asc | desc,page,limit` |
-| GET    | `/growth`     | `period=7d | 30d | 90d | 1y`                                                                 |
-| GET    | `/insights`   | none       |
+| Method | Endpoint | Query |
+|---|---|---|
+| GET | `/full` | `period=7d|30d|90d|1y,topVideosPage,topVideosLimit,topVideosSortBy,topVideosSortOrder` |
+| GET | `/overview` | `period=7d|30d|90d|1y` |
+| GET | `/analytics` | `period=7d|30d|90d|1y` |
+| GET | `/top-videos` | `period=7d|30d|90d|1y,sortBy=views|likes|comments|engagement,sortOrder=asc|desc,page,limit` |
+| GET | `/growth` | `period=7d|30d|90d|1y` |
+| GET | `/insights` | none |
 
 Dashboard payload notes:
 
@@ -1181,11 +1178,11 @@ Dashboard payload notes:
 
 Base: `/api/v1/settings` (protected)
 
-| Method | Endpoint | Request                 |
-| ------ | -------- | ----------------------- |
-| GET    | `/`      | none                    |
-| PATCH  | `/`      | partial settings object |
-| POST   | `/reset` | none                    |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/` | none |
+| PATCH | `/` | partial settings object |
+| POST | `/reset` | none |
 
 Allowed setting fields:
 
@@ -1219,14 +1216,14 @@ Settings notes:
 
 Base: `/api/v1/watch-history` (protected)
 
-| Method | Endpoint    | Request                                                            |
-| ------ | ----------- | ------------------------------------------------------------------ | ------------------------------------- |
-| GET    | `/`         | query: `page,limit,query,isShort,includeCompleted,sortBy,sortType` |
-| POST   | `/`         | body: `{ videoId, progress, duration }`                            |
-| DELETE | `/`         | query: `completedOnly=true                                         | false` (optional; default clears all) |
-| GET    | `/:videoId` | none                                                               |
-| DELETE | `/:videoId` | none                                                               |
-| POST   | `/bulk`     | body: `{ videoIds: string[] }`                                     |
+| Method | Endpoint | Request |
+|---|---|---|
+| GET | `/` | query: `page,limit,query,isShort,includeCompleted,sortBy,sortType` |
+| POST | `/` | body: `{ videoId, progress, duration }` |
+| DELETE | `/` | query: `completedOnly=true|false` (optional; default clears all) |
+| GET | `/:videoId` | none |
+| DELETE | `/:videoId` | none |
+| POST | `/bulk` | body: `{ videoIds: string[] }` |
 
 Watch history notes:
 
@@ -1246,7 +1243,8 @@ Watch history notes:
 - Stream-only load (optional): `/api/v1/watch/:videoId/stream`
 - Transcript panel: `/api/v1/watch/:videoId/transcript` (supports `q`, `from`, `to`, paging)
 - AI assistant/chat: `/api/v1/ai/sessions`, `/api/v1/ai/sessions/:sessionId`, `/api/v1/ai/sessions/:sessionId/messages`, `/api/v1/ai/videos/:videoId/summary`, `/api/v1/ai/videos/:videoId/ask`
-- Global search bar: `/api/v1/search?scope=all&q=...` and typed search (`scope=videos|channels|tweets|playlists`)
+- Global search bar: `/api/v1/search?scope=all&q=...` and typed search (`scope=videos|shorts|channels|tweets|playlists`, `sortBy=relevance`)
+- Tweet page (X-style): `/api/v1/tweets/feed?mode=forYou|following|latest|hot` + `/api/v1/tweets/topics/hot`
 - Upload studio: `/api/v1/upload/session` -> `/api/v1/upload/signature` -> Cloudinary direct upload -> `/api/v1/upload/finalize/:sessionId` -> `/api/v1/videos/:videoId/processing-status` -> `/api/v1/videos/:videoId/publish`
 - Comments panel: `/api/v1/comments/:videoId`, `/api/v1/likes/toggle/c/:commentId`
 - Channel page: `/api/v1/channels/:channelId`, `/about`, `/videos`, `/shorts`, `/playlists`, `/tweets`
