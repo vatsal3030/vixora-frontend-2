@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ConfirmationDialog } from '../components/common/ConfirmationDialog'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -13,6 +13,7 @@ import { Button } from '../components/ui/Button'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 import { useAuth } from '../context/AuthContext'
 import { getMediaUrl } from '../lib/media'
 import { formatTimeAgo } from '../lib/utils'
@@ -62,6 +63,17 @@ export default function YoursPage() {
         enabled: activeTab === 'videos'
     })
 
+    const { ref: videosRef, inView: videosInView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
+
+    useEffect(() => {
+        if (videosInView && hasMoreVideos && !loadingMoreVideos && activeTab === 'videos') {
+            fetchMoreVideos()
+        }
+    }, [videosInView, hasMoreVideos, loadingMoreVideos, activeTab, fetchMoreVideos])
+
     const allVideos = useMemo(() => {
         const flattened = _videosData?.pages.flatMap(page => page?.items || []) || []
         return flattened.filter(video => {
@@ -82,16 +94,6 @@ export default function YoursPage() {
         },
         onError: () => toast.error('Failed to delete video')
     })
-
-    const videoObserverRef = useRef()
-    const lastVideoRef = (node) => {
-        if (videosLoading || loadingMoreVideos) return
-        if (videoObserverRef.current) videoObserverRef.current.disconnect()
-        videoObserverRef.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && hasMoreVideos) fetchMoreVideos()
-        })
-        if (node) videoObserverRef.current.observe(node)
-    }
 
     const handleSelect = (id, isSelected) => {
         const newSelected = new Set(selectedIds)
@@ -150,31 +152,63 @@ export default function YoursPage() {
         enabled: activeTab === 'shorts'
     })
 
+    const { ref: shortsRef, inView: shortsInView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
+
+    useEffect(() => {
+        if (shortsInView && hasMoreShorts && !loadingMoreShorts && activeTab === 'shorts') {
+            fetchMoreShorts()
+        }
+    }, [shortsInView, hasMoreShorts, loadingMoreShorts, activeTab, fetchMoreShorts])
+
     const allShorts = useMemo(() => {
         return _shortsData?.pages.flatMap(page => page?.items || []) || []
     }, [_shortsData])
 
     // ===================== COMMUNITY TAB =====================
     const {
-        data: tweetsData,
+        data: _tweetsData,
+        fetchNextPage: fetchMoreTweets,
+        hasNextPage: hasMoreTweets,
+        isFetchingNextPage: loadingMoreTweets,
         isLoading: tweetsLoading,
         refetch: refetchTweets,
-    } = useQuery({
+    } = useInfiniteQuery({
         queryKey: ['myTweets'],
-        queryFn: async () => {
-            const res = await tweetService.getUserTweets(user?._id, { page: 1, limit: 50 })
+        queryFn: async ({ pageParam = 1 }) => {
+            const res = await tweetService.getUserTweets(user?._id, { page: pageParam, limit: 20 })
             return res.data.data
         },
+        getNextPageParam: (lastPage) => {
+            const p = lastPage?.pagination
+            return p?.hasNextPage ? (p.currentPage || p.page) + 1 : undefined
+        },
+        initialPageParam: 1,
         enabled: activeTab === 'community' && !!user
     })
 
-    const allTweets = tweetsData?.items || []
+    const { ref: communityRef, inView: communityInView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
+
+    useEffect(() => {
+        if (communityInView && hasMoreTweets && !loadingMoreTweets && activeTab === 'community') {
+            fetchMoreTweets()
+        }
+    }, [communityInView, hasMoreTweets, loadingMoreTweets, activeTab, fetchMoreTweets])
+
+    const allTweets = useMemo(() => {
+        return _tweetsData?.pages.flatMap(page => page?.items || []) || []
+    }, [_tweetsData])
 
     const deleteTweetMutation = useMutation({
         mutationFn: tweetService.deleteTweet,
         onSuccess: () => {
             toast.success('Post deleted')
-            refetchTweets()
+            queryClient.invalidateQueries({ queryKey: ['myTweets'] })
         },
         onError: () => toast.error('Failed to delete post')
     })
@@ -291,11 +325,10 @@ export default function YoursPage() {
                         }>
                             {allVideos.map((video, index) => (
                                 <motion.div
-                                    ref={index === allVideos.length - 1 ? lastVideoRef : null}
                                     key={video._id}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.03 }}
+                                    transition={{ delay: (index % 24) * 0.03 }}
                                 >
                                     <CreatorVideoCard
                                         video={video}
@@ -310,14 +343,16 @@ export default function YoursPage() {
                                     />
                                 </motion.div>
                             ))}
+                            {/* Infinite Scroll Trigger */}
+                            <div ref={videosRef} className="col-span-full h-10 w-full flex items-center justify-center mt-8">
+                                {loadingMoreVideos && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                                {!hasMoreVideos && allVideos.length > 0 && (
+                                    <p className="text-muted-foreground text-sm">You've reached the end</p>
+                                )}
+                            </div>
                         </div>
                     )}
 
-                    {loadingMoreVideos && (
-                        <div className="py-8 text-center">
-                            <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
-                        </div>
-                    )}
 
                     <VideoBulkActions
                         selectedCount={selectedIds.size}
@@ -357,7 +392,7 @@ export default function YoursPage() {
                                     key={short._id}
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: index * 0.04 }}
+                                    transition={{ delay: (index % 24) * 0.04 }}
                                     className="relative group glass-card rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all cursor-pointer"
                                     onClick={() => navigate(`/watch/${short._id}`)}
                                 >
@@ -377,14 +412,14 @@ export default function YoursPage() {
                             ))}
                         </div>
                     )}
-                    {hasMoreShorts && !loadingMoreShorts && (
-                        <div className="text-center mt-8">
-                            <Button variant="outline" onClick={() => fetchMoreShorts()}>Load more</Button>
-                        </div>
-                    )}
-                    {loadingMoreShorts && (
-                        <div className="py-8 text-center"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></div>
-                    )}
+                    
+                    {/* Infinite Scroll Trigger */}
+                    <div ref={shortsRef} className="h-10 w-full flex items-center justify-center mt-8">
+                        {loadingMoreShorts && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                        {!hasMoreShorts && allShorts.length > 0 && (
+                            <p className="text-muted-foreground text-sm">You've reached the end</p>
+                        )}
+                    </div>
                 </>
             )}
 
@@ -417,6 +452,13 @@ export default function YoursPage() {
                                     onEditInit={() => navigate('/upload?tab=tweet')}
                                 />
                             ))}
+                            {/* Infinite Scroll Trigger */}
+                            <div ref={communityRef} className="h-10 w-full flex items-center justify-center mt-8">
+                                {loadingMoreTweets && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                                {!hasMoreTweets && allTweets.length > 0 && (
+                                    <p className="text-muted-foreground text-sm">You've reached the end</p>
+                                )}
+                            </div>
                         </div>
                     )}
                 </>

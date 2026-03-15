@@ -11,11 +11,11 @@ import { useAuth } from '../../context/AuthContext'
 import { toast } from 'sonner'
 import { likeService } from '../../services/api'
 
-export function TweetCard({ 
-    tweet, 
-    onDelete, 
-    onEditInit, 
-    hideActions = false 
+export function TweetCard({
+    tweet,
+    onDelete,
+    onEditInit,
+    hideActions = false
 }) {
     const { user } = useAuth()
     const [isLiked, setIsLiked] = useState(tweet?.isLikedByMe || false)
@@ -53,7 +53,7 @@ export function TweetCard({
             <Link to={`/@${tweet.owner?.username}`} className="shrink-0 h-fit block">
                 <Avatar src={getMediaUrl(tweet.owner?.avatar)} fallback={tweet.owner?.username} size="md" className="ring-1 ring-white/10 group-hover:ring-white/30 transition-all" />
             </Link>
-            
+
             <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-1">
                     <div className="flex items-center flex-wrap gap-x-2 text-[0.95rem]">

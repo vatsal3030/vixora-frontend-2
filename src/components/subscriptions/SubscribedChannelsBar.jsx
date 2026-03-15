@@ -1,19 +1,27 @@
-
-import { useRef } from 'react'
+import { useRef, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../ui/Avatar'
 import { CheckCircle2 } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { useAuth } from '../../context/AuthContext'
 
-export function SubscribedChannelsBar({ channels = [], isLoading, selectedChannelId, onSelectChannel }) {
+export function SubscribedChannelsBar({ channels: rawChannels = [], isLoading, selectedChannelId, onSelectChannel }) {
     const scrollContainerRef = useRef(null)
+    const { user: currentUser } = useAuth()
+
+    const channels = useMemo(() => {
+        return rawChannels.filter(c => (c._id || c.id) !== currentUser?._id && (c._id || c.id) !== currentUser?.id)
+    }, [rawChannels, currentUser])
 
     // Check for overflow to potentially show scroll hints (advanced polish, skipping for now to keep it simple)
 
     if (!isLoading && channels.length === 0) return null
 
     return (
-        <div className="relative group w-full mb-4">
+        <div className="relative group w-full mb-8 glass-card rounded-2xl border border-white/5 p-4 shadow-glass overflow-hidden">
+            {/* Background Atmosphere */}
+            <div className="absolute -inset-10 bg-gradient-to-r from-primary/10 via-transparent to-primary/10 blur-[80px] opacity-40 pointer-events-none" />
+            
             {/* Scroll Container */}
             <div
                 ref={scrollContainerRef}
@@ -42,9 +50,9 @@ export function SubscribedChannelsBar({ channels = [], isLoading, selectedChanne
 
                 {/* Loading Skeletons */}
                 {isLoading && Array.from({ length: 8 }).map((_, i) => (
-                    <div key={i} className="flex flex-col items-center gap-1.5 min-w-[64px] snap-start">
-                        <div className="w-14 h-14 rounded-full bg-secondary animate-pulse" />
-                        <div className="w-10 h-3 bg-secondary rounded animate-pulse" />
+                    <div key={i} className="flex flex-col items-center gap-2 min-w-[64px] snap-start">
+                        <div className="w-14 h-14 rounded-full glass-panel animate-pulse shadow-sm" />
+                        <div className="w-10 h-2 bg-white/5 rounded-full animate-pulse" />
                     </div>
                 ))}
 
@@ -59,10 +67,10 @@ export function SubscribedChannelsBar({ channels = [], isLoading, selectedChanne
                             className="flex flex-col items-center gap-1.5 min-w-[64px] snap-start group/item"
                         >
                             <div className={cn(
-                                "relative w-14 h-14 rounded-full p-0.5 transition-all duration-300 border border-transparent",
+                                "relative w-14 h-14 rounded-full p-0.5 transition-all duration-300",
                                 isSelected
-                                    ? "ring-2 ring-primary ring-offset-2 ring-offset-black shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-105"
-                                    : "hover:ring-2 hover:ring-white/20 hover:ring-offset-2 hover:ring-offset-black"
+                                    ? "ring-2 ring-primary bg-primary/10 shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-[1.05]"
+                                    : "hover:ring-2 hover:ring-white/20 hover:scale-105 hover:bg-white/5"
                             )}>
                                 <Avatar
                                     src={channel.avatar}

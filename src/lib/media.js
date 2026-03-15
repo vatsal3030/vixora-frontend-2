@@ -1,5 +1,12 @@
 export const getMediaUrl = (path) => {
+    // If path is an object from Cloudinary or similar, try to extract URL
+    if (path && typeof path === 'object') {
+        path = path.url || path.secure_url || path.path || path.filePath || '';
+    }
+
     if (!path || typeof path !== 'string') return '';
+    
+    // If it's already a full URL, return it
     if (path.startsWith('http') || path.startsWith('blob:') || path.startsWith('data:')) {
         return path;
     }

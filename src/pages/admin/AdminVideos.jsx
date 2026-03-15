@@ -20,7 +20,7 @@ export default function AdminVideos() {
         try {
             setLoading(true)
             const res = await adminService.getVideos({ limit: 50 })
-            setVideos(res.data.data?.items || res.data.data?.videos || [])
+            setVideos(res.data.data?.items || [])
         } catch (err) {
             console.error(err)
             toast.error('Failed to load videos')

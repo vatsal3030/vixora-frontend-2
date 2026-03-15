@@ -7,7 +7,7 @@ import {
     DialogDescription
 } from '../ui/Dialog'
 import { Button } from '../ui/Button'
-import { Copy, Check, Facebook, Twitter, MessageCircle, Link2, Mail, Linkedin, MoreHorizontal } from 'lucide-react'
+import { Copy, Check, Facebook, Twitter, MessageCircle, Mail, Linkedin, MoreHorizontal, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 // Simple SVG icons for missing Lucide ones
@@ -31,7 +31,6 @@ export function ShareDialog({ title, url, trigger, children }) {
                 setCopied(true)
                 toast.success('Link copied to clipboard!')
             } else {
-                // Fallback
                 const textArea = document.createElement("textarea");
                 textArea.value = shareUrl;
                 document.body.appendChild(textArea);
@@ -53,7 +52,6 @@ export function ShareDialog({ title, url, trigger, children }) {
         }
     }
 
-    // Check for native share support
     const canShare = typeof navigator !== 'undefined' && navigator.share
 
     const shareOptions = [
@@ -99,7 +97,6 @@ export function ShareDialog({ title, url, trigger, children }) {
         window.open(option.url, '_blank', 'width=600,height=400')
     }
 
-    // Use web share API if available
     const handleNativeShare = async () => {
         if (canShare) {
             try {
@@ -108,7 +105,7 @@ export function ShareDialog({ title, url, trigger, children }) {
                     url: shareUrl
                 })
             } catch {
-                // User cancelled or error occurred
+                // User cancelled
             }
         } else {
             toast.error("Sharing is not supported on this device/browser.")
@@ -117,45 +114,52 @@ export function ShareDialog({ title, url, trigger, children }) {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            {/* Trigger remains same, just ensure it doesn't break layout */}
             <div onClick={() => setOpen(true)} className="contents">
                 {trigger || children}
             </div>
 
-            <DialogContent className="w-[95vw] max-w-lg sm:max-w-[550px] max-h-[90vh] overflow-y-auto glass-panel border-white/5 text-foreground shadow-premium bg-black/40 backdrop-blur-xl p-0 gap-0">
-                <DialogHeader className="p-6 pb-2">
-                    <DialogTitle className="text-xl font-bold font-display">Share</DialogTitle>
-                    <DialogDescription className="text-muted-foreground">
+            <DialogContent hideClose className="w-[92vw] max-w-md sm:max-w-[480px] max-h-[85vh] overflow-y-auto glass-panel border-white/10 text-foreground shadow-premium bg-[#1a1a1a]/95 backdrop-blur-xl p-0 gap-0 rounded-2xl sm:rounded-3xl">
+                {/* Header */}
+                <DialogHeader className="p-5 pb-3">
+                    <div className="flex items-center justify-between">
+                        <DialogTitle className="text-lg font-bold font-display">Share</DialogTitle>
+                        <button
+                            onClick={() => setOpen(false)}
+                            className="p-1.5 hover:bg-white/10 rounded-full transition-colors text-muted-foreground hover:text-white"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <DialogDescription className="text-muted-foreground text-sm mt-1">
                         Share this video with your friends and community.
                     </DialogDescription>
                 </DialogHeader>
 
-                <div className="p-6 space-y-8">
-                    {/* Social Share Buttons */}
-                    <div className="space-y-4">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Social Networks</label>
-                        <div className="grid grid-cols-4 sm:grid-cols-7 gap-y-6 gap-x-2 justify-items-center">
+                <div className="px-5 pb-5 space-y-5">
+                    {/* Social Share Buttons — responsive grid */}
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Social Networks</label>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
                             {shareOptions.map((option) => (
                                 <button
                                     key={option.name}
                                     onClick={() => handleShare(option)}
-                                    className="flex flex-col items-center gap-2 group transition-all duration-300"
+                                    className="flex flex-col items-center gap-2 group transition-all duration-200 py-2"
                                 >
-                                    <div className={`w-14 h-14 rounded-full flex items-center justify-center glass-btn border border-white/10 group-hover:scale-110 transition-transform duration-300 ${option.color}`}>
-                                        <option.icon className="w-6 h-6" />
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-white/[0.06] border border-white/10 group-hover:scale-110 transition-all duration-200 ${option.color}`}>
+                                        <option.icon className="w-5 h-5" />
                                     </div>
                                     <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{option.name}</span>
                                 </button>
                             ))}
 
-                            {/* More Options Button (Integrated) */}
                             {canShare && (
                                 <button
                                     onClick={handleNativeShare}
-                                    className="flex flex-col items-center gap-2 group transition-all duration-300"
+                                    className="flex flex-col items-center gap-2 group transition-all duration-200 py-2"
                                 >
-                                    <div className="w-14 h-14 rounded-full flex items-center justify-center glass-btn border border-white/10 group-hover:bg-white/10 group-hover:scale-110 transition-transform duration-300">
-                                        <MoreHorizontal className="w-6 h-6 text-foreground" />
+                                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white/[0.06] border border-white/10 group-hover:bg-white/10 group-hover:scale-110 transition-all duration-200">
+                                        <MoreHorizontal className="w-5 h-5 text-foreground" />
                                     </div>
                                     <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">More</span>
                                 </button>
@@ -163,28 +167,28 @@ export function ShareDialog({ title, url, trigger, children }) {
                         </div>
                     </div>
 
-                    {/* Page Link - Redesigned for clarity */}
-                    <div className="space-y-3 pb-2">
-                        <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Page Link</label>
-                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 min-w-0">
-                            <div className="flex-1 glass-input rounded-xl px-4 py-2.5 text-sm text-muted-foreground font-mono truncate border border-white/5 bg-white/5 select-all min-w-0">
+                    {/* Page Link */}
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Page Link</label>
+                        <div className="flex items-center gap-2">
+                            <div className="flex-1 min-w-0 rounded-xl px-3 py-2.5 text-sm text-muted-foreground font-mono truncate border border-white/10 bg-white/[0.03] select-all overflow-hidden">
                                 {shareUrl}
                             </div>
                             <Button
                                 onClick={copyToClipboard}
-                                className={`h-11 px-6 rounded-xl font-medium shadow-lg transition-all duration-300 min-w-[100px] ${copied
-                                    ? 'bg-green-500/20 text-green-500 border border-green-500/20 hover:bg-green-500/30'
-                                    : 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/25'}`}
+                                className={`h-10 px-4 rounded-xl font-medium transition-all duration-200 shrink-0 ${copied
+                                    ? 'bg-green-500/20 text-green-400 border border-green-500/20 hover:bg-green-500/30'
+                                    : 'bg-primary text-primary-foreground hover:bg-primary/90'}`}
                             >
                                 {copied ? (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5">
                                         <Check className="w-4 h-4" />
-                                        <span>Copied</span>
+                                        <span className="text-sm">Copied</span>
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5">
                                         <Copy className="w-4 h-4" />
-                                        <span>Copy</span>
+                                        <span className="text-sm">Copy</span>
                                     </div>
                                 )}
                             </Button>

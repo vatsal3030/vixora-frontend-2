@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '../ui/Button'
 import { formatViews, formatDuration } from '../../lib/utils'
+import { getMediaUrl } from '../../lib/media'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,6 +16,7 @@ import { cn } from '../../lib/utils'
 
 export function PlaylistVideoItem({ video, index, onRemove }) {
     const actualVideo = video?.video || video
+    const vidId = actualVideo?._id || actualVideo?.id
     const {
         attributes,
         listeners,
@@ -22,7 +24,7 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
         transform,
         transition,
         isDragging
-    } = useSortable({ id: actualVideo?._id })
+    } = useSortable({ id: vidId })
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -53,8 +55,8 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
             </div>
 
             {/* Thumbnail */}
-            <Link to={`/watch/${actualVideo._id}`} className="relative h-[68px] w-[120px] rounded-lg overflow-hidden flex-shrink-0 cursor-pointer">
-                <img src={actualVideo.thumbnail} alt={actualVideo.title} className="bg-zinc-900 object-cover w-full h-full" />
+            <Link to={`/watch/${vidId}`} className="relative h-[68px] w-[120px] rounded-lg overflow-hidden flex-shrink-0 cursor-pointer">
+                <img src={getMediaUrl(actualVideo.thumbnail)} alt={actualVideo.title} className="bg-zinc-900 object-cover w-full h-full" />
                 <div className="absolute bottom-1 right-1 bg-black/80 px-1 rounded text-[10px] text-white font-medium">
                     {formatDuration(actualVideo.duration || 0)}
                 </div>
@@ -65,7 +67,7 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
 
             {/* Metadata */}
             <div className="flex-1 min-w-0 pr-2">
-                <Link to={`/watch/${actualVideo._id}`}>
+                <Link to={`/watch/${vidId}`}>
                     <h4 className="font-semibold text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">
                         {actualVideo.title}
                     </h4>
@@ -89,7 +91,7 @@ export function PlaylistVideoItem({ video, index, onRemove }) {
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onRemove(actualVideo._id)}>
+                    <DropdownMenuItem onClick={() => onRemove(vidId)}>
                         <Trash2 className="w-4 h-4 mr-2" />
                         Remove from playlist
                     </DropdownMenuItem>

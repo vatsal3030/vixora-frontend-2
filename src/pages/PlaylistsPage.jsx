@@ -1,12 +1,13 @@
-import { useState } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Plus, List, PlaySquare, User, Archive, Loader2, Music2, ArrowUpDown } from 'lucide-react' // Music2 as generic playlist icon
+import { useState, useMemo, useEffect } from 'react'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
+import { Plus, List, PlaySquare, User, Archive, Loader2, Music2, ArrowUpDown } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs'
 import { PlaylistGrid } from '../components/playlist/PlaylistGrid'
 import { PlaylistCard } from '../components/playlist/PlaylistCard'
 import { PlaylistModal } from '../components/playlist/PlaylistModal'
-import { playlistService } from '../services/api' // Adjust path if needed (pages/PlaylistsPage.jsx -> ../services/api)
+import { playlistService } from '../services/api'
 import { toast } from 'sonner'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import {
@@ -20,37 +21,61 @@ import { cn } from '../lib/utils'
 export default function PlaylistsPage() {
     useDocumentTitle('Playlists - Vixora')
     const queryClient = useQueryClient()
-    const [activeTab, setActiveTab] = useState('all') // 'all', 'owned', 'saved'
+    const [activeTab, setActiveTab] = useState('all') // 'all', 'playlists', 'courses', 'owned'
     const [sortBy, setSortBy] = useState('recent') // 'recent', 'oldest', 'a-z'
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingPlaylist, setEditingPlaylist] = useState(null)
 
-    // Data Fetching
-    const { data: playlists = [], isLoading } = useQuery({
-        queryKey: ['playlists', 'me'],
-        queryFn: async () => {
-            const res = await playlistService.getMyPlaylists()
-            const data = res.data.data
-            return data?.items || (Array.isArray(data) ? data : [])
-        }
+    // Data Fetching (Infinite)
+    const {
+        data,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useInfiniteQuery({
+        queryKey: ['playlists', 'me', sortBy, activeTab],
+        queryFn: async ({ pageParam = 1 }) => {
+            const res = await playlistService.getMyPlaylists({ 
+                page: pageParam, 
+                limit: 12,
+                sortBy,
+                tab: activeTab !== 'all' ? activeTab : undefined
+            })
+            return res.data
+        },
+        getNextPageParam: (lastPage) => {
+            const pagination = lastPage?.data?.pagination
+            if (!pagination) return undefined
+            return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
+        },
+        initialPageParam: 1
     })
 
-    // Prepare Tabs Data
-    const rawPlaylists = Array.isArray(playlists) ? playlists : []
-    const sortedPlaylists = [...rawPlaylists]
-        .filter(() => {
-            if (activeTab === 'all') return true
-            if (activeTab === 'owned') return true // We only have owned for now
-            if (activeTab === 'playlists') return true
-            return true
+    const { ref: loadMoreRef, inView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+    const rawPlaylists = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
+
+    // Local sorting for consistency as pages load
+    const sortedPlaylists = useMemo(() => {
+        return [...rawPlaylists].sort((a, b) => {
+            if (sortBy === 'oldest') return new Date(a.updatedAt || a.createdAt) - new Date(b.updatedAt || b.createdAt)
+            if (sortBy === 'a-z') return (a.name || '').localeCompare(b.name || '')
+            return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
         })
-        .sort((a, b) => {
-            if (sortBy === 'oldest') return new Date(a.updatedAt) - new Date(b.updatedAt)
-            if (sortBy === 'a-z') return a.name.localeCompare(b.name)
-            return new Date(b.updatedAt) - new Date(a.updatedAt)
-        })
+    }, [rawPlaylists, sortBy])
 
     // Mutations
     const createMutation = useMutation({
@@ -88,13 +113,13 @@ export default function PlaylistsPage() {
 
     const handleUpdate = (data) => {
         if (editingPlaylist) {
-            updateMutation.mutate({ id: editingPlaylist._id, data })
+            updateMutation.mutate({ id: editingPlaylist._id || editingPlaylist.id, data })
         }
     }
 
     const handleDelete = (playlist) => {
         if (window.confirm(`Delete playlist "${playlist.name}"?`)) {
-            deleteMutation.mutate(playlist._id)
+            deleteMutation.mutate(playlist._id || playlist.id)
         }
     }
 
@@ -106,14 +131,6 @@ export default function PlaylistsPage() {
     const openEditModal = (playlist) => {
         setEditingPlaylist(playlist)
         setIsModalOpen(true)
-    }
-
-    if (isLoading) {
-        return (
-            <div className="flex justify-center items-center h-[50vh]">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        )
     }
 
     return (
@@ -129,13 +146,12 @@ export default function PlaylistsPage() {
 
             {/* Filter Tabs */}
             <Tabs defaultValue="all" className="mb-8 w-full" onValueChange={setActiveTab}>
-                <TabsList className="bg-transparent p-0 border-b border-white/10 w-full justify-start rounded-none h-auto gap-8">
-                    {/* Custom Tab Triggers to match YouTube style (text only, underline on active) */}
+                <TabsList className="bg-transparent p-0 border-b border-white/10 w-full justify-start rounded-none h-auto gap-8 overflow-x-auto scrollbar-hide">
                     {['all', 'playlists', 'courses', 'owned'].map((tab) => (
                         <TabsTrigger
                             key={tab}
                             value={tab}
-                            className="capitalize rounded-none border-b-2 border-transparent px-0 pb-3 text-muted-foreground data-[state=active]:border-white data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:shadow-none transition-all"
+                            className="capitalize rounded-none border-b-2 border-transparent px-0 pb-3 text-sm font-medium text-muted-foreground data-[state=active]:border-white data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:shadow-none transition-all whitespace-nowrap"
                         >
                             {tab === 'all' ? 'Recently added' : tab}
                         </TabsTrigger>
@@ -169,8 +185,12 @@ export default function PlaylistsPage() {
             </div>
 
             {/* Content */}
-            {sortedPlaylists.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
+            {isLoading && rawPlaylists.length === 0 ? (
+                <div className="flex justify-center items-center h-[30vh]">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+            ) : sortedPlaylists.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-2xl border border-white/5">
                     <div className="w-20 h-20 bg-secondary/30 rounded-full flex items-center justify-center mb-6">
                         <Music2 className="w-10 h-10 text-muted-foreground" />
                     </div>
@@ -179,17 +199,26 @@ export default function PlaylistsPage() {
                     <Button onClick={openCreateModal}>Create Playlist</Button>
                 </div>
             ) : (
-                <PlaylistGrid>
-                    {sortedPlaylists.map(playlist => (
-                        <PlaylistCard
-                            key={playlist._id}
-                            playlist={playlist}
-                            onEdit={openEditModal}
-                            onDelete={handleDelete}
-                        // onShare can be implemented later
-                        />
-                    ))}
-                </PlaylistGrid>
+                <>
+                    <PlaylistGrid>
+                        {sortedPlaylists.map(playlist => (
+                            <PlaylistCard
+                                key={playlist._id || playlist.id}
+                                playlist={playlist}
+                                onEdit={openEditModal}
+                                onDelete={handleDelete}
+                            />
+                        ))}
+                    </PlaylistGrid>
+
+                    {/* Infinite Scroll Trigger */}
+                    <div ref={loadMoreRef} className="h-10 w-full flex items-center justify-center mt-8">
+                        {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                        {!hasNextPage && rawPlaylists.length > 0 && (
+                            <p className="text-muted-foreground text-sm">You've reached the end</p>
+                        )}
+                    </div>
+                </>
             )}
 
             {/* Modal */}

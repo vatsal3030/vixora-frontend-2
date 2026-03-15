@@ -196,11 +196,23 @@ export default function UploadPage() {
         })
     }
 
+    // Upload progress state
+    const [uploadProgress, setUploadProgress] = useState(0)
+    const [uploadStage, setUploadStage] = useState('') // 'preparing' | 'uploading-video' | 'uploading-thumbnail' | 'finalizing' | 'complete'
+    const uploadSubmittedRef = useRef(false)
 
     const handleSubmit = async () => {
         if (!videoFile || !thumbnailFile || !title) return
+        if (uploadSubmittedRef.current) {
+            toast.info('Upload already in progress, please wait...')
+            return
+        }
 
+        uploadSubmittedRef.current = true
         setUploading(true)
+        setUploadProgress(0)
+        setUploadStage('preparing')
+        toast.info('🚀 Upload starting! Please wait...')
 
         try {
             // 1. Create Upload Session & Get Video Upload Params
@@ -214,6 +226,8 @@ export default function UploadPage() {
             const sessionId = sessionRes.data.data.id
 
             // 2. Get Signatures (Video & Thumbnail)
+            setUploadStage('preparing')
+            setUploadProgress(5)
             const [videoSigRes, thumbSigRes] = await Promise.all([
                 videoService.getUploadSignature('video'),
                 videoService.getUploadSignature('thumbnail')
@@ -223,27 +237,36 @@ export default function UploadPage() {
             if (!videoSigData.cloudName || !videoSigData.signature) {
                 throw new Error("Failed to initialize secure upload session (Video)")
             }
-            // Ensure resourceType is set if not present
             if (!videoSigData.resourceType) videoSigData.resourceType = 'video'
 
             const thumbSigData = thumbSigRes.data.data
             if (!thumbSigData.cloudName || !thumbSigData.signature) {
                 throw new Error("Failed to initialize secure upload session (Thumbnail)")
             }
-            // Force 'image' for thumbnail upload to Cloudinary
             thumbSigData.resourceType = 'image'
 
+            // 3. Upload Video (with progress tracking — 10% to 80%)
+            setUploadStage('uploading-video')
+            setUploadProgress(10)
+            const videoData = await uploadToCloudinary(videoFile, videoSigData, {
+                onProgress: (pct) => {
+                    // Map video progress 0-100 to overall 10-75
+                    setUploadProgress(Math.round(10 + (pct * 0.65)))
+                }
+            })
 
+            // 4. Upload Thumbnail (75% to 90%)
+            setUploadStage('uploading-thumbnail')
+            setUploadProgress(75)
+            const thumbData = await uploadToCloudinary(thumbnailFile, thumbSigData, {
+                onProgress: (pct) => {
+                    setUploadProgress(Math.round(75 + (pct * 0.15)))
+                }
+            })
 
-            // 3. Upload Video
-            const videoData = await uploadToCloudinary(videoFile, videoSigData)
-
-            // 4. Upload Thumbnail
-            const thumbData = await uploadToCloudinary(thumbnailFile, thumbSigData)
-
-            // 5. Finalize
-            // SECURITY: Do not send trusted URLs. Backend will verify via publicId.
-            // STRICT API: Only send fields defined in FRONTEND_API_HANDOFF.md to avoid 400 Bad Request
+            // 5. Finalize (90% to 100%)
+            setUploadStage('finalizing')
+            setUploadProgress(90)
             const finalizePayload = {
                 title,
                 description,
@@ -257,7 +280,6 @@ export default function UploadPage() {
                 categories: selectedCategories.length > 0 ? selectedCategories : undefined
             }
 
-            // Include transcript inline in finalize if provided (backend supports it)
             if (transcript.trim()) {
                 finalizePayload.transcript = transcript.trim()
                 finalizePayload.transcriptLanguage = 'en'
@@ -266,10 +288,16 @@ export default function UploadPage() {
 
             const finalizeRes = await videoService.finalizeUpload(sessionId, finalizePayload)
 
+            setUploadProgress(100)
+            setUploadStage('complete')
+
             if (finalizeRes.data.success) {
                 const videoId = finalizeRes.data.data.videoId || finalizeRes.data.data.id
+                toast.success('🎉 Video uploaded successfully! Processing started.')
+                
+                // Wait a moment to show 100% before navigating
+                await new Promise(r => setTimeout(r, 1200))
 
-                toast.success('Video uploaded successfully! Processing started.')
                 if (videoId) {
                     navigate(`/watch/${videoId}`)
                 } else {
@@ -280,6 +308,7 @@ export default function UploadPage() {
         } catch (error) {
             console.error("Upload failed", error)
             toast.error(error.message || "Upload failed. Please try again.")
+            uploadSubmittedRef.current = false // Allow retry on error
         } finally {
             setUploading(false)
         }
@@ -293,11 +322,11 @@ export default function UploadPage() {
                     <Tabs defaultValue={defaultTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-2 mb-4 glass-panel border-white/5 relative z-20 h-14 p-1">
                             <TabsTrigger value="video" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center justify-center gap-2 rounded-xl transition-all duration-300">
-                                <Video className="w-4 h-4" /> 
+                                <Video className="w-4 h-4" />
                                 <span className="font-bold uppercase tracking-wider text-xs">Upload Video</span>
                             </TabsTrigger>
                             <TabsTrigger value="tweet" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center justify-center gap-2 rounded-xl transition-all duration-300">
-                                <MessageSquareHeart className="w-4 h-4" /> 
+                                <MessageSquareHeart className="w-4 h-4" />
                                 <span className="font-bold uppercase tracking-wider text-xs">Community Post</span>
                             </TabsTrigger>
                         </TabsList>
@@ -318,17 +347,17 @@ export default function UploadPage() {
                                                     onClick={() => (isPast || i < currentStep) && setCurrentStep(step.number)}
                                                     className={cn(
                                                         "relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
-                                                        isActive 
-                                                            ? "bg-primary text-primary-foreground shadow-[0_0_30px_rgba(239,68,68,0.3)] scale-110" 
-                                                            : isPast 
-                                                                ? "bg-secondary/80 text-primary border border-primary/20" 
+                                                        isActive
+                                                            ? "bg-primary text-primary-foreground shadow-[0_0_30px_rgba(239,68,68,0.3)] scale-110"
+                                                            : isPast
+                                                                ? "bg-secondary/80 text-primary border border-primary/20"
                                                                 : "bg-[#111] text-muted-foreground border border-white/5 opacity-50"
                                                     )}
                                                     whileHover={!isActive ? { scale: 1.05, opacity: 1 } : {}}
                                                 >
                                                     {isPast ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                                                 </motion.button>
-                                                
+
                                                 <div className="mt-3 flex flex-col items-center">
                                                     <span className={cn(
                                                         "text-[10px] font-bold uppercase tracking-widest transition-colors duration-300",
@@ -348,7 +377,7 @@ export default function UploadPage() {
                                                 {i < STEPS.length - 1 && (
                                                     <div className="absolute top-6 left-[calc(50%+1.5rem)] w-[calc(100%-3rem)] h-[2px] pointer-events-none hidden sm:block">
                                                         <div className="h-full w-full bg-white/5" />
-                                                        <motion.div 
+                                                        <motion.div
                                                             className="absolute top-0 left-0 h-full bg-primary"
                                                             initial={{ width: "0%" }}
                                                             animate={{ width: isPast ? "100%" : "0%" }}
@@ -451,7 +480,7 @@ export default function UploadPage() {
                                                 )}
                                             >
                                                 <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                                                <motion.div 
+                                                <motion.div
                                                     className="w-24 h-24 rounded-[2rem] bg-secondary/50 flex items-center justify-center mb-8 relative z-10 border border-white/5"
                                                     whileHover={{ rotate: [0, -5, 5, 0], scale: 1.1 }}
                                                 >
@@ -488,10 +517,10 @@ export default function UploadPage() {
                                                                 <h3 className="text-xl font-bold">Video Metadata</h3>
                                                                 <p className="text-sm text-muted-foreground font-light">Information about your broadcast</p>
                                                             </div>
-                                                            <Button 
-                                                                variant="ghost" 
-                                                                size="sm" 
-                                                                onClick={() => { setVideoFile(null); setCurrentStep(1) }} 
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => { setVideoFile(null); setCurrentStep(1) }}
                                                                 className="text-primary hover:bg-primary/10 rounded-xl"
                                                             >
                                                                 Change Video
@@ -661,9 +690,12 @@ export default function UploadPage() {
                                                         <p className="text-sm text-muted-foreground font-light line-clamp-2">{description || "No description provided"}</p>
                                                     </div>
                                                 </div>
-                                                <Button size="lg" onClick={handleSubmit} className="w-full h-16 rounded-[1.5rem] text-lg font-bold shadow-[0_20px_40px_-15px_rgba(239,68,68,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all relative z-10 group">
-                                                    <Upload className="w-5 h-5 mr-3 group-hover:translate-y-[-2px] transition-transform" />
-                                                    Initialize Broadcast
+                                                <Button size="lg" onClick={handleSubmit} disabled={uploading || uploadSubmittedRef.current} className="w-full h-16 rounded-[1.5rem] text-lg font-bold shadow-[0_20px_40px_-15px_rgba(239,68,68,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all relative z-10 group disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100">
+                                                    {uploading ? (
+                                                        <><Loader2 className="w-5 h-5 mr-3 animate-spin" /> Uploading... {uploadProgress}%</>
+                                                    ) : (
+                                                        <><Upload className="w-5 h-5 mr-3 group-hover:translate-y-[-2px] transition-transform" /> Initialize Broadcast</>
+                                                    )}
                                                 </Button>
                                             </div>
                                         </motion.div>
@@ -752,6 +784,68 @@ export default function UploadPage() {
                 aspect={16 / 9}
                 title="Crop Thumbnail"
             />
+
+            {/* Upload Progress Overlay */}
+            <AnimatePresence>
+                {uploading && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            className="w-[90vw] max-w-md p-8 rounded-3xl bg-[#1a1a1a] border border-white/10 shadow-2xl text-center space-y-6"
+                        >
+                            {/* Upload Icon */}
+                            <div className="mx-auto w-20 h-20 rounded-3xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                                {uploadStage === 'complete' ? (
+                                    <Check className="w-10 h-10 text-green-400" />
+                                ) : (
+                                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                                )}
+                            </div>
+
+                            {/* Progress Percentage */}
+                            <div>
+                                <p className="text-5xl font-bold text-white mb-1">{uploadProgress}%</p>
+                                <p className="text-muted-foreground text-sm">
+                                    {uploadStage === 'preparing' && 'Preparing upload session...'}
+                                    {uploadStage === 'uploading-video' && 'Uploading video...'}
+                                    {uploadStage === 'uploading-thumbnail' && 'Uploading thumbnail...'}
+                                    {uploadStage === 'finalizing' && 'Finalizing your broadcast...'}
+                                    {uploadStage === 'complete' && 'Upload complete! Redirecting...'}
+                                </p>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                <motion.div
+                                    className={cn(
+                                        "h-full rounded-full transition-colors duration-300",
+                                        uploadStage === 'complete' ? 'bg-green-500' : 'bg-primary'
+                                    )}
+                                    initial={{ width: '0%' }}
+                                    animate={{ width: `${uploadProgress}%` }}
+                                    transition={{ type: 'spring', stiffness: 100, damping: 20 }}
+                                />
+                            </div>
+
+                            {/* File Info */}
+                            <div className="text-xs text-muted-foreground space-y-1">
+                                <p className="truncate">📁 {videoFile?.name}</p>
+                                <p>{videoFile ? `${(videoFile.size / (1024 * 1024)).toFixed(1)} MB` : ''}</p>
+                            </div>
+
+                            {uploadStage !== 'complete' && (
+                                <p className="text-[10px] text-muted-foreground/60">Please do not close this page during the upload.</p>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </>
     )
 }

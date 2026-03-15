@@ -1,22 +1,52 @@
-import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { feedService } from '../services/api'
-import { Flame, AlertCircle } from 'lucide-react'
+import { Flame, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { motion } from 'framer-motion'
 
 export default function TrendingPage() {
     useDocumentTitle('Trending - Vixora')
-    const { data: videos = [], isLoading, error, refetch } = useQuery({
+
+    const {
+        data,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage,
+        isLoading,
+        refetch
+    } = useInfiniteQuery({
         queryKey: ['trending'],
-        queryFn: async () => {
-            const response = await feedService.getTrendingFeed({ limit: 24 })
-            return response?.data?.data?.items || []
+        queryFn: async ({ pageParam = 1 }) => {
+            const response = await feedService.getTrendingFeed({ page: pageParam, limit: 20 })
+            return response.data
         },
-        staleTime: 1000 * 60 * 10 // 10 minutes
+        getNextPageParam: (lastPage) => {
+            const pagination = lastPage?.data?.pagination
+            if (!pagination) return undefined
+            return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
+        },
+        staleTime: 1000 * 60 * 10, // 10 minutes
+        initialPageParam: 1
     })
+
+    const { ref: loadMoreRef, inView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+    const videos = data?.pages.flatMap(page => page.data?.items || []) || []
 
     return (
         <div className="space-y-6 py-6 container mx-auto px-4">
@@ -40,20 +70,19 @@ export default function TrendingPage() {
                     <Button onClick={() => refetch()} variant="outline">Try Again</Button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
-                    {isLoading && Array.from({ length: 8 }).map((_, i) => (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8 pb-10">
+                    {(isLoading || (isFetchingNextPage && videos.length === 0)) && Array.from({ length: 12 }).map((_, i) => (
                         <div key={`skeleton-${i}`}>
                             <VideoCardSkeleton />
                         </div>
                     ))}
 
-
-                    {!isLoading && videos.map((video, index) => (
+                    {videos.map((video, index) => (
                         <motion.div
                             key={video._id ? `${video._id}-${index}` : index}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: index * 0.05 }}
+                            transition={{ delay: (index % 20) * 0.05 }}
                         >
                             <VideoCard video={video} />
                         </motion.div>
@@ -64,6 +93,14 @@ export default function TrendingPage() {
                             No trending videos right now.
                         </div>
                     )}
+
+                    {/* Infinite Scroll Trigger */}
+                    <div ref={loadMoreRef} className="col-span-full h-10 w-full flex items-center justify-center mt-8">
+                        {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                        {!hasNextPage && videos.length > 0 && (
+                            <p className="text-muted-foreground text-sm">You've reached the end</p>
+                        )}
+                    </div>
                 </div>
             )}
         </div>

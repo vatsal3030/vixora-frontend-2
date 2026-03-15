@@ -102,7 +102,7 @@ export default function WatchPage() {
     const { data: recommendedRaw } = useQuery({
         queryKey: ['recommendations', videoId],
         queryFn: async () => {
-            const res = await feedService.getHomeFeed({ limit: 12 })
+            const res = await feedService.getHomeFeed({ limit: 20 })
             const items = res.data.data?.items || []
             // Shuffle recommended videos so they are different each time
             return [...items].sort(() => Math.random() - 0.5)
@@ -139,8 +139,8 @@ export default function WatchPage() {
     const handleVideoEnd = () => {
         if (!autoPlayNext) return
         let nextVideo = null
-        if (playlistId && (playlist?.items || playlist?.videos)) {
-            const playlistVideos = playlist.items || playlist.videos || []
+        if (playlistId && playlist?.items) {
+            const playlistVideos = playlist.items || []
             const currentIndex = playlistVideos.findIndex(v => v._id === videoId)
             if (currentIndex !== -1 && currentIndex < playlistVideos.length - 1) {
                 nextVideo = playlistVideos[currentIndex + 1]
@@ -238,12 +238,7 @@ export default function WatchPage() {
 
     const handleSubscribe = () => user ? subscribeMutation.mutate() : toast.error('Please login to subscribe')
 
-    const handleLike = () => {
-        if (!user) return toast.error('Please login to like')
-        setLikeAnimation(true)
-        setTimeout(() => setLikeAnimation(false), 600)
-        likeMutation.mutate()
-    }
+
 
     const handleSubmitComment = (e) => {
         e.preventDefault()
@@ -521,9 +516,9 @@ export default function WatchPage() {
                                             <p className="text-[10px] text-muted-foreground truncate">{playlist.owner?.username} - {playlist.videos.length} videos</p>
                                         </div>
                                         <div className="max-h-[300px] overflow-y-auto">
-                                            {(playlist.items || playlist.videos || []).map((v, i) => (
+                                            {(playlist.items || []).map((v, i) => (
                                                 <Link key={v._id} to={`/watch/${v._id}?list=${playlist._id}`}
-                                                    className={`flex gap-2 p-2 hover:bg-white/5 ${v._id === videoId && 'bg-white/10'}`}>
+                                                    className={`flex gap-2 p-2 hover:bg-white/5 ${v._id === videoId ? 'bg-white/10' : ''}`}>
                                                     <span className="text-[10px] text-gray-400 w-4 flex-shrink-0 flex items-center">{v._id === videoId ? <Play className="w-2.5 h-2.5 fill-white" /> : i + 1}</span>
                                                     <img src={v.thumbnail} className="w-20 h-11 object-cover rounded" />
                                                     <div className="min-w-0">

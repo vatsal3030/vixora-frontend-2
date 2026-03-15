@@ -119,6 +119,7 @@ export default function ForgotPasswordPage() {
 
     const resetPasswordMutation = useMutation({
         mutationFn: (data) => authService.resetPassword({
+            email,
             resetToken,
             newPassword: data.password,
             confirmPassword: data.confirmPassword

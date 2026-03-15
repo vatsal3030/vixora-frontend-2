@@ -105,6 +105,7 @@ function App() {
                   }>
                     <Route index element={<HomePage />} />
                     <Route path="shorts" element={<ShortsPage />} />
+                    <Route path="shorts/:videoId" element={<ShortsPage />} />
                     <Route path="trending" element={<TrendingPage />} />
                     <Route path="subscriptions" element={<SubscriptionsPage />} />
                     <Route path="my-videos" element={<MyVideosPage />} />
@@ -116,7 +117,8 @@ function App() {
                     {/* Playlist Routes */}
                     <Route path="playlists" element={<PlaylistsPage />} />
                     <Route path="playlists/trash" element={<PlaylistTrashPage />} />
-                    <Route path="playlist/:playlistId" element={<PlaylistDetailPage />} />
+                    <Route path="playlists/:playlistId" element={<PlaylistDetailPage />} />
+                    <Route path="playlist/:playlistId" element={<PlaylistDetailPage />} /> {/* Legacy Alias */}
 
                     <Route path="dashboard" element={<DashboardPage />} />
                     <Route path="notifications" element={<NotificationsPage />} />

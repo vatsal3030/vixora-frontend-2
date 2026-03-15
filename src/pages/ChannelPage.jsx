@@ -1,13 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useQuery, useInfiniteQuery } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 import { channelService } from '../services/api'
 import ChannelBanner from '../components/channel/ChannelBanner'
 import ChannelInfo from '../components/channel/ChannelInfo'
 import ChannelTabs from '../components/channel/ChannelTabs'
 import { VideoCard } from '../components/video/VideoCard'
-import { VideoCardSkeleton } from '../components/ui/Skeleton'
-import { ChannelCardSkeleton } from '../components/ui/Skeleton'
+import { VideoCardSkeleton, ChannelCardSkeleton } from '../components/ui/Skeleton'
 import { Share2, Pencil, MoreVertical, Layout, Grid, Smartphone, ListVideo, MessageSquare, Loader2 } from 'lucide-react'
 
 import { Button } from '../components/ui/Button'
@@ -21,30 +21,25 @@ const sanitizeUsername = (raw) => {
     return raw.startsWith('@') ? raw.slice(1) : raw
 }
 
-
-
 export default function ChannelPage() {
     const { username: rawUsername } = useParams()
     const username = sanitizeUsername(rawUsername)
     const [activeTab, setActiveTab] = useState('Videos')
 
-    // Handle case where username is 'null' (e.g. incomplete profile) - MOVED DOWN
+    // Handle case where username is 'null' (e.g. incomplete profile) 
     const isInvalidProfile = username === 'null' || !username
-
 
     // 1. Fetch Channel Profile
     const { data: channel, isLoading: loadingChannel, error: channelError } = useQuery({
         queryKey: ['channel', username],
         queryFn: async () => {
             try {
-                // 1. Get base user profile from username
                 const res = await channelService.getChannelByUsername(username)
-                const userData = res.data.data || res.data // fallback
+                const userData = res.data.data || res.data 
                 const channelId = userData?._id || userData?.id
 
                 if (!channelId) return userData
 
-                // 2. Try fetching the full channel profile (with stats, etc)
                 try {
                     const fullChannelRes = await channelService.getChannel(channelId)
                     return { ...userData, ...fullChannelRes.data?.data }
@@ -73,13 +68,13 @@ export default function ChannelPage() {
     } = useInfiniteQuery({
         queryKey: ['channelVideos', activeChannelId],
         queryFn: async ({ pageParam = 1 }) => {
-            const res = await channelService.getChannelVideos(activeChannelId, { page: pageParam, limit: 12 })
-            return res.data.data || res.data
+            const res = await channelService.getChannelVideos(activeChannelId, { page: pageParam, limit: 20 })
+            return res.data
         },
         enabled: !!activeChannelId && activeTab === 'Videos',
         getNextPageParam: (lastPage) => {
-            const p = lastPage?.pagination
-            return p?.hasNextPage ? (p.currentPage || p.page) + 1 : undefined
+            const p = lastPage?.data?.pagination
+            return p?.hasNextPage ? (p.currentPage || 1) + 1 : undefined
         },
         initialPageParam: 1
     })
@@ -87,25 +82,42 @@ export default function ChannelPage() {
     // 2b. Fetch Channel Shorts (Infinite)
     const {
         data: shortsData,
+        fetchNextPage: fetchNextShorts,
+        hasNextPage: hasMoreShorts,
+        isFetchingNextPage: loadingMoreShorts,
         isLoading: loadingShorts
     } = useInfiniteQuery({
         queryKey: ['channelShorts', activeChannelId],
         queryFn: async ({ pageParam = 1 }) => {
             const res = await channelService.getChannelShorts(activeChannelId, { page: pageParam, limit: 20 })
-            return res.data.data || res.data
+            return res.data
         },
         enabled: !!activeChannelId && activeTab === 'Shorts',
         getNextPageParam: (lastPage) => {
-            const p = lastPage?.pagination
-            return p?.hasNextPage ? (p.currentPage || p.page) + 1 : undefined
+            const p = lastPage?.data?.pagination
+            return p?.hasNextPage ? (p.currentPage || 1) + 1 : undefined
         },
         initialPageParam: 1
     })
 
-    // Backend contract: list endpoints return `items` only (api_contract §26 rule 2, §16)
-    const videos = videosData?.pages.flatMap(page => page?.items || page?.videos || page?.docs || []) || []
-    const shorts = shortsData?.pages.flatMap(page => page?.items || page?.shorts || page?.docs || []) || []
+    const videos = useMemo(() => videosData?.pages.flatMap(page => page.data?.items || []) || [], [videosData])
+    const shorts = shortsData?.pages.flatMap(page => page.data?.items || []) || []
 
+    // Infinite scroll for Videos
+    const { ref: videosRef, inView: videosInView } = useInView({ threshold: 0.1 })
+    useEffect(() => {
+        if (videosInView && hasMoreVideos && !loadingMoreVideos && activeTab === 'Videos') {
+            fetchNextVideos()
+        }
+    }, [videosInView, hasMoreVideos, loadingMoreVideos, activeTab, fetchNextVideos])
+
+    // Infinite scroll for Shorts
+    const { ref: shortsRef, inView: shortsInView } = useInView({ threshold: 0.1 })
+    useEffect(() => {
+        if (shortsInView && hasMoreShorts && !loadingMoreShorts && activeTab === 'Shorts') {
+            fetchNextShorts()
+        }
+    }, [shortsInView, hasMoreShorts, loadingMoreShorts, activeTab, fetchNextShorts])
 
     // 3. Fetch Channel Playlists
     const { data: playlists = [], isLoading: loadingPlaylists } = useQuery({
@@ -128,7 +140,6 @@ export default function ChannelPage() {
         },
         enabled: !!activeChannelId && activeTab === 'Tweets'
     })
-
 
     useDocumentTitle(channel?.fullName ? `${channel.fullName} - Vixora` : 'Vixora')
 
@@ -204,17 +215,12 @@ export default function ChannelPage() {
                                         </div>
                                     ))}
                                 </div>
-                                {hasMoreVideos && (
-                                    <div className="flex justify-center mt-8">
-                                        <Button
-                                            variant="ghost"
-                                            onClick={() => fetchNextVideos()}
-                                            disabled={loadingMoreVideos}
-                                        >
-                                            {loadingMoreVideos ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Load More'}
-                                        </Button>
-                                    </div>
-                                )}
+                                <div ref={videosRef} className="h-10 w-full flex items-center justify-center mt-8">
+                                    {loadingMoreVideos && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                                    {!hasMoreVideos && videos.length > 0 && (
+                                        <p className="text-muted-foreground text-sm">You've reached the end</p>
+                                    )}
+                                </div>
                             </>
                         )}
                     </>
@@ -237,27 +243,35 @@ export default function ChannelPage() {
                             </p>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                            {shorts.map((video, index) => (
-                                <Link
-                                    to={`/watch/${video._id}`}
-                                    key={video._id}
-                                    className="group relative aspect-[9/16] rounded-xl overflow-hidden bg-black glass-panel border-0 animate-in fade-in zoom-in-95 duration-500"
-                                    style={{ animationDelay: `${index * 50}ms` }}
-                                >
-                                    <img
-                                        src={video.thumbnail}
-                                        alt={video.title}
-                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-                                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                                        <h3 className="text-white font-medium text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">{video.title}</h3>
-                                        <p className="text-xs text-white/70">{formatViews(video.views)}</p>
-                                    </div>
-                                </Link>
-                            ))}
-                        </div>
+                        <>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                {shorts.map((video, index) => (
+                                    <Link
+                                        to={`/watch/${video._id}`}
+                                        key={video._id}
+                                        className="group relative aspect-[9/16] rounded-xl overflow-hidden bg-black glass-panel border-0 animate-in fade-in zoom-in-95 duration-500"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        <img
+                                            src={video.thumbnail}
+                                            alt={video.title}
+                                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+                                        <div className="absolute bottom-0 left-0 right-0 p-3">
+                                            <h3 className="text-white font-medium text-sm line-clamp-2 mb-1 group-hover:text-primary transition-colors">{video.title}</h3>
+                                            <p className="text-xs text-white/70">{formatViews(video.views)}</p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                            <div ref={shortsRef} className="h-10 w-full flex items-center justify-center mt-8">
+                                {loadingMoreShorts && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                                {!hasMoreShorts && shorts.length > 0 && (
+                                    <p className="text-muted-foreground text-sm">You've reached the end</p>
+                                )}
+                            </div>
+                        </>
                     )
                 )}
 
@@ -290,7 +304,7 @@ export default function ChannelPage() {
                                             )}
                                             {/* Overlay for playlist count */}
                                             <div className="absolute inset-y-0 right-0 w-1/3 bg-black/60 flex flex-col items-center justify-center text-white backdrop-blur-sm">
-                                                <span className="font-bold text-lg">{playlist.totalVideos || 0}</span>
+                                                <span className="font-bold text-lg">{playlist.totalVideos || playlist.videoCount || 0}</span>
                                                 <ListVideo className="w-5 h-5 mt-1" />
                                             </div>
                                         </div>
@@ -325,7 +339,6 @@ export default function ChannelPage() {
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="font-semibold text-foreground">{channel.fullName || channel.username}</span>
                                                 <span className="text-xs text-muted-foreground">{formatTimeAgo(tweet.createdAt)}</span>
-                                                {/* Add Like button logic here later if needed */}
                                             </div>
                                             <p className="text-foreground/90 whitespace-pre-wrap">{tweet.content}</p>
                                             <div className="flex items-center gap-6 mt-4 text-muted-foreground">
@@ -333,7 +346,6 @@ export default function ChannelPage() {
                                                     <MessageSquare className="w-4 h-4" />
                                                     <span className="text-xs font-medium">0</span>
                                                 </button>
-                                                {/* Add Like button logic here later if needed */}
                                             </div>
                                         </div>
                                     </div>
@@ -354,7 +366,7 @@ export default function ChannelPage() {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-8 border-t border-border">
                                 {[
-                                    { label: 'Joined', value: channel.stats?.joinedAt || channel.createdAt ? new Date(channel.stats?.joinedAt || channel.createdAt).toLocaleDateString() : 'N/A' },
+                                    { label: 'Joined', value: channel.stats?.joinedAt || channel.createdAt || channel.joinedAt ? new Date(channel.stats?.joinedAt || channel.createdAt || channel.joinedAt).toLocaleDateString() : 'N/A' },
                                     { label: 'Views', value: (channel.stats?.totalViews || channel.totalViews || channel.views || 0).toLocaleString() },
                                     { label: 'Subscribers', value: (channel.stats?.subscribersCount || channel.subscribersCount || channel.subscribers || 0).toLocaleString() },
                                     { label: 'Videos', value: (channel.stats?.totalVideos || channel.videosCount || channel.totalVideos || 0).toLocaleString() }
@@ -364,7 +376,6 @@ export default function ChannelPage() {
                                         <span className="text-foreground font-bold text-lg group-hover:text-primary transition-colors">{stat.value}</span>
                                     </div>
                                 ))}
-                                {/* Social links or other info could go here */}
                             </div>
                         </div>
                     </div>

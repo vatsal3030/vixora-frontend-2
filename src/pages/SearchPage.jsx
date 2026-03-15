@@ -1,9 +1,10 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useState, useMemo, useEffect } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 import { searchService } from '../services/api'
 import { VideoCard } from '../components/video/VideoCard'
 import { Loader2, SearchX, History, X, Trash2, Filter } from 'lucide-react'
@@ -22,18 +23,18 @@ export default function SearchPage() {
     const query = searchParams.get('q') || ''
     const sortBy = searchParams.get('sortBy') || 'relevance'
     const sortType = searchParams.get('sortType') || 'desc'
-    
+
     useDocumentTitle(query ? `Search: ${query} - Vixora` : 'Search - Vixora')
-    
+
     const [filter, setFilter] = useState('All') // All, Videos, Channels, Shorts, Playlists, Tweets
-    
+
     // Search History State
     const [history, setHistory] = useState(() => {
         try {
             return JSON.parse(localStorage.getItem('vixora_search_history')) || []
         } catch { return [] }
     })
-    
+
     useEffect(() => {
         if (query.trim() && !history.includes(query.trim())) {
             const newHistory = [query.trim(), ...history.filter(h => h !== query.trim())].slice(0, 10)
@@ -69,70 +70,97 @@ export default function SearchPage() {
         })
     }
 
-    // Scoped queries as per backend update
-    const { data: searchResults = {}, isLoading, error } = useQuery({
+    // Scoped queries with Infinite Scroll
+    const { 
+        data: searchData, 
+        isLoading, 
+        error, 
+        fetchNextPage, 
+        hasNextPage, 
+        isFetchingNextPage,
+        refetch 
+    } = useInfiniteQuery({
         queryKey: ['search', query, filter, sortBy, sortType],
-        queryFn: async () => {
+        queryFn: async ({ pageParam = 1 }) => {
             if (!query) return {}
-            
+
             let scope = 'all'
             if (filter === 'Videos') scope = 'videos'
             else if (filter === 'Channels') scope = 'channels'
             else if (filter === 'Shorts') scope = 'shorts'
             else if (filter === 'Playlists') scope = 'playlists'
             else if (filter === 'Tweets') scope = 'tweets'
-            
+
             const params = {
                 q: query,
                 scope,
                 sortBy,
                 sortType
             }
-            
+
             if (scope === 'all') {
-                params.perTypeLimit = 8
+                params.limit = 40 // Larger limit for "All" tab since it's not paginated easily
             } else {
-                params.page = 1
+                params.page = pageParam
                 params.limit = 20
             }
-            
+
             const response = await searchService.globalSearch(params)
             return response.data.data
         },
+        getNextPageParam: (lastPage) => {
+            if (filter === 'All') return undefined // No standard pagination for "All"
+            const pagination = lastPage?.pagination
+            if (!pagination) return undefined
+            return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
+        },
         enabled: !!query,
         staleTime: 1000 * 60 * 1,
+        initialPageParam: 1
     })
 
-    const allVideos = useMemo(() => filter === 'All' ? searchResults?.results?.videos || [] : (filter === 'Videos' ? searchResults?.items || [] : []), [searchResults, filter])
-    const allChannels = useMemo(() => filter === 'All' ? searchResults?.results?.channels || [] : (filter === 'Channels' ? searchResults?.items || [] : []), [searchResults, filter])
-    const allShorts = useMemo(() => filter === 'All' ? searchResults?.results?.shorts || [] : (filter === 'Shorts' ? searchResults?.items || [] : []), [searchResults, filter])
-    const allPlaylists = useMemo(() => filter === 'All' ? searchResults?.results?.playlists || [] : (filter === 'Playlists' ? searchResults?.items || [] : []), [searchResults, filter])
-    const allTweets = useMemo(() => filter === 'All' ? searchResults?.results?.tweets || [] : (filter === 'Tweets' ? searchResults?.items || [] : []), [searchResults, filter])
+    const { ref: loadMoreRef, inView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage && filter !== 'All') {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage, filter])
+
+    // Standardize data extraction
+    const searchResults = useMemo(() => {
+        if (filter === 'All') return searchData?.pages[0] || {}
+        return {}
+    }, [searchData, filter])
+
+    const displayItems = useMemo(() => {
+        return searchData?.pages.flatMap(page => page.items || []) || []
+    }, [searchData])
+
+    const allVideos = useMemo(() => filter === 'All' ? searchResults?.results?.videos || [] : (filter === 'Videos' ? displayItems : []), [searchResults, filter, displayItems])
+    const allChannels = useMemo(() => filter === 'All' ? searchResults?.results?.channels || [] : (filter === 'Channels' ? displayItems : []), [searchResults, filter, displayItems])
+    const allShorts = useMemo(() => filter === 'All' ? searchResults?.results?.shorts || [] : (filter === 'Shorts' ? displayItems : []), [searchResults, filter, displayItems])
+    const allPlaylists = useMemo(() => filter === 'All' ? searchResults?.results?.playlists || [] : (filter === 'Playlists' ? displayItems : []), [searchResults, filter, displayItems])
+    const allTweets = useMemo(() => filter === 'All' ? searchResults?.results?.tweets || [] : (filter === 'Tweets' ? displayItems : []), [searchResults, filter, displayItems])
 
     if (error) {
         toast.error('Search failed')
         console.error("Search error:", error)
     }
 
-    const displayItems = useMemo(() => {
-        if (filter === 'Channels') return allChannels
-        if (filter === 'Videos') return allVideos
-        if (filter === 'Shorts') return allShorts
-        if (filter === 'Playlists') return allPlaylists
-        if (filter === 'Tweets') return allTweets
-        return []
-    }, [filter, allVideos, allChannels, allShorts, allPlaylists, allTweets])
-
     const totalResultsCount = useMemo(() => {
         if (filter === 'All') {
-            return (searchResults?.totals?.videos || 0) + 
-                   (searchResults?.totals?.channels || 0) + 
-                   (searchResults?.totals?.shorts || 0) + 
-                   (searchResults?.totals?.playlists || 0) + 
-                   (searchResults?.totals?.tweets || 0)
+            return (searchResults?.totals?.videos || 0) +
+                (searchResults?.totals?.channels || 0) +
+                (searchResults?.totals?.shorts || 0) +
+                (searchResults?.totals?.playlists || 0) +
+                (searchResults?.totals?.tweets || 0)
         }
-        return searchResults?.pagination?.totalItems || displayItems.length
-    }, [searchResults, filter, displayItems])
+        return searchData?.pages[0]?.pagination?.totalItems || displayItems.length
+    }, [searchResults, filter, displayItems, searchData])
 
     const renderEmptyState = () => (
         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-20 text-center">
@@ -154,13 +182,13 @@ export default function SearchPage() {
         const videosFirstBatch = allVideos.slice(0, 3)
         const videosRemaining = allVideos.slice(3)
         const topChannel = allChannels.length > 0 ? allChannels[0] : null
-        
+
         return (
             <div className="flex flex-col gap-6 max-w-5xl mx-auto w-full">
                 {/* 1. Top Channel Match styling matching YouTube search */}
                 {topChannel && (
                     <div className="w-full border-b border-white/10 pb-6 mb-2">
-                        <Link to={`/@${topChannel.username}`} className="flex flex-col sm:flex-row items-center sm:items-start gap-6 group hover:bg-white/5 p-4 rounded-xl transition-colors">
+                        <div onClick={() => navigate(`/@${topChannel.username}`)} className="flex flex-col sm:flex-row items-center sm:items-start gap-6 group hover:bg-white/5 p-4 rounded-xl transition-colors cursor-pointer">
                             <div className="sm:w-[320px] md:w-[360px] flex justify-center shrink-0">
                                 <Avatar src={getMediaUrl(topChannel.avatar)} fallback={topChannel.username} size="xl" className="w-32 h-32 ring-1 ring-white/10 group-hover:ring-primary/50 transition-all" />
                             </div>
@@ -173,14 +201,14 @@ export default function SearchPage() {
                                 </div>
                                 <p className="mt-3 text-sm text-muted-foreground line-clamp-2 max-w-2xl">{topChannel.description}</p>
                                 <div className="mt-4 flex sm:hidden justify-center items-center">
-                                    <Button variant="secondary" className="rounded-full">Subscribe</Button>
+                                    <Button variant="secondary" onClick={(e) => e.stopPropagation()} className="rounded-full">Subscribe</Button>
                                 </div>
                             </div>
                             {/* Desktop View Channel Button */}
                             <div className="hidden sm:flex flex-col justify-center h-32 pr-4 lg:pr-12 shrink-0">
-                                <Button variant="secondary" className="rounded-full px-6 transition-all hover:bg-primary hover:text-white">Subscribe</Button>
+                                <Button variant="secondary" onClick={(e) => e.stopPropagation()} className="rounded-full px-6 transition-all hover:bg-primary hover:text-white">Subscribe</Button>
                             </div>
-                        </Link>
+                        </div>
                     </div>
                 )}
 
@@ -315,7 +343,7 @@ export default function SearchPage() {
             {isLoading ? (
                 <div className="max-w-5xl mx-auto flex flex-col gap-4">
                     {Array.from({ length: 5 }).map((_, i) => (
-                         // Roughly mimic a horizontal skeleton
+                        // Roughly mimic a horizontal skeleton
                         <div key={i} className="flex flex-col sm:flex-row gap-4 sm:gap-6 w-full animate-pulse">
                             <div className="bg-white/5 w-full sm:w-[320px] md:w-[360px] aspect-video rounded-xl shrink-0" />
                             <div className="flex flex-col gap-3 py-2 w-full max-w-md">
@@ -338,11 +366,11 @@ export default function SearchPage() {
                             {displayItems.map(item => <VideoCard key={item._id || item.id} video={item} type="search" />)}
                         </div>
                     )}
-                    
+
                     {filter === 'Channels' && (
                         <div className="flex flex-col gap-2">
                             {displayItems.map(item => (
-                                <Link key={item.id || item._id} to={`/@${item.username}`} className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 p-4 rounded-xl hover:bg-white/5 transition-colors group">
+                                <div key={item.id || item._id} onClick={() => navigate(`/@${item.username}`)} className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 p-4 rounded-xl hover:bg-white/5 transition-colors group cursor-pointer">
                                     <div className="w-[320px] md:w-[360px] flex justify-center shrink-0">
                                         <Avatar src={getMediaUrl(item.avatar)} fallback={item.username} size="xl" className="w-28 h-28 ring-1 ring-white/10 group-hover:ring-white/30 transition-all" />
                                     </div>
@@ -352,9 +380,9 @@ export default function SearchPage() {
                                         <p className="mt-3 text-sm text-muted-foreground line-clamp-2 max-w-2xl">{item.description}</p>
                                     </div>
                                     <div className="hidden sm:flex flex-col justify-center h-28 shrink-0 pr-8">
-                                       <Button variant="secondary" className="rounded-full px-6 transition-all hover:bg-primary hover:text-white">Subscribe</Button>
+                                        <Button variant="secondary" onClick={(e) => e.stopPropagation()} className="rounded-full px-6 transition-all hover:bg-primary hover:text-white">Subscribe</Button>
                                     </div>
-                                </Link>
+                                </div>
                             ))}
                         </div>
                     )}
@@ -373,19 +401,29 @@ export default function SearchPage() {
                             ))}
                         </div>
                     )}
-                    
+
                     {filter === 'Playlists' && (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
                             {displayItems.map(item => <PlaylistCard key={item._id || item.id} playlist={item} />)}
                         </div>
                     )}
-                    
+
                     {filter === 'Tweets' && (
-                         <div className="flex flex-col gap-4 max-w-3xl">
+                        <div className="flex flex-col gap-4 max-w-3xl">
                             {displayItems.map(item => (
                                 <TweetCard key={item._id || item.id} tweet={item} hideActions />
                             ))}
-                         </div>
+                        </div>
+                    )}
+
+                    {/* Infinite Scroll Trigger */}
+                    {filter !== 'All' && (
+                        <div ref={loadMoreRef} className="h-10 w-full flex items-center justify-center mt-8">
+                            {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                            {!hasNextPage && displayItems.length > 0 && (
+                                <p className="text-muted-foreground text-sm">You've reached the end</p>
+                            )}
+                        </div>
                     )}
                 </div>
             )}

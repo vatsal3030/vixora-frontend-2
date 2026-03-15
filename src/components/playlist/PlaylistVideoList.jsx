@@ -29,8 +29,8 @@ export function PlaylistVideoList({ videos, onReorder, onRemove }) {
         const { active, over } = event
 
         if (active.id !== over?.id) {
-            const oldIndex = videos.findIndex(v => v._id === active.id)
-            const newIndex = videos.findIndex(v => v._id === over.id)
+            const oldIndex = videos.findIndex(v => (v._id || v.id) === active.id)
+            const newIndex = videos.findIndex(v => (v._id || v.id) === over.id)
 
             const newVideos = arrayMove(videos, oldIndex, newIndex)
             onReorder(newVideos)
@@ -53,13 +53,13 @@ export function PlaylistVideoList({ videos, onReorder, onRemove }) {
             onDragEnd={handleDragEnd}
         >
             <SortableContext
-                items={videos.map(v => v._id)}
+                items={videos.map(v => v._id || v.id)}
                 strategy={verticalListSortingStrategy}
             >
                 <div className="flex flex-col gap-2 pb-10">
                     {videos.map((video, index) => (
                         <PlaylistVideoItem
-                            key={video._id}
+                            key={video._id || video.id}
                             video={video}
                             index={index}
                             onRemove={onRemove}

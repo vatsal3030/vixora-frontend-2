@@ -1,5 +1,7 @@
 import api from './axios'
 
+const DEFAULT_LIMIT = 20
+
 // Auth Service
 export const authService = {
     register: (formData) => api.post('/users/register', formData),
@@ -18,16 +20,19 @@ export const authService = {
 // Video Service
 export const videoService = {
     getVideos: (params = {}) => {
-        const defaultParams = { page: 1, limit: 20, sortBy: 'createdAt', sortType: 'desc', ...params }
+        const defaultParams = { page: 1, limit: DEFAULT_LIMIT, sortBy: 'createdAt', sortType: 'desc', ...params }
         return api.get('/videos', { params: defaultParams })
     },
     getVideo: (videoId) => api.get(`/videos/${videoId}`),
-    getMyVideos: (params = {}) => api.get('/videos/me', { params }),
-    getDeletedVideos: (params = {}) => api.get('/videos/trash/me', { params }),
+    getMyVideos: (params = {}) => api.get('/videos/me', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getDeletedVideos: (params = {}) => api.get('/videos/trash/me', { params: { limit: DEFAULT_LIMIT, ...params } }),
 
     // --- New Direct Cloudinary Upload Flow ---
     // 1. Create Session
     createUploadSession: (data) => api.post('/upload/session', data),
+    
+    // 1.5. Cancel Session
+    cancelUploadSession: (sessionId) => api.patch(`/upload/session/${sessionId}/cancel`),
 
     // 2. Get Signatures (resourceType: 'video' | 'thumbnail' | 'avatar' | 'post')
     getUploadSignature: (resourceType) => api.get('/upload/signature', { params: { resourceType } }),
@@ -40,24 +45,26 @@ export const videoService = {
 
     // 5. Processing & Publish
     getProcessingStatus: (videoId) => api.get(`/videos/${videoId}/processing-status`),
-    publishVideo: (videoId) => api.patch(`/videos/${videoId}/publish`),
     cancelProcessing: (videoId) => api.patch(`/videos/${videoId}/cancel-processing`),
-    // -----------------------------------------
-
-    updateVideo: (videoId, data) => api.patch(`/videos/${videoId}`, data),
     deleteVideo: (videoId) => api.delete(`/videos/${videoId}`),
     restoreVideo: (videoId) => api.patch(`/videos/${videoId}/restore`),
-    getUserVideos: (userId, params = {}) => api.get(`/videos/user/${userId}`, { params }),
+    getUserVideos: (userId, params = {}) => api.get(`/videos/user/${userId}`, { params: { limit: DEFAULT_LIMIT, ...params } }),
     // PATCH /videos/:videoId/publish  — toggles publish state (per api_contract.md section 7.3)
     togglePublish: (videoId) => api.patch(`/videos/${videoId}/publish`),
 }
 
 // Comment Service  
 export const commentService = {
-    getComments: (videoId, params = {}) => api.get(`/comments/${videoId}`, { params }),
+    getComments: (videoId, params = {}) => api.get(`/comments/${videoId}`, { params: { limit: DEFAULT_LIMIT, ...params } }),
     addComment: (videoId, content) => api.post(`/comments/${videoId}`, { content }),
     updateComment: (commentId, content) => api.patch(`/comments/c/${commentId}`, { content }),
     deleteComment: (commentId) => api.delete(`/comments/c/${commentId}`)
+}
+
+// Media Service
+export const mediaService = {
+    finalizeImageUpload: (sessionId, data) => api.post(`/media/finalize/${sessionId}`, data),
+    deleteImage: (type) => api.delete(`/media/${type}`)
 }
 
 // Like Service
@@ -65,7 +72,7 @@ export const likeService = {
     toggleVideoLike: (videoId) => api.post(`/likes/toggle/v/${videoId}`),
     toggleCommentLike: (commentId) => api.post(`/likes/toggle/c/${commentId}`),
     toggleTweetLike: (tweetId) => api.post(`/likes/toggle/t/${tweetId}`),
-    getLikedVideos: (params = {}) => api.get('/likes/videos', { params })
+    getLikedVideos: (params = {}) => api.get('/likes/videos', { params: { limit: DEFAULT_LIMIT, ...params } })
 }
 
 // Subscription Service
@@ -74,9 +81,9 @@ export const subscriptionService = {
     setNotificationLevel: (channelId, level) => api.patch(`/subscriptions/c/${channelId}/notifications`, { level }),
     getSubscriptionStatus: (channelId) => api.get(`/subscriptions/c/${channelId}/status`),
     getSubscriberCount: (channelId) => api.get(`/subscriptions/c/${channelId}/subscribers/count`),
-    getSubscriptions: (params = {}) => api.get('/subscriptions/u/subscriptions', { params }),
+    getSubscribedChannels: (params = {}) => api.get('/subscriptions/u/subscriptions', { params: { limit: DEFAULT_LIMIT, ...params } }),
     // Subscribed channel videos feed (uses /feed/subscriptions, not /subscriptions)
-    getSubscribedVideos: (params = {}) => api.get('/feed/subscriptions', { params })
+    getSubscribedVideos: (params = {}) => api.get('/feed/subscriptions', { params: { limit: DEFAULT_LIMIT, ...params } })
 }
 
 // Channel Service
@@ -85,10 +92,10 @@ export const channelService = {
     getChannelAbout: (channelId) => api.get(`/channels/${channelId}/about`),
     getChannelByUsername: (username) => api.get(`/users/u/${username}`),
     // These use the correct /channels/:id/* endpoints (not /videos/user/:id)
-    getChannelVideos: (channelId, params = {}) => api.get(`/channels/${channelId}/videos`, { params }),
-    getChannelShorts: (channelId, params = {}) => api.get(`/channels/${channelId}/shorts`, { params }),
-    getChannelPlaylists: (channelId, params = {}) => api.get(`/channels/${channelId}/playlists`, { params }),
-    getChannelTweets: (channelId, params = {}) => api.get(`/channels/${channelId}/tweets`, { params })
+    getChannelVideos: (channelId, params = {}) => api.get(`/channels/${channelId}/videos`, { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getChannelShorts: (channelId, params = {}) => api.get(`/channels/${channelId}/shorts`, { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getChannelPlaylists: (channelId, params = {}) => api.get(`/channels/${channelId}/playlists`, { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getChannelTweets: (channelId, params = {}) => api.get(`/channels/${channelId}/tweets`, { params: { limit: DEFAULT_LIMIT, ...params } })
 }
 
 // User Service
@@ -112,25 +119,25 @@ export const userService = {
 
 // Feed Service
 export const feedService = {
-    getHomeFeed: (params = {}) => api.get('/feed/home', { params }),
-    getSubscriptionsFeed: (params = {}) => api.get('/feed/subscriptions', { params }),
-    getTrendingFeed: (params = {}) => api.get('/feed/trending', { params }),
-    getShortsFeed: (params = {}) => api.get('/feed/shorts', { params }),
+    getHomeFeed: (params = {}) => api.get('/feed/home', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getSubscriptionsFeed: (params = {}) => api.get('/feed/subscriptions', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getTrendingFeed: (params = {}) => api.get('/feed/trending', { params: { limit: 24, ...params } }),
+    getShortsFeed: (params = {}) => api.get('/feed/shorts', { params: { limit: DEFAULT_LIMIT, ...params } }),
     // Tag system
-    getTags: (params = {}) => api.get('/feed/tags', { params }),
-    getTagFeed: (tagName, params = {}) => api.get(`/feed/tags/${encodeURIComponent(tagName)}`, { params })
+    getTags: (params = {}) => api.get('/feed/tags', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getTagFeed: (tagName, params = {}) => api.get(`/feed/tags/${encodeURIComponent(tagName)}`, { params: { limit: DEFAULT_LIMIT, ...params } })
 }
 
 // Search Service
 export const searchService = {
-    globalSearch: (params = {}) => api.get('/search', { params })
+    globalSearch: (params = {}) => api.get('/search', { params: { limit: DEFAULT_LIMIT, ...params } })
 }
 
 // Playlist Service
 export const playlistService = {
-    getMyPlaylists: (params = {}) => api.get('/playlists/user/me', { params }),
-    getUserPlaylists: (userId, params = {}) => api.get(`/playlists/user/${userId}`, { params }),
-    getDeletedPlaylists: () => api.get('/playlists/trash/me'),
+    getMyPlaylists: (params = {}) => api.get('/playlists/user/me', { params: { limit: 100, ...params } }),
+    getUserPlaylists: (userId, params = {}) => api.get(`/playlists/user/${userId}`, { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getDeletedPlaylists: (params = {}) => api.get('/playlists/trash/me', { params: { limit: DEFAULT_LIMIT, ...params } }),
     createPlaylist: (data) => api.post('/playlists', data),
     addVideoToPlaylist: (videoId, playlistId) => api.patch(`/playlists/add/${videoId}/${playlistId}`),
     removeVideoFromPlaylist: (videoId, playlistId) => api.patch(`/playlists/remove/${videoId}/${playlistId}`),
@@ -141,28 +148,28 @@ export const playlistService = {
     togglePlaylistPrivacy: (playlistId) => api.patch(`/playlists/${playlistId}/toggle-visibility`),
     // Watch Later specific APIs
     toggleWatchLater: (videoId) => api.post(`/playlists/watch-later/${videoId}`),
-    getWatchLater: () => api.get('/playlists/watch-later'),
+    getWatchLater: (params = {}) => api.get('/playlists/watch-later', { params: { limit: DEFAULT_LIMIT, ...params } }),
     // reorderPlaylistVideos: no backend endpoint exists yet
 }
 
 // Tweet Service
 export const tweetService = {
     createTweet: (data) => api.post('/tweets', data),
-    getFeed: (params = {}) => api.get('/tweets/feed', { params }), // { mode, page, limit, topic, sortType }
-    getExplore: (params = {}) => api.get('/tweets/explore', { params }),
-    getHotTopics: (params = {}) => api.get('/tweets/topics/hot', { params }), // { limit, windowHours, q }
-    getUserTweets: (userId, params = {}) => api.get(`/tweets/user/${userId}`, { params }),
+    getFeed: (params = {}) => api.get('/tweets/feed', { params: { limit: DEFAULT_LIMIT, ...params } }), // { mode, page, limit, topic, sortType }
+    getExplore: (params = {}) => api.get('/tweets/explore', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getHotTopics: (params = {}) => api.get('/tweets/topics/hot', { params: { limit: DEFAULT_LIMIT, ...params } }), // { limit, windowHours, q }
+    getUserTweets: (userId, params = {}) => api.get(`/tweets/user/${userId}`, { params: { limit: DEFAULT_LIMIT, ...params } }),
     getTweetById: (tweetId) => api.get(`/tweets/${tweetId}`),
     updateTweet: (tweetId, content) => api.patch(`/tweets/${tweetId}`, { content }),
     deleteTweet: (tweetId) => api.delete(`/tweets/${tweetId}`),
     restoreTweet: (tweetId) => api.patch(`/tweets/${tweetId}/restore`),
-    getDeletedTweets: () => api.get('/tweets/trash/me')
+    getDeletedTweets: (params = {}) => api.get('/tweets/trash/me', { params: { limit: DEFAULT_LIMIT, ...params } })
 }
 
 // Notification Service
 export const notificationService = {
-    getAllNotifications: (params = {}) => api.get('/notifications', { params }),
-    getUnreadNotifications: (params = {}) => api.get('/notifications/unread', { params }),
+    getAllNotifications: (params = {}) => api.get('/notifications', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getUnreadNotifications: (params = {}) => api.get('/notifications/unread', { params: { limit: DEFAULT_LIMIT, ...params } }),
     getUnreadCount: () => api.get('/notifications/unread-count'),
     markAsRead: (notificationId) => api.patch(`/notifications/${notificationId}/read`),
     markAllAsRead: () => api.patch('/notifications/read-all'),
@@ -174,8 +181,9 @@ export const notificationService = {
 export const watchHistoryService = {
     saveWatchProgress: (videoId, progress, duration) => api.post('/watch-history', { videoId, progress, duration }),
     getWatchProgress: (videoId) => api.get(`/watch-history/${videoId}`),
-    getHistory: (params = {}) => api.get('/watch-history', { params }),
-    getContinueWatching: (params = {}) => api.get('/watch-history', { params }), // Alias or distinct endpoint if needed
+    removeWatchHistoryItem: (videoId) => api.delete(`/watch-history/${videoId}`),
+    getHistory: (params = {}) => api.get('/watch-history', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getContinueWatching: (params = {}) => api.get('/watch-history', { params: { limit: DEFAULT_LIMIT, ...params } }), // Alias or distinct endpoint if needed
     getProgressForVideos: (videoIds) => api.post('/watch-history/bulk', { videoIds }),
     clearHistory: () => api.delete('/watch-history')
 }
@@ -186,7 +194,7 @@ export const dashboardService = {
     getFullDashboard: (params = {}) => api.get('/dashboard/full', { params }),
     getOverview: (period = '7d') => api.get('/dashboard/overview', { params: { period } }),
     getAnalytics: (period = '7d') => api.get('/dashboard/analytics', { params: { period } }),
-    getTopVideos: (params = {}) => api.get('/dashboard/top-videos', { params }),
+    getTopVideos: (params = {}) => api.get('/dashboard/top-videos', { params: { limit: DEFAULT_LIMIT, ...params } }),
     getGrowthStats: (period = '7d') => api.get('/dashboard/growth', { params: { period } }),
     getInsights: () => api.get('/dashboard/insights')
 }
@@ -213,8 +221,8 @@ export const settingsService = {
 export const aiService = {
     // Chat Sessions
     createSession: (data = {}) => api.post('/ai/sessions', data), // { videoId?, title? }
-    getSessions: (params = {}) => api.get('/ai/sessions', { params }),
-    getSessionMessages: (sessionId, params = {}) => api.get(`/ai/sessions/${sessionId}/messages`, { params }),
+    getSessions: (params = {}) => api.get('/ai/sessions', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getSessionMessages: (sessionId, params = {}) => api.get(`/ai/sessions/${sessionId}/messages`, { params: { limit: DEFAULT_LIMIT, ...params } }),
     sendMessage: (sessionId, message) => api.post(`/ai/sessions/${sessionId}/messages`, { message }),
     updateSession: (sessionId, data) => api.patch(`/ai/sessions/${sessionId}`, data), // { title }
     deleteSession: (sessionId) => api.delete(`/ai/sessions/${sessionId}`),
@@ -234,9 +242,9 @@ export const aiService = {
 // Transcript Service (public read via watch route + owner management)
 export const transcriptService = {
     // Public — watch route (supports q, from, to, fromSeconds, toSeconds, page, limit)
-    getWatchTranscript: (videoId, params = {}) => api.get(`/watch/${videoId}/transcript`, { params }),
+    getWatchTranscript: (videoId, params = {}) => api.get(`/watch/${videoId}/transcript`, { params: { limit: DEFAULT_LIMIT, ...params } }),
     // Auth — AI route (same data, requires login)
-    getAITranscript: (videoId, params = {}) => api.get(`/ai/videos/${videoId}/transcript`, { params }),
+    getAITranscript: (videoId, params = {}) => api.get(`/ai/videos/${videoId}/transcript`, { params: { limit: DEFAULT_LIMIT, ...params } }),
     // Owner only — upsert transcript (plain text, SRT/VTT, or cues array)
     uploadTranscript: (videoId, body) => api.post(`/ai/videos/${videoId}/transcript`, body),
     // Owner only — delete transcript
@@ -248,17 +256,17 @@ export const feedbackService = {
     // Not Interested
     markNotInterested: (videoId, reason) => api.post(`/feedback/not-interested/${videoId}`, { reason }),
     removeNotInterested: (videoId) => api.delete(`/feedback/not-interested/${videoId}`),
-    getNotInterested: (params = {}) => api.get('/feedback/not-interested', { params }),
+    getNotInterested: (params = {}) => api.get('/feedback/not-interested', { params: { limit: DEFAULT_LIMIT, ...params } }),
 
     // Blocked Channels
     blockChannel: (channelId) => api.post(`/feedback/blocked-channels/${channelId}`),
     unblockChannel: (channelId) => api.delete(`/feedback/blocked-channels/${channelId}`),
-    getBlockedChannels: (params = {}) => api.get('/feedback/blocked-channels', { params }),
+    getBlockedChannels: (params = {}) => api.get('/feedback/blocked-channels', { params: { limit: DEFAULT_LIMIT, ...params } }),
 
     // Reports
     report: ({ targetType, targetId, reason, description }) =>
         api.post('/feedback/reports', { targetType, targetId, reason, description }),
-    getMyReports: (params = {}) => api.get('/feedback/reports/me', { params })
+    getMyReports: (params = {}) => api.get('/feedback/reports/me', { params: { limit: DEFAULT_LIMIT, ...params } })
 }
 
 // Account Service (Multi-Account Switch)
@@ -271,23 +279,47 @@ export const accountService = {
 // Admin Service
 export const adminService = {
     getMe: () => api.get('/admin/me'),
-    getDashboardOverview: (params = {}) => api.get('/admin/dashboard/overview', { params }),
-    getDashboardActivity: (params = {}) => api.get('/admin/dashboard/activity', { params }),
+    getDashboardOverview: (params = {}) => api.get('/admin/dashboard/overview', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getDashboardActivity: (params = {}) => api.get('/admin/dashboard/activity', { params: { limit: DEFAULT_LIMIT, ...params } }),
 
-    getUsers: (params = {}) => api.get('/admin/users', { params }),
+    getUsers: (params = {}) => api.get('/admin/users', { params: { limit: DEFAULT_LIMIT, ...params } }),
     getUser: (userId) => api.get(`/admin/users/${userId}`),
     updateUserStatus: (userId, data) => api.patch(`/admin/users/${userId}/status`, data), // { status, reason }
     updateUserRole: (userId, data) => api.patch(`/admin/users/${userId}/role`, data), // { role, reason }
     verifyPendingEmail: (userId) => api.patch(`/admin/users/${userId}/verify-pending-email`),
+    softDeleteUser: (userId) => api.patch(`/admin/users/${userId}/soft-delete`),
+    restoreUser: (userId) => api.patch(`/admin/users/${userId}/restore`),
 
-    getReports: (params = {}) => api.get('/admin/reports', { params }),
+    getReports: (params = {}) => api.get('/admin/reports', { params: { limit: DEFAULT_LIMIT, ...params } }),
     getReport: (reportId) => api.get(`/admin/reports/${reportId}`),
     resolveReport: (reportId, data) => api.patch(`/admin/reports/${reportId}/resolve`, data), // { resolution, actionTaken }
 
-    getVideos: (params = {}) => api.get('/admin/videos', { params }),
+    getVideos: (params = {}) => api.get('/admin/videos', { params: { limit: DEFAULT_LIMIT, ...params } }),
     getVideo: (videoId) => api.get(`/admin/videos/${videoId}`),
+    unpublishVideo: (videoId) => api.patch(`/admin/videos/${videoId}/unpublish`),
+    publishVideo: (videoId) => api.patch(`/admin/videos/${videoId}/publish`),
+    softDeleteVideo: (videoId) => api.patch(`/admin/videos/${videoId}/soft-delete`),
+    restoreVideo: (videoId) => api.patch(`/admin/videos/${videoId}/restore`),
 
-    getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params }),
+    // Tweets
+    getTweets: (params = {}) => api.get('/admin/tweets', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getTweet: (tweetId) => api.get(`/admin/tweets/${tweetId}`),
+    softDeleteTweet: (tweetId) => api.patch(`/admin/tweets/${tweetId}/soft-delete`),
+    restoreTweet: (tweetId) => api.patch(`/admin/tweets/${tweetId}/restore`),
+
+    // Comments
+    getComments: (params = {}) => api.get('/admin/comments', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getComment: (commentId) => api.get(`/admin/comments/${commentId}`),
+    softDeleteComment: (commentId) => api.patch(`/admin/comments/${commentId}/soft-delete`),
+    restoreComment: (commentId) => api.patch(`/admin/comments/${commentId}/restore`),
+
+    // Playlists
+    getPlaylists: (params = {}) => api.get('/admin/playlists', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getPlaylist: (playlistId) => api.get(`/admin/playlists/${playlistId}`),
+    softDeletePlaylist: (playlistId) => api.patch(`/admin/playlists/${playlistId}/soft-delete`),
+    restorePlaylist: (playlistId) => api.patch(`/admin/playlists/${playlistId}/restore`),
+
+    getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params: { limit: DEFAULT_LIMIT, ...params } }),
     getAuditLog: (logId) => api.get(`/admin/audit-logs/${logId}`),
 
     // Feed management

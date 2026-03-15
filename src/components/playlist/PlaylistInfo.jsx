@@ -13,7 +13,8 @@ import { formatDistanceToNow } from 'date-fns'
 import { cn, formatViews } from '../../lib/utils'
 
 export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
-    const { _id, name, description, videos = [], videoCount, privacy, updatedAt, owner } = playlist
+    const { _id, id, name, description, videos = [], videoCount, privacy, updatedAt, owner } = playlist
+    const playlistId = _id || id
     const [isDescExpanded, setIsDescExpanded] = useState(false)
 
     const privacyIcon = {
@@ -35,18 +36,22 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
                     showOverlay={false}
                 />
 
-                {/* Play All Overlay Button */}
-                {videos.length > 0 && (
-                    <Link
-                        to={`/watch/${videos[0]._id}?list=${_id}`}
-                        className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                        <div className="flex items-center gap-2 text-white font-medium bg-black/60 px-6 py-3 rounded-full hover:scale-105 transition-transform">
-                            <Play className="w-5 h-5 fill-white" />
-                            Play All
-                        </div>
-                    </Link>
-                )}
+                {videos.length > 0 && (() => {
+                    const firstItem = videos[0]
+                    const video = firstItem.video || firstItem
+                    const vidId = video._id || video.id || (typeof video === 'string' ? video : null)
+                    return (
+                        <Link
+                            to={`/watch/${vidId}?list=${playlistId}`}
+                            className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                            <div className="flex items-center gap-2 text-white font-medium bg-black/60 px-6 py-3 rounded-full hover:scale-105 transition-transform">
+                                <Play className="w-5 h-5 fill-white" />
+                                Play All
+                            </div>
+                        </Link>
+                    )
+                })()}
             </div>
 
             {/* Info */}
@@ -75,7 +80,12 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
                 {/* Actions Row */}
                 <div className="flex gap-2">
                     {/* Play All Button (Mobile/Desktop prominent) */}
-                    <Link to={videos.length > 0 ? `/watch/${videos[0]._id}?list=${_id}` : '#'}>
+                    <Link to={videos.length > 0 ? (() => {
+                        const firstItem = videos[0]
+                        const video = firstItem.video || firstItem
+                        const vidId = video._id || video.id || (typeof video === 'string' ? video : null)
+                        return `/watch/${vidId}?list=${playlistId}`
+                    })() : '#'}>
                         <Button className="flex-1 bg-white text-black hover:bg-white/90 rounded-full font-semibold px-8" disabled={videos.length === 0}>
                             <Play className="w-4 h-4 mr-2 fill-black" />
                             Play all

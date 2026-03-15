@@ -47,7 +47,7 @@ export function CreatePlaylistDialog({ onPlaylistCreated, children }) {
         createMutation.mutate({
             name,
             description,
-            isPrivate
+            isPublic: !isPrivate
         })
     }
 

@@ -189,7 +189,8 @@ h6 {
     backdrop-filter: blur(var(--glass-blur));
     -webkit-backdrop-filter: blur(var(--glass-blur));
     border: 1px solid var(--glass-border);
-    border-top-color: rgba(255, 255, 255, 0.08); /* 3D Lightning effect */
+    border-top-color: rgba(255, 255, 255, 0.08);
+    /* 3D Lightning effect */
     box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), var(--shadow-soft);
     border-radius: var(--radius);
     transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), background 0.4s ease;
@@ -198,8 +199,10 @@ h6 {
   .glass-card:hover {
     background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%);
     border-color: var(--glass-border-hover);
-    border-top-color: rgba(255, 255, 255, 0.15); /* Stronger light reflection */
-    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 8px 30px rgba(0, 0, 0, 0.5); /* Floating shadow */
+    border-top-color: rgba(255, 255, 255, 0.15);
+    /* Stronger light reflection */
+    box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.1), 0 8px 30px rgba(0, 0, 0, 0.5);
+    /* Floating shadow */
     transform: translateY(-4px) scale(1.01);
   }
 

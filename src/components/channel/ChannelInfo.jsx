@@ -9,11 +9,15 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { ReportDialog } from '../common/ReportDialog'
 import { ConfirmationDialog } from '../common/ConfirmationDialog'
 import { formatSubscribers } from '../../lib/utils'
+import { useAuth } from '../../context/AuthContext'
 
 export default function ChannelInfo({ channel }) {
     const [isSubscribed, setIsSubscribed] = useState(channel.isSubscribed || false)
     const [subscribersCount, setSubscribersCount] = useState(channel.subscribersCount || channel.subscribers || 0)
     const [loading, setLoading] = useState(false)
+    const { user: currentUser } = useAuth()
+
+    const isOwner = currentUser?._id === channel?._id || currentUser?._id === (channel?.id || channel?._id)
 
     // Sync state if channel prop updates
     useEffect(() => {
@@ -90,24 +94,26 @@ export default function ChannelInfo({ channel }) {
                     </p>
 
                     <div className="flex items-center gap-3 justify-center sm:justify-start pt-1">
-                        <Button
-                            variant={isSubscribed ? "secondary" : "default"}
-                            onClick={handleSubscribeClick}
-                            disabled={loading}
-                            className={`rounded-full px-6 transition-all duration-300 ${isSubscribed
-                                ? 'bg-secondary text-foreground hover:bg-secondary/80 hover:scale-105'
-                                : 'hover:scale-105 shadow-lg shadow-primary/25'
-                                }`}
-                        >
-                            {isSubscribed ? (
-                                <div className="flex items-center gap-2">
-                                    <Bell className="w-4 h-4 fill-current" />
-                                    Subscribed
-                                </div>
-                            ) : (
-                                "Subscribe"
-                            )}
-                        </Button>
+                        {!isOwner && (
+                            <Button
+                                variant={isSubscribed ? "secondary" : "default"}
+                                onClick={handleSubscribeClick}
+                                disabled={loading}
+                                className={`rounded-full px-6 transition-all duration-300 ${isSubscribed
+                                    ? 'bg-secondary text-foreground hover:bg-secondary/80 hover:scale-105'
+                                    : 'hover:scale-105 shadow-lg shadow-primary/25'
+                                    }`}
+                            >
+                                {isSubscribed ? (
+                                    <div className="flex items-center gap-2">
+                                        <Bell className="w-4 h-4 fill-current" />
+                                        Subscribed
+                                    </div>
+                                ) : (
+                                    "Subscribe"
+                                )}
+                            </Button>
+                        )}
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

@@ -1,10 +1,23 @@
 import { SquarePlay, MessageSquare, Play } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { cn } from '../../lib/utils'
+import { getMediaUrl } from '../../lib/media'
 
-export function CompositeThumbnail({ videos = [], videoCount = 0, className, showOverlay = true }) {
-    // If no videos, show placeholder
+export function CompositeThumbnail({ videos = [], videoCount = 0, className, showOverlay = true, fallbackThumbnail }) {
+    // If no videos, show fallback thumbnail or placeholder
     if (!videos || videos.length === 0) {
+        if (fallbackThumbnail) {
+            return (
+                <div className={cn("w-full aspect-video relative", className)}>
+                    <img
+                        src={getMediaUrl(fallbackThumbnail)}
+                        alt="Playlist thumbnail"
+                        className="w-full h-full object-cover"
+                    />
+                    {showOverlay && <Overlay videoCount={videoCount} />}
+                </div>
+            )
+        }
         return (
             <div className={cn("w-full aspect-video bg-secondary/50 flex flex-col items-center justify-center text-muted-foreground", className)}>
                 <SquarePlay className="w-12 h-12 opacity-50 mb-2" />
@@ -18,8 +31,8 @@ export function CompositeThumbnail({ videos = [], videoCount = 0, className, sho
         return (
             <div className={cn("w-full aspect-video relative", className)}>
                 <img
-                    src={videos[0].thumbnail}
-                    alt={videos[0].title}
+                    src={getMediaUrl(videos[0].video?.thumbnail || videos[0].thumbnail)}
+                    alt={videos[0].title || "Playlist thumbnail"}
                     className="w-full h-full object-cover"
                 />
                 {showOverlay && <Overlay videoCount={videoCount} />}
@@ -39,7 +52,7 @@ export function CompositeThumbnail({ videos = [], videoCount = 0, className, sho
                 return (
                     <div key={actualVideo._id || idx} className="relative w-full h-full overflow-hidden">
                         <img
-                            src={actualVideo.thumbnail}
+                            src={getMediaUrl(actualVideo.thumbnail)}
                             alt=""
                             className="w-full h-full object-cover"
                         />

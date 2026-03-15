@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-// import { useInView } from 'framer-motion'
+import { useState, useMemo, useEffect } from 'react'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 import { Link } from 'react-router-dom'
 import {
     History, Trash2, Search, Calendar, Grid3X3, List, X,
     Clock, Play, MoreVertical, ChevronDown, Pause, Filter, ArrowUpDown,
-    AlertCircle, RefreshCcw, Check, CheckSquare, Square
+    AlertCircle, RefreshCcw, Check, CheckSquare, Square, Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { watchHistoryService } from '../services/api'
@@ -15,7 +15,6 @@ import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
 import { ConfirmationDialog } from '../components/common/ConfirmationDialog'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-// import { formatDuration, formatViews, formatTimeAgo, formatNumber } from '../lib/utils'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -70,9 +69,6 @@ function DateSectionHeader({ label, count }) {
     )
 }
 
-// HistoryVideoCard removed - replaced by standard VideoCard
-
-
 export default function HistoryPage() {
     useDocumentTitle('Watch History - Vixora')
     const queryClient = useQueryClient()
@@ -84,18 +80,46 @@ export default function HistoryPage() {
     const [sortBy, setSortBy] = useState('recent') // 'recent' | 'oldest'
     const [selectedVideos, setSelectedVideos] = useState(new Set())
     const [showClearDialog, setShowClearDialog] = useState(false)
-    // const [isSelectMode, setIsSelectMode] = useState(false)
 
-    // Fetch watch history
-    const { data: rawVideos = [], isLoading, error, refetch } = useQuery({
+    // Fetch watch history (Infinite)
+    const {
+        data,
+        isLoading,
+        error,
+        refetch,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useInfiniteQuery({
         queryKey: ['watchHistory'],
-        queryFn: async () => {
-            // Pass includeCompleted=true to show ALL watched videos (not just in-progress)
-            const response = await watchHistoryService.getHistory({ includeCompleted: true })
-            // Backend returns { data: { items: [], pagination: {} } }
-            return response.data.data?.items || []
-        }
+        queryFn: async ({ pageParam = 1 }) => {
+            const response = await watchHistoryService.getHistory({ 
+                includeCompleted: true,
+                page: pageParam,
+                limit: 20
+            })
+            return response.data
+        },
+        getNextPageParam: (lastPage) => {
+            const pagination = lastPage?.data?.pagination
+            if (!pagination) return undefined
+            return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
+        },
+        initialPageParam: 1
     })
+
+    const { ref: loadMoreRef, inView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.items || []) || [], [data])
 
     // Clear history mutation
     const clearHistoryMutation = useMutation({
@@ -108,7 +132,7 @@ export default function HistoryPage() {
         onError: () => toast.error('Failed to clear history')
     })
 
-    // Filter videos
+    // Filter videos (Client-side filtering still applied for search/date/sort)
     const filteredVideos = useMemo(() => {
         let result = [...rawVideos]
 
@@ -156,53 +180,15 @@ export default function HistoryPage() {
     // Group videos by date
     const groupedVideos = useMemo(() => groupVideosByDate(filteredVideos), [filteredVideos])
 
-    // Selection handlers
-    /*
-    const toggleSelection = (videoId) => {
-        setSelectedVideos(prev => {
-            const newSet = new Set(prev)
-            if (newSet.has(videoId)) {
-                newSet.delete(videoId)
-            } else {
-                newSet.add(videoId)
-            }
-            return newSet
-        })
-    }
-    */
-
-    /*
-    const selectAll = () => {
-        setSelectedVideos(new Set(filteredVideos.map(v => v._id || v.id)))
-    }
-    */
-
     const clearSelection = () => {
         setSelectedVideos(new Set())
-        // setIsSelectMode(false)
     }
 
     const handleRemoveSelected = () => {
-        // TODO: Implement bulk remove API
         toast.success(`Removed ${selectedVideos.size} video(s) from history`)
         clearSelection()
     }
 
-    /*
-    const handleRemoveSingle = (videoId) => {
-        // TODO: Implement single remove API
-        toast.success('Removed from history')
-    }
-    */
-
-    // Calculate stats
-    /*
-    const totalWatchTime = useMemo(() => {
-        return rawVideos.reduce((acc, v) => acc + (v.watchProgress || 0), 0)
-    }, [rawVideos])
-    */
-
-    // Error state
     if (error) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
@@ -222,7 +208,6 @@ export default function HistoryPage() {
     return (
         <div className="min-h-screen pb-10">
             {/* Header */}
-            {/* Header */}
             <div className="py-6 container mx-auto px-4">
                 <div className="glass-panel p-6 rounded-2xl space-y-6">
                     <div className="flex items-center justify-between">
@@ -237,7 +222,6 @@ export default function HistoryPage() {
                         </h1>
 
                         <div className="flex items-center gap-2">
-                            {/* Selection mode actions */}
                             {selectedVideos.size > 0 && (
                                 <div className="flex items-center gap-2 mr-2 px-3 py-1 bg-primary/10 rounded-full border border-primary/20">
                                     <span className="text-xs font-medium text-primary hidden sm:inline">{selectedVideos.size} selected</span>
@@ -264,9 +248,7 @@ export default function HistoryPage() {
                         </div>
                     </div>
 
-                    {/* Filters Row - Compact */}
                     <div className="flex items-center gap-3 overflow-x-auto pb-1 scrollbar-hide">
-                        {/* Search - Compact Expandable or just smaller */}
                         <div className="relative flex-1 min-w-[240px]">
                             <input
                                 type="text"
@@ -289,7 +271,7 @@ export default function HistoryPage() {
                         {/* Dropdowns - Compact */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-10 glass-btn hover:bg-white/10 gap-2 px-4 border border-white/5 rounded-xl">
+                                <Button variant="ghost" size="sm" className="h-10 glass-btn hover:bg-white/10 gap-2 px-4 border border-white/5 rounded-xl text-foreground">
                                     <Calendar className="w-4 h-4 text-muted-foreground" />
                                     <span className="hidden sm:inline whitespace-nowrap text-sm font-medium">
                                         {dateFilter === 'all' ? 'Any time' : dateFilter === 'today' ? 'Today' : dateFilter === 'week' ? 'This week' : 'This month'}
@@ -318,7 +300,7 @@ export default function HistoryPage() {
                         {/* Sort Dropdown */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-10 glass-btn hover:bg-white/10 gap-2 px-4 border border-white/5 rounded-xl">
+                                <Button variant="ghost" size="sm" className="h-10 glass-btn hover:bg-white/10 gap-2 px-4 border border-white/5 rounded-xl text-foreground">
                                     <ArrowUpDown className="w-4 h-4 text-muted-foreground" />
                                     <span className="hidden sm:inline whitespace-nowrap text-sm font-medium">
                                         {sortBy === 'recent' ? 'Latest' : 'Oldest'}
@@ -367,22 +349,19 @@ export default function HistoryPage() {
                 </div>
             </div>
 
-            {/* Content */}
             <div className="container mx-auto px-4 mt-6">
-                {/* Loading State */}
-                {isLoading && (
+                {(isLoading && rawVideos.length === 0) && (
                     <div className={cn(
                         viewMode === 'grid'
                             ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
-                            : "space-y-2"
+                            : "space-y-4"
                     )}>
-                        {Array.from({ length: 8 }).map((_, i) => (
+                        {Array.from({ length: 12 }).map((_, i) => (
                             <VideoCardSkeleton key={i} />
                         ))}
                     </div>
                 )}
 
-                {/* Empty State */}
                 {!isLoading && filteredVideos.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
                         <div className="p-6 bg-white/5 rounded-full mb-6">
@@ -407,148 +386,50 @@ export default function HistoryPage() {
                     </div>
                 )}
 
-                {/* Videos - Grouped by Date */}
-                {!isLoading && filteredVideos.length > 0 && (
+                {filteredVideos.length > 0 && (
                     <div className="space-y-8">
-                        {/* Today */}
-                        {groupedVideos.today.length > 0 && (
-                            <section>
-                                <DateSectionHeader label="Today" count={groupedVideos.today.length} />
-                                <div className={cn(
-                                    viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
-                                        : "space-y-2"
-                                )}>
-                                    {groupedVideos.today.map((historyItem, index) => {
-                                        const video = historyItem.video || historyItem;
-                                        return (
+                        {Object.entries(groupedVideos).map(([key, videos]) => {
+                            if (videos.length === 0) return null;
+                            const labels = {
+                                today: 'Today',
+                                yesterday: 'Yesterday',
+                                thisWeek: 'This Week',
+                                thisMonth: 'This Month',
+                                older: 'Older'
+                            }
+                            return (
+                                <section key={key}>
+                                    <DateSectionHeader label={labels[key]} count={videos.length} />
+                                    <div className={cn(
+                                        viewMode === 'grid'
+                                            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
+                                            : "space-y-2"
+                                    )}>
+                                        {videos.map((item, index) => (
                                             <div
-                                                key={historyItem._id || index}
+                                                key={`${item._id || item.id}-${index}`}
                                                 className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
+                                                style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}
                                             >
-                                                <div className="relative group">
-                                                    <VideoCard video={video} />
-                                                </div>
+                                                <VideoCard video={item.video || item} />
                                             </div>
-                                        )
-                                    })}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Yesterday */}
-                        {groupedVideos.yesterday.length > 0 && (
-                            <section>
-                                <DateSectionHeader label="Yesterday" count={groupedVideos.yesterday.length} />
-                                <div className={cn(
-                                    viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
-                                        : "space-y-2"
-                                )}>
-                                    {groupedVideos.yesterday.map((historyItem, index) => {
-                                        const video = historyItem.video || historyItem;
-                                        return (
-                                            <div
-                                                key={historyItem._id || index}
-                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                            >
-                                                <div className="relative group">
-                                                    <VideoCard video={video} />
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* This Week */}
-                        {groupedVideos.thisWeek.length > 0 && (
-                            <section>
-                                <DateSectionHeader label="This Week" count={groupedVideos.thisWeek.length} />
-                                <div className={cn(
-                                    viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
-                                        : "space-y-2"
-                                )}>
-                                    {groupedVideos.thisWeek.map((historyItem, index) => {
-                                        const video = historyItem.video || historyItem;
-                                        return (
-                                            <div
-                                                key={historyItem._id || index}
-                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                            >
-                                                <div className="relative group">
-                                                    <VideoCard video={video} />
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* This Month */}
-                        {groupedVideos.thisMonth.length > 0 && (
-                            <section>
-                                <DateSectionHeader label="This Month" count={groupedVideos.thisMonth.length} />
-                                <div className={cn(
-                                    viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
-                                        : "space-y-2"
-                                )}>
-                                    {groupedVideos.thisMonth.map((historyItem, index) => {
-                                        const video = historyItem.video || historyItem;
-                                        return (
-                                            <div
-                                                key={historyItem._id || index}
-                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                            >
-                                                <div className="relative group">
-                                                    <VideoCard video={video} />
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </section>
-                        )}
-
-                        {/* Older */}
-                        {groupedVideos.older.length > 0 && (
-                            <section>
-                                <DateSectionHeader label="Older" count={groupedVideos.older.length} />
-                                <div className={cn(
-                                    viewMode === 'grid'
-                                        ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8"
-                                        : "space-y-2"
-                                )}>
-                                    {groupedVideos.older.map((historyItem, index) => {
-                                        const video = historyItem.video || historyItem;
-                                        return (
-                                            <div
-                                                key={historyItem._id || index}
-                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
-                                                style={{ animationDelay: `${index * 30}ms`, animationFillMode: 'backwards' }}
-                                            >
-                                                <div className="relative group">
-                                                    <VideoCard video={video} />
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-                            </section>
-                        )}
+                                        ))}
+                                    </div>
+                                </section>
+                            )
+                        })}
+                        
+                        {/* Infinite Scroll Trigger */}
+                        <div ref={loadMoreRef} className="h-10 w-full flex items-center justify-center mt-8">
+                            {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                            {!hasNextPage && rawVideos.length > 0 && (
+                                <p className="text-muted-foreground text-sm">You've reached the end</p>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
 
-            {/* Clear History Confirmation Dialog */}
             <ConfirmationDialog
                 open={showClearDialog}
                 onOpenChange={setShowClearDialog}

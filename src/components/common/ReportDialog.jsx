@@ -5,7 +5,7 @@ import { Flag, Loader2 } from 'lucide-react'
 import { feedbackService } from '../../services/api'
 import { toast } from 'sonner'
 
-const REPORT_TARGET_TYPES = ['VIDEO', 'COMMENT', 'USER', 'CHANNEL', 'TWEET', 'PLAYLIST']
+const REPORT_TARGET_TYPES = ['VIDEO', 'COMMENT', 'USER', 'CHANNEL']
 
 const REPORT_REASONS = {
     VIDEO: [
@@ -33,17 +33,6 @@ const REPORT_REASONS = {
         'Spam or misleading',
         'Hateful or abusive content',
         'Copyright infringement',
-        'Other',
-    ],
-    TWEET: [
-        'Spam or misleading',
-        'Hateful or abusive content',
-        'Harassment',
-        'Other',
-    ],
-    PLAYLIST: [
-        'Spam or misleading',
-        'Hateful or abusive content',
         'Other',
     ],
 }
@@ -131,9 +120,9 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger }) {
                                             key={r}
                                             type="button"
                                             onClick={() => setReason(r)}
-                                            className={`w-full text-left text-sm px-3.5 py-2.5 rounded-xl border transition-all ${reason === r
-                                                ? 'bg-primary/20 border-primary/50 text-white'
-                                                : 'bg-white/4 border-white/8 text-gray-300 hover:bg-white/8'
+                                            className={`w-full text-left text-sm px-5 py-3.5 rounded-xl border transition-all duration-200 transform active:scale-[0.98] ${reason === r
+                                                ? 'bg-orange-500/20 border-orange-500/50 text-white shadow-[0_0_20px_rgba(249,115,22,0.1)]'
+                                                : 'bg-white/[0.03] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:border-white/20'
                                                 }`}
                                         >
                                             {r}

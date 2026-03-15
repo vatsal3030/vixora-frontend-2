@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo, useEffect } from 'react'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 import { Link } from 'react-router-dom'
 import {
-    Heart, Trash2, Search, Grid3X3, List, ThumbsUp, ArrowUpDown
+    Heart, Trash2, Search, Grid3X3, List, ThumbsUp, ArrowUpDown, Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { likeService } from '../services/api'
@@ -27,16 +28,43 @@ export default function LikedVideosPage() {
     const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
     const [sortBy, setSortBy] = useState('recent') // 'recent' | 'oldest'
 
-    // Fetch liked videos
-    const { data: responseData, isLoading } = useQuery({
-        queryKey: ['likedVideos'],
-        queryFn: async () => {
-            const response = await likeService.getLikedVideos()
-            return response.data.data?.items || []
-        }
+    // Fetch liked videos (Infinite)
+    const {
+        data,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useInfiniteQuery({
+        queryKey: ['likedVideos', sortBy],
+        queryFn: async ({ pageParam = 1 }) => {
+            const response = await likeService.getLikedVideos({
+                page: pageParam,
+                limit: 20
+            })
+            return response.data
+        },
+        getNextPageParam: (lastPage) => {
+            const pagination = lastPage?.data?.pagination
+            if (!pagination) return undefined
+            return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
+        },
+        initialPageParam: 1
     })
 
+    const { ref: loadMoreRef, inView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
 
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
 
     // Unlike mutation
     const unlikeMutation = useMutation({
@@ -48,11 +76,9 @@ export default function LikedVideosPage() {
         onError: () => toast.error('Failed to remove video')
     })
 
-    // Filter videos
+    // Filter videos (Client-side filtering for search)
     const filteredVideos = useMemo(() => {
-        const videos = Array.isArray(responseData) ? responseData : []
-
-        let result = [...videos]
+        let result = [...rawVideos]
 
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase()
@@ -66,14 +92,12 @@ export default function LikedVideosPage() {
             })
         }
 
-        result.sort((a, b) => {
-            const dateA = new Date((a.video || a).createdAt || 0)
-            const dateB = new Date((b.video || b).createdAt || 0)
-            return sortBy === 'oldest' ? dateA - dateB : dateB - dateA
-        })
+        // Sorting is handled by API but we can keep it as a safety or client-side sort if needed
+        // Given we are paginating, client-side sort on just the loaded items might be confusing
+        // But the sortBy query key ensures we refetch when sort changes.
 
         return result
-    }, [responseData, searchQuery, sortBy])
+    }, [rawVideos, searchQuery])
 
     return (
         <div className="min-h-screen pb-10">
@@ -88,7 +112,7 @@ export default function LikedVideosPage() {
                             <div>
                                 <h1 className="text-3xl font-bold">Liked Videos</h1>
                                 <p className="text-muted-foreground mt-1">
-                                    {filteredVideos.length} videos • Private playlist
+                                    {rawVideos.length} videos • Private playlist
                                 </p>
                             </div>
                         </div>
@@ -152,7 +176,7 @@ export default function LikedVideosPage() {
 
             {/* Content */}
             <div className="container mx-auto px-4">
-                {isLoading && (
+                {(isLoading && rawVideos.length === 0) && (
                     <div className={cn(
                         "grid gap-6",
                         viewMode === 'grid'
@@ -180,7 +204,7 @@ export default function LikedVideosPage() {
                     </div>
                 )}
 
-                {!isLoading && filteredVideos.length > 0 && (
+                {filteredVideos.length > 0 && (
                     <div className={cn(
                         "grid gap-6",
                         viewMode === 'grid'
@@ -191,7 +215,7 @@ export default function LikedVideosPage() {
                             const video = item.video || item
                             if (!video) return null
                             return (
-                                <div key={video._id || index} className="relative group">
+                                <div key={video._id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
                                     <VideoCard video={video} />
                                     <button
                                         onClick={(e) => {
@@ -206,6 +230,14 @@ export default function LikedVideosPage() {
                                 </div>
                             )
                         })}
+                        
+                        {/* Infinite Scroll Trigger */}
+                        <div ref={loadMoreRef} className="col-span-full h-10 w-full flex items-center justify-center mt-8">
+                            {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                            {!hasNextPage && rawVideos.length > 0 && (
+                                <p className="text-muted-foreground text-sm">You've reached the end</p>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

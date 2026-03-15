@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState, useMemo, useEffect } from 'react'
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useInView } from 'react-intersection-observer'
 import { Link } from 'react-router-dom'
 import {
-    Clock, Trash2, Search, Grid3X3, List, ArrowUpDown, LayoutGrid
+    Clock, Trash2, Search, Grid3X3, List, ArrowUpDown, LayoutGrid, Loader2
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { playlistService } from '../services/api'
@@ -21,16 +22,43 @@ export default function WatchLaterPage() {
     const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
     const [sortBy, setSortBy] = useState('addedAt') // 'addedAt' | 'priority'
 
-    // Fetch watch later videos
-    const { data: responseData, isLoading } = useQuery({
+    // Fetch watch later videos (Infinite)
+    const {
+        data,
+        isLoading,
+        error,
+        fetchNextPage,
+        hasNextPage,
+        isFetchingNextPage
+    } = useInfiniteQuery({
         queryKey: ['watchLater'],
-        queryFn: async () => {
-            const response = await playlistService.getWatchLater()
-            // Backend returns { videos: [], metadata: {} } or just [] depending on implementation
-            return response.data.data
-        }
+        queryFn: async ({ pageParam = 1 }) => {
+            const response = await playlistService.getWatchLater({
+                page: pageParam,
+                limit: 20
+            })
+            return response.data
+        },
+        getNextPageParam: (lastPage) => {
+            const pagination = lastPage?.data?.pagination
+            if (!pagination) return undefined
+            return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
+        },
+        initialPageParam: 1
     })
 
+    const { ref: loadMoreRef, inView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
+
+    useEffect(() => {
+        if (inView && hasNextPage && !isFetchingNextPage) {
+            fetchNextPage()
+        }
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
+
+    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
 
     // Remove video mutation
     const removeMutation = useMutation({
@@ -41,12 +69,6 @@ export default function WatchLaterPage() {
         },
         onError: () => toast.error('Failed to remove video')
     })
-
-    // Derive raw videos for count display
-    const rawVideos = useMemo(() => {
-        if (Array.isArray(responseData)) return responseData
-        return responseData?.items || responseData?.videos || []
-    }, [responseData])
 
     // Filter and sort videos
     const filteredVideos = useMemo(() => {
@@ -62,7 +84,7 @@ export default function WatchLaterPage() {
             })
         }
 
-        // Sort
+        // Sort (Backend handles initial sort, but we can do client-side refinement if needed)
         result.sort((a, b) => {
             if (sortBy === 'addedAt') {
                 return new Date(b.addedAt || b.createdAt) - new Date(a.addedAt || a.createdAt)
@@ -135,7 +157,7 @@ export default function WatchLaterPage() {
 
             {/* Content */}
             <div className="container mx-auto px-4">
-                {isLoading && (
+                {(isLoading && rawVideos.length === 0) && (
                     <div className={cn(
                         "grid gap-6",
                         viewMode === 'grid'
@@ -163,7 +185,7 @@ export default function WatchLaterPage() {
                     </div>
                 )}
 
-                {!isLoading && filteredVideos.length > 0 && (
+                {filteredVideos.length > 0 && (
                     <div className={cn(
                         "grid gap-6",
                         viewMode === 'grid'
@@ -173,7 +195,7 @@ export default function WatchLaterPage() {
                         {filteredVideos.map((item, index) => {
                             const actualVideo = item.video || item
                             return (
-                                <div key={actualVideo._id || index} className="relative group">
+                                <div key={actualVideo._id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
                                     <VideoCard video={actualVideo} />
                                     <button
                                         onClick={(e) => {
@@ -188,6 +210,14 @@ export default function WatchLaterPage() {
                                 </div>
                             )
                         })}
+                        
+                        {/* Infinite Scroll Trigger */}
+                        <div ref={loadMoreRef} className="col-span-full h-10 w-full flex items-center justify-center mt-8">
+                            {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
+                            {!hasNextPage && rawVideos.length > 0 && (
+                                <p className="text-muted-foreground text-sm">You've reached the end</p>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>

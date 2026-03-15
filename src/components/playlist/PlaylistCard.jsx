@@ -14,7 +14,8 @@ import { ReportDialog } from '../common/ReportDialog'
 
 export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
     const navigate = useNavigate()
-    const { _id, name, videos = [], videoCount, privacy, updatedAt } = playlist
+    const { _id, id, name, videos = [], videoCount, privacy, updatedAt } = playlist
+    const playlistId = _id || id
 
     const privacyIcon = {
         public: <Globe className="w-3 h-3 text-muted-foreground" />,
@@ -24,18 +25,25 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
 
     const handlePlayAll = (e) => {
         e.preventDefault()
+        e.stopPropagation()
         if (videos.length > 0) {
-            navigate(`/watch/${videos[0]._id}?list=${_id}`)
+            const firstVideoItem = videos[0]
+            const video = firstVideoItem.video || firstVideoItem
+            const vidId = video._id || video.id || (typeof video === 'string' ? video : null)
+            if (vidId) {
+                navigate(`/watch/${vidId}?list=${playlistId}`)
+            }
         }
     }
 
     return (
         <div className="group flex flex-col gap-3 w-full cursor-pointer">
             {/* Thumbnail Wrapper */}
-            <Link to={`/playlist/${_id}`} className="relative aspect-video rounded-xl overflow-hidden shadow-sm group-hover:shadow-xl group-hover:scale-[1.02] transition-all duration-200">
+            <Link to={`/playlist/${playlistId}`} className="relative aspect-video rounded-xl overflow-hidden shadow-sm group-hover:shadow-xl group-hover:scale-[1.02] transition-all duration-200">
                 <CompositeThumbnail
                     videos={videos}
                     videoCount={videoCount || videos.length}
+                    fallbackThumbnail={playlist.thumbnail}
                     className="w-full h-full group-hover:opacity-80 transition-opacity duration-200"
                     showOverlay={true}
                 />
@@ -45,7 +53,7 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
                     className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center"
                     onClick={handlePlayAll}
                 >
-                    <div className="flex items-center gap-2 text-white font-medium uppercase tracking-wide text-sm bg-black/40 px-4 py-2 rounded-full backdrop-blur-sm hover:bg-black/60 transition-colors">
+                    <div className="flex items-center gap-2 text-white font-medium uppercase tracking-wide text-sm bg-black/40 px-4 py-2 rounded-full backdrop-blur-sm hover:bg-black/60 transition-all active:scale-95">
                         <Play className="w-4 h-4 fill-white" />
                         Play All
                     </div>
@@ -56,14 +64,13 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
             <div className="flex justify-between items-start gap-2">
                 <div className="flex flex-col gap-1 flex-1 min-w-0">
                     <h3 className="font-semibold text-base line-clamp-2 leading-tight group-hover:text-primary transition-colors">
-                        <Link to={`/playlist/${_id}`}>{name}</Link>
+                        <Link to={`/playlist/${playlistId}`}>{name}</Link>
                     </h3>
 
                     <div className="flex flex-col gap-0.5 text-xs text-muted-foreground">
-                        <span className="font-medium hover:text-foreground transition-colors">
-                            {/* Assuming owner name is available? If not, skip or show 'View full playlist' */}
+                        <Link to={`/playlist/${playlistId}`} className="font-medium hover:text-foreground transition-colors">
                             View full playlist
-                        </span>
+                        </Link>
                         <div className="flex items-center gap-1.5 mt-0.5">
                             {privacyIcon[privacy] || privacyIcon.public}
                             <span>{privacy ? privacy.charAt(0).toUpperCase() + privacy.slice(1) : 'Public'}</span>

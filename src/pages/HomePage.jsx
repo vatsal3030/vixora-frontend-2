@@ -1,8 +1,6 @@
 import { useEffect } from 'react'
-
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { useInView } from 'framer-motion'
-import { useRef } from 'react'
+import { useInView } from 'react-intersection-observer'
 import { useNavigate } from 'react-router-dom'
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
@@ -50,34 +48,29 @@ export default function HomePage() {
                 page: pageParam,
                 limit: 20
             })
-            // Shuffle items to introduce randomness in the feed
-            if (response.data && response.data.data && Array.isArray(response.data.data.items)) {
-                // Determine a seeded or simple random shuffle
-                response.data.data.items = [...response.data.data.items].sort(() => Math.random() - 0.5)
-            }
             return response.data
         },
         getNextPageParam: (lastPage) => {
+            // Standardize: read from data.pagination
             const pagination = lastPage?.data?.pagination
             if (!pagination) return undefined
-            if (pagination.hasNextPage) {
-                return (pagination.currentPage || pagination.page || 1) + 1
-            }
-            return undefined
+            return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
         },
         staleTime: 1000 * 60 * 5,
         initialPageParam: 1
     })
 
-    // Infinite Scroll Trigger
-    const loadMoreRef = useRef(null)
-    const isInView = useInView(loadMoreRef)
+    // Robust Infinite Scroll Trigger using react-intersection-observer
+    const { ref: loadMoreRef, inView } = useInView({
+        threshold: 0.1,
+        rootMargin: '200px',
+    })
 
     useEffect(() => {
-        if (isInView && hasNextPage && !isFetchingNextPage) {
+        if (inView && hasNextPage && !isFetchingNextPage) {
             fetchNextPage()
         }
-    }, [isInView, hasNextPage, isFetchingNextPage, fetchNextPage])
+    }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
     // Tag chip click → navigate to tag feed page
     const handleTagClick = (tagName) => {
@@ -134,7 +127,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                 {videos.map((video, index) => (
                     <div
-                        key={`${video.id}-${index}`}
+                        key={`${video.id || video._id}-${index}`}
                         className="animate-in fade-in slide-in-from-bottom-4 duration-300"
                         style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
                     >
@@ -162,6 +155,7 @@ export default function HomePage() {
 
             {/* Infinite Scroll Trigger */}
             <div ref={loadMoreRef} className="h-10 w-full flex items-center justify-center mt-8">
+                {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
                 {!hasNextPage && videos.length > 0 && (
                     <p className="text-muted-foreground text-sm">You've reached the end</p>
                 )}

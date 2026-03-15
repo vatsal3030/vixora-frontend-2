@@ -13,12 +13,14 @@ import {
 import { Loader2, Plus, ListPlus, Lock, Globe, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { CreatePlaylistDialog } from './CreatePlaylistDialog'
+import { useQueryClient } from '@tanstack/react-query'
 
 export function AddToPlaylistDialog({ videoId, children }) {
     const [open, setOpen] = useState(false)
     const [playlists, setPlaylists] = useState([])
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState(null)
+    const queryClient = useQueryClient()
 
     const fetchPlaylists = async () => {
         setLoading(true)
@@ -44,8 +46,9 @@ export function AddToPlaylistDialog({ videoId, children }) {
     }, [open])
 
     const handleToggle = async (playlist) => {
+        const pid = playlist._id || playlist.id
         if (processing) return
-        setProcessing(playlist._id)
+        setProcessing(pid)
 
         // Check if already in playlist? API doesn't give us this info easily 
         // without fetching each playlist details.
@@ -58,8 +61,11 @@ export function AddToPlaylistDialog({ videoId, children }) {
         // Let's implement ADD logic.
 
         try {
-            await playlistService.addVideoToPlaylist(videoId, playlist._id)
+            const pid = playlist._id || playlist.id
+            await playlistService.addVideoToPlaylist(videoId, pid)
             toast.success(`Added to ${playlist.name}`)
+            queryClient.invalidateQueries({ queryKey: ['playlists'] })
+            queryClient.invalidateQueries({ queryKey: ['myPlaylists'] })
         } catch (error) {
             if (error.response?.status === 409) {
                 // Try removing if duplicate? Or just say it's there.
@@ -99,19 +105,19 @@ export function AddToPlaylistDialog({ videoId, children }) {
                     ) : (
                         playlists.map(playlist => (
                             <div
-                                key={playlist._id}
+                                key={playlist._id || playlist.id}
                                 className="flex items-center justify-between p-2 hover:bg-secondary rounded-lg cursor-pointer transition-colors"
                                 onClick={() => handleToggle(playlist)}
                             >
                                 <div className="flex flex-col">
                                     <span className="font-medium truncate max-w-[250px]">{playlist.name}</span>
                                     <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                        {playlist.isPrivate ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
-                                        {playlist.isPrivate ? 'Private' : 'Public'}
-                                        {' • '}{playlist.videosCount} videos
+                                        {playlist.isPrivate || !playlist.isPublic ? <Lock className="w-3 h-3" /> : <Globe className="w-3 h-3" />}
+                                        {playlist.isPrivate || !playlist.isPublic ? 'Private' : 'Public'}
+                                        {' • '}{playlist.videoCount || playlist.videosCount || 0} videos
                                     </span>
                                 </div>
-                                {processing === playlist._id && <Loader2 className="w-4 h-4 animate-spin" />}
+                                {processing === (playlist._id || playlist.id) && <Loader2 className="w-4 h-4 animate-spin" />}
                             </div>
                         ))
                     )}

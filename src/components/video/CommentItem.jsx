@@ -7,10 +7,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { likeService, commentService } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { toast } from 'sonner'
-import { formatViews } from '../../lib/utils'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/DropdownMenu'
 import { Button } from '../ui/Button'
 import { ConfirmationDialog } from '../common/ConfirmationDialog'
+import { formatNumber } from '../../lib/utils'
 
 export function CommentItem({ comment }) {
     const { user } = useAuth()
@@ -125,7 +125,7 @@ export function CommentItem({ comment }) {
                             className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${isLiked ? 'text-primary' : 'text-muted-foreground hover:text-white'}`}
                         >
                             <ThumbsUp className={`w-3.5 h-3.5 ${isLiked ? 'fill-current' : ''}`} />
-                            <span>{likesCount > 0 ? formatViews(likesCount) : ''}</span>
+                            <span>{likesCount > 0 ? formatNumber(likesCount) : ''}</span>
                         </button>
 
                         <button className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-white transition-colors">
@@ -143,7 +143,7 @@ export function CommentItem({ comment }) {
                     <div className="absolute top-0 right-0">
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button size="icon" variant="ghost" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button size="icon" variant="ghost" className="h-6 w-6 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                     <MoreVertical className="w-4 h-4 text-muted-foreground" />
                                 </Button>
                             </DropdownMenuTrigger>

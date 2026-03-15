@@ -24,7 +24,7 @@ export default function TweetsPage() {
     const { data: hotTopicsData, isLoading: topicsLoading } = useQuery({
         queryKey: ['hotTopics'],
         queryFn: async () => {
-            const res = await tweetService.getHotTopics({ limit: 10, windowHours: 72 })
+            const res = await tweetService.getHotTopics({ limit: 20, windowHours: 72 })
             return res.data.data
         },
         staleTime: 5 * 60 * 1000
@@ -40,7 +40,7 @@ export default function TweetsPage() {
     } = useInfiniteQuery({
         queryKey: ['feed', mode],
         queryFn: async ({ pageParam = 1 }) => {
-            const res = await tweetService.getFeed({ mode, page: pageParam, limit: 15 })
+            const res = await tweetService.getFeed({ mode, page: pageParam, limit: 20 })
             return res.data.data
         },
         getNextPageParam: (lastPage) => lastPage.pagination.hasNextPage ? lastPage.pagination.currentPage + 1 : undefined,
@@ -123,7 +123,7 @@ export default function TweetsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Main Feed Column */}
                 <div className="lg:col-span-3">
-                    
+
                     {/* Header & Tabs */}
                     <div className="sticky top-[60px] z-10 bg-background/80 backdrop-blur-xl pb-4 mb-4 border-b border-white/5">
                         <h1 className="text-2xl font-bold mb-4 px-2">Community</h1>
@@ -136,9 +136,8 @@ export default function TweetsPage() {
                                     <button
                                         key={tab.id}
                                         onClick={() => setMode(tab.id)}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shrink-0 ${
-                                            isActive ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
-                                        }`}
+                                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shrink-0 ${isActive ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
+                                            }`}
                                     >
                                         <Icon className="w-4 h-4" />
                                         {tab.label}
@@ -212,7 +211,7 @@ export default function TweetsPage() {
                                 {tweets.map((tweet) => (
                                     <TweetCard key={tweet._id || tweet.id} tweet={tweet} onDelete={handleDelete} />
                                 ))}
-                                
+
                                 {/* Infinite scroll trigger */}
                                 <div ref={ref} className="h-20 flex items-center justify-center">
                                     {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
@@ -230,10 +229,10 @@ export default function TweetsPage() {
                             <Flame className="w-5 h-5 text-orange-500" />
                             Trending Topics
                         </h2>
-                        
+
                         {topicsLoading ? (
                             <div className="space-y-4">
-                                {[1,2,3,4,5].map(i => (
+                                {[1, 2, 3, 4, 5].map(i => (
                                     <div key={i} className="animate-pulse">
                                         <div className="h-3 bg-white/5 rounded w-12 mb-2" />
                                         <div className="h-4 bg-white/5 rounded w-32 mb-1" />
@@ -263,7 +262,7 @@ export default function TweetsPage() {
                             </div>
                         )}
                     </div>
-                    
+
                     {/* Footer links */}
                     <div className="mt-6 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground px-2">
                         <a href="#" className="hover:text-foreground hover:underline">Terms of Service</a>
