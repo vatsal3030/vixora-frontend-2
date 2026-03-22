@@ -22,7 +22,7 @@ import CustomVideoPlayer from '../components/video/CustomVideoPlayer'
 import { formatViews, formatTimeAgo, formatNumber, formatSubscribers, cn } from '../lib/utils'
 import { toast } from 'sonner'
 import VideoPlayerSkeleton from '../components/skeletons/VideoPlayerSkeleton'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import SEO from '../components/common/SEO'
 import { KeyboardShortcutsModal } from '../components/common/KeyboardShortcutsModal'
 import { motion, AnimatePresence } from 'framer-motion'
 import { getStoredQuality } from '../lib/media'
@@ -130,8 +130,6 @@ export default function WatchPage() {
         },
         enabled: !!videoId
     })
-
-    useDocumentTitle(video?.title || 'Vixora')
 
     const transcriptItems = transcriptData?.items || transcriptData?.cues || []
     const chapters = video?.chapters || cuesAsChapters(transcriptItems, 8, video?.thumbnail)
@@ -252,6 +250,7 @@ export default function WatchPage() {
 
     return (
         <div className={isTheaterMode ? "w-full min-h-screen bg-background relative selection:bg-primary/30" : "container mx-auto px-4 py-6 max-w-[1800px] min-h-screen bg-background relative selection:bg-primary/30"}>
+            <SEO title={video.title} description={video.description} image={video.thumbnail} url={window.location.href} type="video.other" />
             <div className={`flex flex-col ${isTheaterMode ? '' : 'lg:flex-row'} gap-6`}>
 
                 {/* Left Column (Video + Info + Comments) */}

@@ -15,13 +15,12 @@ import { watchHistoryService, playlistService, likeService } from '../services/a
 import { VideoCard } from '../components/video/VideoCard'
 import { PlaylistCard } from '../components/playlist/PlaylistCard'
 import { Button } from '../components/ui/Button'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import SEO from '../components/common/SEO'
 import { useAuth } from '../context/AuthContext'
 import { Avatar } from '../components/ui/Avatar'
 import { getMediaUrl } from '../lib/media'
 
 export default function LibraryPage() {
-    useDocumentTitle('Library - Vixora')
     const { currentUser } = useAuth()
 
     // --- Queries ---
@@ -79,6 +78,7 @@ export default function LibraryPage() {
 
     return (
         <div className="pb-24 pt-6 px-4 sm:px-6 lg:px-8 container mx-auto max-w-[1600px] min-h-[80vh]">
+            <SEO title="Library" description="View your watch history, watch later playlists, and liked videos on Vixora." />
 
             <div className="flex flex-col lg:flex-row gap-10">
                 {/* Main Content (Shelves) */}

@@ -7,13 +7,12 @@ import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { feedService } from '../services/api'
 import { AlertCircle, RefreshCcw, Video } from 'lucide-react'
 import { Button } from '../components/ui/Button'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import SEO from '../components/common/SEO'
 
 // Fallback chips when tag API is unavailable
 const FALLBACK_TAGS = ['Music', 'Gaming', 'Tech', 'Live', 'News', 'Movies']
 
 export default function HomePage() {
-    useDocumentTitle('Vixora')
     const navigate = useNavigate()
 
     // Fetch dynamic tag chips from backend (separate from video feed)
@@ -98,6 +97,7 @@ export default function HomePage() {
 
     return (
         <div className="pb-10">
+            <SEO title="Home" />
             {/* Tag Discovery Chips Container — width constrained to prevent x-overflow */}
             <div className="w-full overflow-hidden">
                 <div className="flex items-center gap-2 overflow-x-auto pb-4 py-2 px-3 scrollbar-hide -mx-3 sm:-mx-4 lg:-mx-6 sm:px-4 lg:px-6 mb-2">

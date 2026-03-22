@@ -13,7 +13,7 @@ import { Share2, Pencil, MoreVertical, Layout, Grid, Smartphone, ListVideo, Mess
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
 import { formatTimeAgo, formatViews } from '../lib/utils'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import SEO from '../components/common/SEO'
 
 // Helper to sanitize username from URL params
 const sanitizeUsername = (raw) => {
@@ -141,8 +141,6 @@ export default function ChannelPage() {
         enabled: !!activeChannelId && activeTab === 'Tweets'
     })
 
-    useDocumentTitle(channel?.fullName ? `${channel.fullName} - Vixora` : 'Vixora')
-
     if (isInvalidProfile) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -186,6 +184,12 @@ export default function ChannelPage() {
 
     return (
         <div className="min-h-screen bg-background">
+            <SEO 
+                title={channel.fullName || channel.username} 
+                description={channel.description || channel.channelDescription} 
+                image={channel.avatar || channel.coverImage} 
+                type="profile" 
+            />
             <ChannelBanner bannerUrl={channel.coverImage} />
             <ChannelInfo channel={channel} />
             <ChannelTabs activeTab={activeTab} onChange={setActiveTab} />

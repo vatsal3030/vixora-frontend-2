@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /settings
+Disallow: /studio
+
+# Sitemaps
+Sitemap: https://app.vixora.co.in/sitemap.xml

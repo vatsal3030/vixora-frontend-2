@@ -14,7 +14,7 @@ import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
 import { ConfirmationDialog } from '../components/common/ConfirmationDialog'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import SEO from '../components/common/SEO'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -70,7 +70,6 @@ function DateSectionHeader({ label, count }) {
 }
 
 export default function HistoryPage() {
-    useDocumentTitle('Watch History - Vixora')
     const queryClient = useQueryClient()
 
     // State
@@ -207,6 +206,7 @@ export default function HistoryPage() {
 
     return (
         <div className="min-h-screen pb-10">
+            <SEO title="History" description="Your recently watched videos on Vixora." />
             {/* Header */}
             <div className="py-6 container mx-auto px-4">
                 <div className="glass-panel p-6 rounded-2xl space-y-6">

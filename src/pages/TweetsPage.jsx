@@ -10,6 +10,7 @@ import { Loader2, Image, X, FireExtinguisher, Flame, Users, Clock, Sparkles } fr
 import { useInView } from 'react-intersection-observer'
 import { TweetCard } from '../components/tweet/TweetCard'
 import { Link } from 'react-router-dom'
+import SEO from '../components/common/SEO'
 
 export default function TweetsPage() {
     const { user } = useAuth()
@@ -120,6 +121,7 @@ export default function TweetsPage() {
 
     return (
         <div className="container mx-auto px-4 py-8 lg:py-10 max-w-6xl">
+            <SEO title="Community" description="Join the conversation on Vixora" type="website" />
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 {/* Main Feed Column */}
                 <div className="lg:col-span-3">

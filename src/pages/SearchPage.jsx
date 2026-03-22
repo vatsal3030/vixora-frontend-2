@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion'
 import { useState, useMemo, useEffect } from 'react'
-import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import SEO from '../components/common/SEO'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import { useInfiniteQuery } from '@tanstack/react-query'
@@ -21,12 +21,9 @@ export default function SearchPage() {
     const [searchParams, setSearchParams] = useSearchParams()
     const navigate = useNavigate()
     const query = searchParams.get('q') || ''
+    const filter = searchParams.get('filter') || 'All'
     const sortBy = searchParams.get('sortBy') || 'relevance'
     const sortType = searchParams.get('sortType') || 'desc'
-
-    useDocumentTitle(query ? `Search: ${query} - Vixora` : 'Search - Vixora')
-
-    const [filter, setFilter] = useState('All') // All, Videos, Channels, Shorts, Playlists, Tweets
 
     // Search History State
     const [history, setHistory] = useState(() => {
@@ -256,6 +253,7 @@ export default function SearchPage() {
     if (!query) {
         return (
             <div className="py-6 min-h-[80vh] container mx-auto px-4 max-w-4xl flex items-center justify-center">
+                <SEO title="Search" description="Search for videos, channels, shorts, and playlists on Vixora." />
                 <div className="p-8 rounded-2xl text-center w-full">
                     <History className="w-20 h-20 text-muted-foreground/30 mx-auto mb-6 opacity-80" />
                     <h2 className="text-2xl lg:text-3xl font-bold mb-3">Search Vixora</h2>
@@ -306,6 +304,7 @@ export default function SearchPage() {
 
     return (
         <div className="py-6 min-h-[80vh] container mx-auto px-4 lg:px-6">
+            <SEO title={`Search results for "${query}"`} description={`Explore videos, channels, and shorts related to ${query}.`} />
             {/* Filter Navigation - aligned left to match YouTube style */}
             <div className="max-w-5xl mx-auto mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex overflow-x-auto gap-2 p-1 rounded-xl scrollbar-hide py-2 w-full sm:w-auto mask-fade-edges">

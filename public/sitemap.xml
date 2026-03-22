@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Base Static Routes -->
+  <url>
+    <loc>https://app.vixora.co.in/</loc>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://app.vixora.co.in/search</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://app.vixora.co.in/playlists</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://app.vixora.co.in/history</loc>
+    <changefreq>never</changefreq>
+    <priority>0.1</priority>
+  </url>
+  
+  <!-- Note: Dynamic URLs for individual videos and users should ideally be generated 
+       by the backend and appended to a sitemap index file here. -->
+</urlset>
