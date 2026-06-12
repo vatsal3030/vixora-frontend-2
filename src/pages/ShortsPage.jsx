@@ -62,10 +62,9 @@ export default function ShortsPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    // Set initial active short
     useEffect(() => {
         if (shorts.length > 0 && !activeShortId) {
-            setActiveShortId(shorts[0]._id)
+            setActiveShortId(shorts[0]._id || shorts[0].id)
         }
         if (containerRef.current) {
             containerRef.current.focus()
@@ -73,7 +72,7 @@ export default function ShortsPage() {
     }, [shorts, activeShortId]) // Added activeShortId
 
     // Derived active index for windowing
-    const activeIndex = shorts.findIndex(s => s._id === activeShortId)
+    const activeIndex = shorts.findIndex(s => (s._id || s.id) === activeShortId)
 
     // Intersection Observer for Active Short Detection
     useEffect(() => {
@@ -99,10 +98,18 @@ export default function ShortsPage() {
         const observer = new IntersectionObserver(handleIntersect, observerOptions)
 
         // Observe current elements tightly restricted to this container
-        const elements = containerRef.current.querySelectorAll('[data-short-id]')
-        elements.forEach((el) => observer.observe(el))
+        // Use timeout to ensure DOM nodes have rendered after state update
+        const timeoutId = setTimeout(() => {
+            if (containerRef.current) {
+                const elements = containerRef.current.querySelectorAll('[data-short-id]')
+                elements.forEach((el) => observer.observe(el))
+            }
+        }, 50)
 
-        return () => observer.disconnect()
+        return () => {
+            clearTimeout(timeoutId)
+            observer.disconnect()
+        }
     }, [shorts])
 
     // Infinite Scroll trigger remains on scroll
@@ -134,20 +141,22 @@ export default function ShortsPage() {
             if (!containerRef.current) return
             // activeIndex is derived from state in render, we need fresh logic here or dependency
             // Re-calculating index for simplicity inside effect or using state
-            const currentIdx = shorts.findIndex(s => s._id === activeShortId)
+            const currentIdx = shorts.findIndex(s => (s._id || s.id) === activeShortId)
 
             if (e.key === 'ArrowDown') {
                 e.preventDefault()
                 const nextIndex = currentIdx + 1
                 if (nextIndex < shorts.length) {
-                    const nextEl = containerRef.current.querySelector(`[data-short-id="${shorts[nextIndex]._id}"]`)
+                    const nextId = shorts[nextIndex]._id || shorts[nextIndex].id
+                    const nextEl = containerRef.current.querySelector(`[data-short-id="${nextId}"]`)
                     nextEl?.scrollIntoView({ behavior: 'smooth' })
                 }
             } else if (e.key === 'ArrowUp') {
                 e.preventDefault()
                 const prevIndex = currentIdx - 1
                 if (prevIndex >= 0) {
-                    const prevEl = containerRef.current.querySelector(`[data-short-id="${shorts[prevIndex]._id}"]`)
+                    const prevId = shorts[prevIndex]._id || shorts[prevIndex].id
+                    const prevEl = containerRef.current.querySelector(`[data-short-id="${prevId}"]`)
                     prevEl?.scrollIntoView({ behavior: 'smooth' })
                 }
             }
@@ -172,19 +181,19 @@ export default function ShortsPage() {
             className="h-[calc(100vh-64px)] w-full overflow-y-scroll snap-y snap-mandatory scrollbar-hide bg-[#0f0f0f] outline-none"
         >
             {shorts.map((short, index) => {
-                // Aggressive Windowing: Keep +/- 1
-                const shouldRender = Math.abs(index - activeIndex) <= 1
+                const isVisible = Math.abs(index - activeIndex) <= 2
+                const shortId = short._id || short.id
 
                 return (
                     <div
-                        key={short._id}
-                        data-short-id={short._id}
+                        key={shortId}
+                        data-short-id={shortId}
                         className="w-full h-[calc(100vh-64px)] snap-start snap-always flex justify-center relative"
                     >
-                        {shouldRender ? (
+                        {isVisible ? (
                             <ShortsPlayer
                                 video={short}
-                                isActive={activeShortId === short._id}
+                                isActive={activeShortId === shortId}
                             />
                         ) : (
                             <div className="w-full h-full flex justify-center sm:py-4">

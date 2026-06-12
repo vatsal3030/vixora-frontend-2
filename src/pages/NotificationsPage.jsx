@@ -3,13 +3,15 @@ import { Bell, Check, Trash2, Loader2, CheckCheck } from 'lucide-react'
 import { formatTimeAgo } from '../lib/utils'
 import { Button } from '../components/ui/Button'
 import { toast } from 'sonner'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Avatar } from '../components/ui/Avatar'
 import { NotificationSkeleton } from '../components/skeletons/NotificationSkeleton'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { getMediaUrl } from '../lib/media'
 
 export default function NotificationsPage() {
     const queryClient = useQueryClient()
+    const navigate = useNavigate()
 
     // Fetch Notifications
     const { data: notifications = [], isLoading: loading } = useQuery({
@@ -81,6 +83,15 @@ export default function NotificationsPage() {
         deleteAllMutation.mutate()
     }
 
+    const handleNotificationClick = (notification) => {
+        if (!notification.isRead) {
+            markAsRead(notification.id || notification._id)
+        }
+        if (notification.targetUrl) {
+            navigate(notification.targetUrl)
+        }
+    }
+
     return (
         <div className="container mx-auto px-4 py-8 max-w-4xl">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
@@ -138,38 +149,46 @@ export default function NotificationsPage() {
                     {notifications.map((notification) => (
                         <div
                             key={notification._id}
-                            className={`group relative flex items-start gap-4 p-4 rounded-xl border transition-all hover:shadow-md ${notification.isRead
-                                ? 'bg-card border-border'
-                                : 'bg-primary/5 border-primary/20'
+                            className={`group relative flex items-start gap-4 p-4 rounded-xl border transition-all hover:shadow-md cursor-pointer ${notification.isRead
+                                ? 'bg-card border-border hover:bg-white/5'
+                                : 'bg-primary/5 border-primary/20 hover:bg-primary/10'
                                 }`}
-                            onClick={() => !notification.isRead && markAsRead(notification._id)}
+                            onClick={() => handleNotificationClick(notification)}
                         >
-                            <Link to={notification.sender?.username ? `/channel/${notification.sender.username}` : '#'} onClick={(e) => e.stopPropagation()}>
+                            <Link to={notification.sender?.username ? `/@${notification.sender.username}` : '#'} onClick={(e) => e.stopPropagation()} className="shrink-0">
                                 <Avatar
-                                    src={notification.sender?.avatar}
+                                    src={getMediaUrl(notification.sender?.avatar)}
                                     alt={notification.sender?.username || 'User'}
-                                    className="w-10 h-10 border border-border"
+                                    className="w-12 h-12 border border-border"
                                 />
                             </Link>
 
                             <div className="flex-1 min-w-0 pt-0.5">
                                 <div className="flex flex-col gap-1">
                                     <p className="text-sm font-medium leading-normal">
-                                        <Link to={notification.sender?.username ? `/channel/${notification.sender.username}` : '#'} className="hover:underline font-bold" onClick={(e) => e.stopPropagation()}>
-                                            {notification.sender?.username}
-                                        </Link>
+                                        {notification.sender?.username && (
+                                            <Link to={`/@${notification.sender.username}`} className="hover:underline font-bold" onClick={(e) => e.stopPropagation()}>
+                                                {notification.sender.username}
+                                            </Link>
+                                        )}
                                         {' '}
-                                        <span className={notification.isRead ? 'text-muted-foreground' : 'text-foreground'}>
+                                        <span className={notification.isRead ? 'text-muted-foreground' : 'text-foreground font-semibold'}>
                                             {notification.message}
                                         </span>
                                     </p>
-                                    <span className="text-xs text-muted-foreground">
+                                    <span className="text-xs text-muted-foreground mt-1">
                                         {formatTimeAgo(notification.createdAt)}
                                     </span>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {notification.video && (
+                                <div className="shrink-0 w-[120px] sm:w-[136px] aspect-video rounded-lg overflow-hidden relative border border-white/10 hidden sm:block">
+                                    <img src={getMediaUrl(notification.video.thumbnail)} alt={notification.video.title} className="w-full h-full object-cover" />
+                                </div>
+                            )}
+
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity self-center ml-2">
                                 {!notification.isRead && (
                                     <Button
                                         variant="ghost"

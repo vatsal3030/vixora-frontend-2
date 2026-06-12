@@ -9,6 +9,9 @@ export default function Toaster() {
             theme={theme}
             className="toaster group"
             position="top-right"
+            closeButton
+            richColors
+            duration={4000}
             toastOptions={{
                 classNames: {
                     toast:

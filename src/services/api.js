@@ -56,7 +56,7 @@ export const videoService = {
 // Comment Service  
 export const commentService = {
     getComments: (videoId, params = {}) => api.get(`/comments/${videoId}`, { params: { limit: DEFAULT_LIMIT, ...params } }),
-    addComment: (videoId, content) => api.post(`/comments/${videoId}`, { content }),
+    addComment: (videoId, content, parentId = null) => api.post(`/comments/${videoId}`, { content, parentId }),
     updateComment: (commentId, content) => api.patch(`/comments/c/${commentId}`, { content }),
     deleteComment: (commentId) => api.delete(`/comments/c/${commentId}`)
 }
@@ -109,6 +109,8 @@ export const userService = {
 
     // Updated for direct upload flow - expects { avatarPublicId } or { coverImagePublicId }
     updateAvatar: (data) => api.patch('/users/update-avatar', data),
+    updateDefaultAvatar: (type) => api.patch('/users/update-default-avatar', { type }),
+    updateDefaultCoverImage: (type) => api.patch('/users/update-default-cover-image', { type }),
     updateCoverImage: (data) => api.patch('/users/update-coverImage', data),
 
     getWatchHistory: () => api.get('/watch-history'),

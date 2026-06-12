@@ -12,17 +12,27 @@ import { formatSubscribers } from '../../lib/utils'
 import { useAuth } from '../../context/AuthContext'
 
 export default function ChannelInfo({ channel }) {
+    const channelId = channel?.id || channel?._id
+
+    const getSubscribers = () => {
+        if (channel?.subscribersCount !== undefined) return channel.subscribersCount;
+        if (channel?.subscribers !== undefined) return channel.subscribers;
+        if (channel?._count?.subscribers !== undefined) return channel._count.subscribers;
+        if (channel?.stats?.subscribers !== undefined) return channel.stats.subscribers;
+        return 0;
+    }
+
     const [isSubscribed, setIsSubscribed] = useState(channel.isSubscribed || false)
-    const [subscribersCount, setSubscribersCount] = useState(channel.subscribersCount || channel.subscribers || 0)
+    const [subscribersCount, setSubscribersCount] = useState(getSubscribers())
     const [loading, setLoading] = useState(false)
     const { user: currentUser } = useAuth()
 
-    const isOwner = currentUser?._id === channel?._id || currentUser?._id === (channel?.id || channel?._id)
+    const isOwner = currentUser?.id === channelId || currentUser?._id === channelId
 
     // Sync state if channel prop updates
     useEffect(() => {
         setIsSubscribed(channel.isSubscribed)
-        setSubscribersCount(channel.subscribers)
+        setSubscribersCount(getSubscribers())
     }, [channel])
 
     const [showUnsubscribeDialog, setShowUnsubscribeDialog] = useState(false)
@@ -36,25 +46,28 @@ export default function ChannelInfo({ channel }) {
     }
 
     const handleSubscribeToggle = async () => {
-        if (!channel._id) return
-        setLoading(true)
+        if (!channelId) return
+        
+        // Optimistic update
+        const previousIsSubscribed = isSubscribed
+        const previousSubscribersCount = subscribersCount
+        
+        setIsSubscribed(!previousIsSubscribed)
+        setSubscribersCount(prev => previousIsSubscribed ? prev - 1 : prev + 1)
+        
         try {
-            const response = await subscriptionService.toggleSubscription(channel._id)
+            const response = await subscriptionService.toggleSubscription(channelId)
             if (response.data?.data) {
                 const { subscribed } = response.data.data
                 setIsSubscribed(subscribed)
-                setSubscribersCount(prev => subscribed ? prev + 1 : prev - 1)
-                toast.success(subscribed ? 'Subscribed' : 'Unsubscribed')
-            } else {
-                setIsSubscribed(!isSubscribed)
-                setSubscribersCount(prev => isSubscribed ? prev - 1 : prev + 1)
-                toast.success(isSubscribed ? 'Unsubscribed' : 'Subscribed')
             }
+            toast.success(!previousIsSubscribed ? 'Subscribed' : 'Unsubscribed')
         } catch (error) {
             console.error(error)
+            // Revert on failure
+            setIsSubscribed(previousIsSubscribed)
+            setSubscribersCount(previousSubscribersCount)
             toast.error('Failed to update subscription')
-        } finally {
-            setLoading(false)
         }
     }
 
@@ -66,8 +79,8 @@ export default function ChannelInfo({ channel }) {
                 <div className="shrink-0 p-1 bg-background rounded-full -mt-12 sm:-mt-20">
                     <Avatar
                         src={channel.avatar}
-                        alt={channel.name}
-                        fallback={channel.name?.[0]}
+                        alt={channel.fullName || channel.username}
+                        fallback={(channel.fullName || channel.username)?.[0]}
                         size="w-full h-full"
                         className="flex w-24 h-24 sm:w-32 sm:h-32 border-4 border-background shadow-xl text-3xl sm:text-4xl"
                     />
@@ -76,7 +89,7 @@ export default function ChannelInfo({ channel }) {
                 <div className="flex-1 text-center sm:text-left space-y-2 pt-2 sm:pt-0">
                     <div className="flex flex-col sm:flex-row items-center sm:items-center gap-2 sm:gap-4">
                         <h1 className="text-3xl font-bold font-display flex items-center gap-2">
-                            {channel.name}
+                            {channel.fullName || channel.username}
                             {channel.isVerified && (
                                 <CheckCircle2 className="w-6 h-6 text-primary fill-current" />
                             )}
@@ -98,7 +111,6 @@ export default function ChannelInfo({ channel }) {
                             <Button
                                 variant={isSubscribed ? "secondary" : "default"}
                                 onClick={handleSubscribeClick}
-                                disabled={loading}
                                 className={`rounded-full px-6 transition-all duration-300 ${isSubscribed
                                     ? 'bg-secondary text-foreground hover:bg-secondary/80 hover:scale-105'
                                     : 'hover:scale-105 shadow-lg shadow-primary/25'
@@ -135,7 +147,7 @@ export default function ChannelInfo({ channel }) {
                 <ConfirmationDialog
                     open={showUnsubscribeDialog}
                     onOpenChange={setShowUnsubscribeDialog}
-                    title={`Unsubscribe from ${channel.name}?`}
+                    title={`Unsubscribe from ${channel.fullName || channel.username}?`}
                     description="This will stop notifications from this channel."
                     confirmLabel="Unsubscribe"
                     onConfirm={() => {

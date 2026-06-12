@@ -11,9 +11,11 @@ import {
 } from '../ui/DropdownMenu'
 import { formatDistanceToNow } from 'date-fns'
 import { cn, formatViews } from '../../lib/utils'
+import { ShareDialog } from '../common/ShareDialog'
 
 export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
-    const { _id, id, name, description, videos = [], videoCount, privacy, updatedAt, owner } = playlist
+    const { _id, id, name, description, items, videos: aliasVideos, videoCount, privacy, updatedAt, owner } = playlist
+    const videos = items || aliasVideos || []
     const playlistId = _id || id
     const [isDescExpanded, setIsDescExpanded] = useState(false)
 
@@ -94,9 +96,11 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
 
                     {/* Secondary Actions */}
                     <div className="flex gap-1">
-                        <Button variant="secondary" size="icon" className="rounded-full" onClick={() => onShare && onShare(playlist)}>
-                            <Share2 className="w-4 h-4" />
-                        </Button>
+                        <ShareDialog title={name} url={`${window.location.origin}/playlist/${playlistId}`} trigger={
+                            <Button variant="secondary" size="icon" className="rounded-full">
+                                <Share2 className="w-4 h-4" />
+                            </Button>
+                        } />
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

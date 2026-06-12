@@ -29,6 +29,7 @@ import { getStoredQuality } from '../lib/media'
 import TranscriptPanel from '../components/video/TranscriptPanel'
 import ChaptersPanel from '../components/video/ChaptersPanel'
 import { cuesAsChapters } from '../lib/videoUtils'
+import { ParsedText } from '../components/common/ParsedText'
 
 export default function WatchPage() {
     const { videoId } = useParams()
@@ -139,7 +140,7 @@ export default function WatchPage() {
         let nextVideo = null
         if (playlistId && playlist?.items) {
             const playlistVideos = playlist.items || []
-            const currentIndex = playlistVideos.findIndex(v => v._id === videoId)
+            const currentIndex = playlistVideos.findIndex(v => (v._id || v.id) === videoId)
             if (currentIndex !== -1 && currentIndex < playlistVideos.length - 1) {
                 nextVideo = playlistVideos[currentIndex + 1]
             }
@@ -147,11 +148,12 @@ export default function WatchPage() {
         if (!nextVideo && recommended.length > 0) {
             nextVideo = recommended[0]
         }
-        if (nextVideo?._id) {
+        if (nextVideo?._id || nextVideo?.id) {
+            const nextId = nextVideo._id || nextVideo.id
             toast('Playing next: ' + (nextVideo.title || 'Untitled Video'), { duration: 3000 })
             const url = playlistId
-                ? `/watch/${nextVideo._id}?list=${playlistId}`
-                : `/watch/${nextVideo._id}`
+                ? `/watch/${nextId}?list=${playlistId}`
+                : `/watch/${nextId}`
             setTimeout(() => navigate(url), 3000)
         }
     }
@@ -352,7 +354,7 @@ export default function WatchPage() {
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="w-56 glass-panel border-white/5 text-white rounded-xl shadow-premium">
-                                        <AddToPlaylistDialog videoId={video._id} trigger={
+                                        <AddToPlaylistDialog videoId={video._id || video.id} trigger={
                                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
                                                 <Save className="w-4 h-4 mr-3" /> Save to Playlist
                                             </DropdownMenuItem>
@@ -367,7 +369,7 @@ export default function WatchPage() {
                                         >
                                             <Clock className="w-4 h-4 mr-3" /> {watchLaterMutation.isPending ? "Saving..." : "Save to Watch Later"}
                                         </DropdownMenuItem>
-                                        <ReportDialog targetType="VIDEO" targetId={video._id} trigger={
+                                        <ReportDialog targetType="VIDEO" targetId={video._id || video.id} trigger={
                                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3">
                                                 <Flag className="w-4 h-4 mr-3" /> Report
                                             </DropdownMenuItem>
@@ -389,11 +391,13 @@ export default function WatchPage() {
                                 <span className="text-muted-foreground">•</span>
                                 <span>{formatTimeAgo(video.createdAt)}</span>
                             </div>
-                            <p className="whitespace-pre-line text-gray-300 leading-relaxed font-normal text-[0.95rem]">
-                                {isDescriptionExpanded ? video.description : (
-                                    (video.description?.substring(0, 180) || '') + (video.description?.length > 180 ? '...' : '')
+                            <div className="whitespace-pre-line text-gray-300 leading-relaxed font-normal text-[0.95rem]">
+                                {isDescriptionExpanded ? (
+                                    <ParsedText text={video.description} onSeek={(s) => seekToRef.current?.(s)} />
+                                ) : (
+                                    <ParsedText text={(video.description?.substring(0, 180) || '') + (video.description?.length > 180 ? '...' : '')} onSeek={(s) => seekToRef.current?.(s)} />
                                 )}
-                            </p>
+                            </div>
                             {video.description?.length > 180 && (
                                 <button className="text-white mt-2 font-semibold hover:underline text-sm">
                                     {isDescriptionExpanded ? 'Show less' : '...more'}
@@ -443,7 +447,7 @@ export default function WatchPage() {
                                 </div>
                             )}
                             {comments.map((comment) => (
-                                <CommentItem key={comment._id} comment={comment} />
+                                <CommentItem key={comment._id || comment.id} comment={comment} videoId={videoId} onSeek={(s) => seekToRef.current?.(s)} />
                             ))}
                             {hasMoreComments && (
                                 <Button variant="ghost" onClick={() => fetchMoreComments()} className="w-full text-primary hover:text-primary/80 hover:bg-white/5">
@@ -516,9 +520,9 @@ export default function WatchPage() {
                                         </div>
                                         <div className="max-h-[300px] overflow-y-auto">
                                             {(playlist.items || []).map((v, i) => (
-                                                <Link key={v._id} to={`/watch/${v._id}?list=${playlist._id}`}
-                                                    className={`flex gap-2 p-2 hover:bg-white/5 ${v._id === videoId ? 'bg-white/10' : ''}`}>
-                                                    <span className="text-[10px] text-gray-400 w-4 flex-shrink-0 flex items-center">{v._id === videoId ? <Play className="w-2.5 h-2.5 fill-white" /> : i + 1}</span>
+                                                <Link key={v._id || v.id} to={`/watch/${v._id || v.id}?list=${playlist._id || playlist.id}`}
+                                                    className={`flex gap-2 p-2 hover:bg-white/5 ${(v._id || v.id) === videoId ? 'bg-white/10' : ''}`}>
+                                                    <span className="text-[10px] text-gray-400 w-4 flex-shrink-0 flex items-center">{(v._id || v.id) === videoId ? <Play className="w-2.5 h-2.5 fill-white" /> : i + 1}</span>
                                                     <img src={v.thumbnail} className="w-20 h-11 object-cover rounded" />
                                                     <div className="min-w-0">
                                                         <p className="text-[10px] font-bold line-clamp-2 text-white">{v.title}</p>
@@ -533,7 +537,7 @@ export default function WatchPage() {
                                 <div className="flex flex-col gap-3">
                                     {recommended?.map((recVideo) => (
                                         <VideoCard
-                                            key={recVideo._id}
+                                            key={recVideo._id || recVideo.id}
                                             video={recVideo}
                                             layout="compact"
                                         />

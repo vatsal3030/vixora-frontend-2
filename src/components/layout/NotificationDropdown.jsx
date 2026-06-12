@@ -127,23 +127,59 @@ export default function NotificationDropdown() {
                         {notifications.map((notification) => (
                             <DropdownMenuItem
                                 key={notification._id}
-                                className={`flex flex-col items-start gap-1.5 p-3 sm:p-3 cursor-pointer mb-1 mx-1 rounded-lg ${!notification.isRead ? 'bg-primary/5' : ''}`}
-                                onClick={() => !notification.isRead && markAsRead(notification._id)}
+                                className={`flex items-start gap-3 p-3 sm:p-4 cursor-pointer mb-1 mx-1 rounded-xl transition-colors group ${!notification.isRead ? 'bg-primary/5 hover:bg-primary/10' : 'hover:bg-white/5'}`}
+                                onClick={() => {
+                                    if (!notification.isRead) markAsRead(notification._id)
+                                }}
+                                asChild
                             >
-                                <div className="flex justify-between w-full gap-3">
-                                    <p className="text-sm line-clamp-2 leading-snug flex-1 min-w-0">
-                                        <span className="font-semibold">{notification.sender?.username}</span> {notification.message}
-                                    </p>
+                                <Link to={notification.actionUrl?.url || '#'} className="w-full relative pr-8">
+                                    {/* Sender Avatar */}
+                                    <div className="shrink-0 pt-0.5">
+                                        <img 
+                                            src={notification.sender?.avatar || '/default-avatar.png'} 
+                                            alt={notification.sender?.username} 
+                                            className="w-10 h-10 md:w-12 md:h-12 rounded-full object-cover"
+                                        />
+                                    </div>
+                                    
+                                    {/* Content */}
+                                    <div className="flex-1 min-w-0 pr-2">
+                                        <p className="text-[0.9rem] leading-tight text-foreground line-clamp-3">
+                                            {notification.message}
+                                        </p>
+                                        <span className="text-[0.75rem] text-muted-foreground mt-1.5 block">
+                                            {formatTimeAgo(notification.createdAt)}
+                                        </span>
+                                    </div>
+
+                                    {/* Video Thumbnail (if any) */}
+                                    {notification.video?.thumbnail && (
+                                        <div className="shrink-0 w-20 aspect-video rounded overflow-hidden">
+                                            <img 
+                                                src={notification.video.thumbnail} 
+                                                alt="Thumbnail" 
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Unread indicator */}
+                                    {!notification.isRead && (
+                                        <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-primary" />
+                                    )}
+
+                                    {/* Delete Button */}
                                     <button
-                                        onClick={(e) => deleteNotification(e, notification._id)}
-                                        className="text-muted-foreground hover:text-destructive transition-colors shrink-0 p-1 rounded-md hover:bg-destructive/10"
+                                        onClick={(e) => {
+                                            e.preventDefault()
+                                            deleteNotification(e, notification._id)
+                                        }}
+                                        className="absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all p-1.5 rounded-full hover:bg-white/10"
                                     >
-                                        <Trash2 className="w-3.5 h-3.5" />
+                                        <Trash2 className="w-4 h-4" />
                                     </button>
-                                </div>
-                                <span className="text-[10px] text-muted-foreground font-medium">
-                                    {formatTimeAgo(notification.createdAt)}
-                                </span>
+                                </Link>
                             </DropdownMenuItem>
                         ))}
                     </div>

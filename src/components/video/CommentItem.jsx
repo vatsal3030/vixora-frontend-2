@@ -11,8 +11,9 @@ import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuIte
 import { Button } from '../ui/Button'
 import { ConfirmationDialog } from '../common/ConfirmationDialog'
 import { formatNumber } from '../../lib/utils'
+import { ParsedText } from '../common/ParsedText'
 
-export function CommentItem({ comment }) {
+export function CommentItem({ comment, videoId, onSeek }) {
     const { user } = useAuth()
     const queryClient = useQueryClient()
     const [likesCount, setLikesCount] = useState(comment?.likesCount || 0)
@@ -21,11 +22,15 @@ export function CommentItem({ comment }) {
     const [isEditing, setIsEditing] = useState(false)
     const [editContent, setEditContent] = useState(comment?.content || '')
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    
+    const [isReplying, setIsReplying] = useState(false)
+    const [replyContent, setReplyContent] = useState('')
+    const [showReplies, setShowReplies] = useState(false)
 
-    const isOwner = user?._id === comment?.owner?._id
+    const isOwner = user && (user._id === comment?.owner?._id || user.id === comment?.owner?.id)
 
     const likeMutation = useMutation({
-        mutationFn: () => likeService.toggleCommentLike(comment._id),
+        mutationFn: () => likeService.toggleCommentLike(comment.id || comment._id),
         onMutate: () => {
             setIsLiked((prev) => !prev)
             setLikesCount((prev) => (isLiked ? prev - 1 : prev + 1))
@@ -48,12 +53,24 @@ export function CommentItem({ comment }) {
     })
 
     const deleteMutation = useMutation({
-        mutationFn: () => commentService.deleteComment(comment._id),
+        mutationFn: () => commentService.deleteComment(comment._id || comment.id),
         onSuccess: () => {
             toast.success("Comment deleted")
             queryClient.invalidateQueries({ queryKey: ['comments'] })
         },
         onError: () => toast.error("Failed to delete comment")
+    })
+
+    const replyMutation = useMutation({
+        mutationFn: (content) => commentService.addComment(videoId, content, comment._id || comment.id),
+        onSuccess: () => {
+            setReplyContent('')
+            setIsReplying(false)
+            setShowReplies(true)
+            toast.success("Reply added")
+            queryClient.invalidateQueries({ queryKey: ['comments'] })
+        },
+        onError: () => toast.error("Failed to add reply")
     })
 
     const handleLike = () => {
@@ -66,7 +83,14 @@ export function CommentItem({ comment }) {
         editMutation.mutate(editContent.trim())
     }
 
+    const handleReply = () => {
+        if (!replyContent.trim()) return toast.error("Reply cannot be empty")
+        replyMutation.mutate(replyContent.trim())
+    }
+
     if (!comment) return null
+    const replies = comment.replies || []
+    const hasReplies = replies.length > 0
 
     return (
         <div className="flex gap-3 items-start group">
@@ -113,7 +137,9 @@ export function CommentItem({ comment }) {
                         </div>
                     </div>
                 ) : (
-                    <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{comment.content}</p>
+                    <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+                        <ParsedText text={comment.content} onSeek={onSeek} />
+                    </div>
                 )}
 
                 {/* Actions */}
@@ -132,9 +158,58 @@ export function CommentItem({ comment }) {
                             <ThumbsDown className="w-3.5 h-3.5" />
                         </button>
 
-                        <button className="text-xs font-medium text-muted-foreground hover:text-white transition-colors opacity-0 group-hover:opacity-100">
+                        <button 
+                            onClick={() => {
+                                if (!user) return toast.error("Please login to reply")
+                                setIsReplying(!isReplying)
+                            }}
+                            className="text-xs font-medium text-muted-foreground hover:text-white transition-colors opacity-0 group-hover:opacity-100"
+                        >
                             Reply
                         </button>
+                    </div>
+                )}
+
+                {/* Reply Input */}
+                {isReplying && (
+                    <div className="flex gap-3 mt-3 pr-4 animate-in fade-in zoom-in-95 duration-200">
+                        <Avatar src={user?.avatar} fallback={user?.username} size="sm" />
+                        <div className="flex-1">
+                            <textarea
+                                value={replyContent}
+                                onChange={(e) => setReplyContent(e.target.value)}
+                                className="w-full bg-transparent border-b border-muted-foreground/30 focus:border-primary outline-none transition-colors text-sm py-1 resize-none h-auto min-h-[30px]"
+                                placeholder="Add a reply..."
+                                autoFocus
+                            />
+                            <div className="flex justify-end gap-2 mt-2">
+                                <Button variant="ghost" size="sm" onClick={() => setIsReplying(false)} className="h-7 text-xs rounded-full">Cancel</Button>
+                                <Button size="sm" onClick={handleReply} disabled={replyMutation.isPending || !replyContent.trim()} className="h-7 text-xs rounded-full">
+                                    {replyMutation.isPending && <Loader2 className="w-3 h-3 mr-1 animate-spin" />}
+                                    Reply
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Replies Thread */}
+                {hasReplies && (
+                    <div className="mt-2">
+                        <button 
+                            onClick={() => setShowReplies(!showReplies)}
+                            className="flex items-center gap-2 text-sm text-primary font-medium hover:bg-primary/10 px-3 py-1.5 rounded-full transition-colors"
+                        >
+                            {showReplies ? 'Hide replies' : `View ${replies.length} repl${replies.length === 1 ? 'y' : 'ies'}`}
+                        </button>
+                        
+                        {showReplies && (
+                            <div className="mt-3 space-y-4">
+                                {replies.map(reply => (
+                                    <CommentItem key={reply._id || reply.id} comment={reply} videoId={videoId} onSeek={onSeek} />
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
 

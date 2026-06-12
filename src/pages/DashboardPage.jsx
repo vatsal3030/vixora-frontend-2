@@ -347,14 +347,14 @@ export default function DashboardPage() {
                                         } : video
 
                                         return (
-                                            <tr key={v._id} className="group hover:bg-secondary/40 transition-colors">
+                                            <tr key={v._id || v.id} className="group hover:bg-secondary/40 transition-colors">
                                                 <td className="p-4 pl-6">
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-28 aspect-video bg-black rounded-lg overflow-hidden flex-shrink-0 shadow-sm border border-border/50">
                                                             <img src={v.thumbnail} alt={v.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <Link to={isMock ? '#' : `/watch/${v._id}`} className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 mb-1">
+                                                            <Link to={isMock ? '#' : `/watch/${v._id || v.id}`} className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 mb-1">
                                                                 {v.title}
                                                             </Link>
                                                             {isMock && <span className="text-xs bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">Demo</span>}

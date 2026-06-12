@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { cn, getInitials } from '../../lib/utils'
 import { getMediaUrl } from '../../lib/media'
 
@@ -20,24 +21,34 @@ export function Avatar({
 }) {
     // If size is a key in avatarSizes, use it. Otherwise assume it's a class string.
     const sizeClass = avatarSizes[size] || size || avatarSizes.md
+    const [imgError, setImgError] = useState(false)
+    
+    const seed = fallback || alt || 'user'
+    const defaultAvatarUrl = `https://api.dicebear.com/7.x/adventurer/svg?seed=${encodeURIComponent(seed)}`
 
     return (
         <div className={cn('avatar-component relative inline-flex items-center justify-center shrink-0', className)}>
             <div
                 className={cn(
-                    'relative rounded-full overflow-hidden bg-secondary flex items-center justify-center font-semibold text-foreground select-none',
+                    'relative rounded-full overflow-hidden bg-secondary flex items-center justify-center font-semibold text-foreground select-none ring-1 ring-white/5',
                     sizeClass
                 )}
             >
-                {src ? (
+                {src && !imgError ? (
                     <img
                         src={getMediaUrl(src)}
                         alt={alt}
                         className="h-full w-full object-cover"
                         loading="lazy"
+                        onError={() => setImgError(true)}
                     />
                 ) : (
-                    <span className="uppercase text-muted-foreground">{fallback || getInitials(alt)}</span>
+                    <img
+                        src={defaultAvatarUrl}
+                        alt={alt || "Avatar"}
+                        className="h-full w-full object-cover scale-110"
+                        loading="lazy"
+                    />
                 )}
             </div>
             {online && (

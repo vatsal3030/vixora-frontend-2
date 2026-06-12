@@ -12,6 +12,7 @@ import { Share2, Pencil, MoreVertical, Layout, Grid, Smartphone, ListVideo, Mess
 
 import { Button } from '../components/ui/Button'
 import { Avatar } from '../components/ui/Avatar'
+import { TweetCard } from '../components/tweet/TweetCard'
 import { formatTimeAgo, formatViews } from '../lib/utils'
 import SEO from '../components/common/SEO'
 
@@ -293,7 +294,7 @@ export default function ChannelPage() {
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                                 {playlists.map((playlist) => (
-                                    <Link to={`/playlist/${playlist._id}`} key={playlist._id} className="group cursor-pointer">
+                                    <Link to={`/playlist/${playlist.id || playlist._id}`} key={playlist.id || playlist._id} className="group cursor-pointer">
                                         <div className="relative aspect-video rounded-xl overflow-hidden glass-card mb-3 border border-white/5">
                                             {playlist.thumbnail ? (
                                                 <img
@@ -334,26 +335,7 @@ export default function ChannelPage() {
                             </div>
                         ) : (
                             tweets.map(tweet => (
-                                <div key={tweet.id || tweet._id} className="glass-card border-white/5 p-6 rounded-xl hover:bg-white/5 transition-colors">
-                                    <div className="flex gap-4">
-                                        <div className="shrink-0">
-                                            <Avatar src={channel.avatar} alt={channel.username} size="md" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="font-semibold text-foreground">{channel.fullName || channel.username}</span>
-                                                <span className="text-xs text-muted-foreground">{formatTimeAgo(tweet.createdAt)}</span>
-                                            </div>
-                                            <p className="text-foreground/90 whitespace-pre-wrap">{tweet.content}</p>
-                                            <div className="flex items-center gap-6 mt-4 text-muted-foreground">
-                                                <button className="flex items-center gap-1.5 hover:text-primary transition-colors">
-                                                    <MessageSquare className="w-4 h-4" />
-                                                    <span className="text-xs font-medium">0</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <TweetCard key={tweet.id || tweet._id} tweet={{ ...tweet, owner: channel }} hideActions />
                             ))
                         )}
                     </div>

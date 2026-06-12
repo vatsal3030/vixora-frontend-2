@@ -15,6 +15,8 @@ import { MiniPlayerProvider } from './context/MiniPlayerContext'
 import MiniPlayer from './components/video/MiniPlayer'
 import { Analytics } from '@vercel/analytics/react'
 import { ScrollToTop } from './components/common/ScrollToTop'
+import { KeyboardShortcuts } from './components/common/KeyboardShortcuts'
+import { ErrorBoundary } from './components/error/ErrorBoundary'
 import './index.css'
 
 // Lazy load auth pages
@@ -56,6 +58,11 @@ const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'))
 const AdminUsers = lazy(() => import('./pages/admin/AdminUsers'))
 const AdminVideos = lazy(() => import('./pages/admin/AdminVideos'))
+const AdminReports = lazy(() => import('./pages/admin/AdminReports'))
+const AdminComments = lazy(() => import('./pages/admin/AdminComments'))
+const AdminTweets = lazy(() => import('./pages/admin/AdminTweets'))
+const AdminPlaylists = lazy(() => import('./pages/admin/AdminPlaylists'))
+const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'))
 
 function App() {
   return (
@@ -65,11 +72,13 @@ function App() {
           <VideoHoverProvider>
             <Router>
               <ScrollToTop />
+              <KeyboardShortcuts />
               <Toaster />
               <VixoraAI />
               <MiniPlayer />
-              <Suspense fallback={<AppSkeleton />}>
-                <Routes>
+              <ErrorBoundary>
+                <Suspense fallback={<AppSkeleton />}>
+                  <Routes>
                   {/* Auth Routes - Wrapped in AuthLayout */}
                   <Route element={<AuthLayout />}>
                     <Route path="/login" element={<LoginPage />} />
@@ -88,13 +97,13 @@ function App() {
                   }>
                     <Route index element={<Navigate to="/admin/dashboard" replace />} />
                     <Route path="dashboard" element={<AdminDashboard />} />
-                    {/* Stubs for future admin tabs, navigating back to dashboard for now */}
-                    <Route path="reports" element={<div>Reports (WIP)</div>} />
+                    <Route path="reports" element={<AdminReports />} />
                     <Route path="users" element={<AdminUsers />} />
                     <Route path="videos" element={<AdminVideos />} />
-                    <Route path="tweets" element={<div>Tweets (WIP)</div>} />
-                    <Route path="playlists" element={<div>Playlists (WIP)</div>} />
-                    <Route path="audit-logs" element={<div>Audit Logs (WIP)</div>} />
+                    <Route path="comments" element={<AdminComments />} />
+                    <Route path="tweets" element={<AdminTweets />} />
+                    <Route path="playlists" element={<AdminPlaylists />} />
+                    <Route path="audit-logs" element={<AdminAuditLogs />} />
                   </Route>
 
                   {/* Protected Routes - Main Layout */}
@@ -152,7 +161,8 @@ function App() {
                   {/* Catch all route - 404 */}
                   <Route path="*" element={<Layout><NotFoundPage /></Layout>} />
                 </Routes>
-              </Suspense>
+                </Suspense>
+              </ErrorBoundary>
             </Router>
           </VideoHoverProvider>
         </MiniPlayerProvider>

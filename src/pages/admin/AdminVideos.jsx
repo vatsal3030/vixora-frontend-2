@@ -33,15 +33,31 @@ export default function AdminVideos() {
         fetchVideos()
     }, [])
 
-    const handleDeleteVideo = async (videoId) => {
+    const handleSoftDeleteVideo = async (videoId) => {
         if (!confirm('Are you sure you want to delete this video?')) return
         try {
-            await videoService.deleteVideo(videoId)
+            await adminService.softDeleteVideo(videoId)
             toast.success('Video deleted')
             fetchVideos()
         } catch (err) {
             console.error(err)
             toast.error('Failed to delete video')
+        }
+    }
+
+    const handleTogglePublish = async (video) => {
+        try {
+            if (video.isPublished) {
+                await adminService.unpublishVideo(video._id || video.id)
+                toast.success('Video unpublished')
+            } else {
+                await adminService.publishVideo(video._id || video.id)
+                toast.success('Video published')
+            }
+            fetchVideos()
+        } catch (err) {
+            console.error(err)
+            toast.error('Failed to change publish status')
         }
     }
 
@@ -117,7 +133,11 @@ export default function AdminVideos() {
                                                     <DropdownMenuItem onClick={() => window.open(`/watch/${video._id || video.id}`, '_blank')}>
                                                         <Eye className="w-4 h-4 mr-2" /> View Video
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleDeleteVideo(video._id || video.id)} className="text-red-500">
+                                                    <DropdownMenuItem onClick={() => handleTogglePublish(video)}>
+                                                        {video.isPublished ? <ShieldBan className="w-4 h-4 mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
+                                                        {video.isPublished ? 'Unpublish' : 'Publish'}
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => handleSoftDeleteVideo(video._id || video.id)} className="text-red-500">
                                                         <Trash2 className="w-4 h-4 mr-2" /> Delete Video
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>

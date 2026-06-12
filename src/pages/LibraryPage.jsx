@@ -40,8 +40,7 @@ export default function LibraryPage() {
         queryKey: ['watchLater'],
         queryFn: async () => {
             const res = await playlistService.getWatchLater()
-            // Assume array resolution
-            return res.data.data?.items || res.data.data || []
+            return res.data.data?.items || res.data.data?.videos || []
         }
     })
     const watchLaterVideos = watchLaterData?.slice(0, 8).map(item => item.video || item) || []
@@ -51,7 +50,7 @@ export default function LibraryPage() {
         queryKey: ['likedVideos'],
         queryFn: async () => {
             const res = await likeService.getLikedVideos()
-            return res.data.data?.items || res.data.data || []
+            return res.data.data?.items || res.data.data?.videos || []
         }
     })
     const likedVideos = likedData?.slice(0, 8).map(item => item.video || item) || []
@@ -61,7 +60,7 @@ export default function LibraryPage() {
         queryKey: ['myPlaylists'],
         queryFn: async () => {
             const res = await playlistService.getMyPlaylists()
-            return res.data.data?.items || res.data.data?.docs || res.data.data || []
+            return res.data.data?.items || res.data.data?.playlists || []
         }
     })
     const slicedPlaylists = playlists.slice(0, 8)
@@ -90,7 +89,7 @@ export default function LibraryPage() {
                         viewAllLink="/history"
                         items={recentHistory}
                         renderItem={(video) => (
-                            <div className="w-[240px] sm:w-[280px] flex-shrink-0" key={video._id}>
+                            <div className="w-[240px] sm:w-[280px] flex-shrink-0" key={video._id || video.id}>
                                 <VideoCard video={video.video || video} hideAvatar />
                             </div>
                         )}
@@ -103,7 +102,7 @@ export default function LibraryPage() {
                         viewAllLink="/watch-later"
                         items={watchLaterVideos}
                         renderItem={(video) => (
-                            <div className="w-[240px] sm:w-[280px] flex-shrink-0" key={video._id}>
+                            <div className="w-[240px] sm:w-[280px] flex-shrink-0" key={video._id || video.id}>
                                 <VideoCard video={video} hideAvatar />
                             </div>
                         )}
@@ -116,7 +115,7 @@ export default function LibraryPage() {
                         viewAllLink="/liked"
                         items={likedVideos}
                         renderItem={(video) => (
-                            <div className="w-[240px] sm:w-[280px] flex-shrink-0" key={video._id}>
+                            <div className="w-[240px] sm:w-[280px] flex-shrink-0" key={video._id || video.id}>
                                 <VideoCard video={video} hideAvatar />
                             </div>
                         )}
@@ -129,7 +128,7 @@ export default function LibraryPage() {
                         viewAllLink="/playlists"
                         items={slicedPlaylists}
                         renderItem={(playlist) => (
-                            <div className="w-[240px] sm:w-[280px] flex-shrink-0" key={playlist._id}>
+                            <div className="w-[240px] sm:w-[280px] flex-shrink-0" key={playlist._id || playlist.id}>
                                 <PlaylistCard playlist={playlist} />
                             </div>
                         )}
@@ -181,17 +180,17 @@ function StatRow({ label, value, icon: Icon }) {
 function ShelfSection({ title, icon: Icon, viewAllLink, items, renderItem, emptyText }) {
     return (
         <section className="flex flex-col">
-            <div className="flex justify-between items-center mb-5 px-1">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-secondary rounded-lg text-foreground shadow-sm">
-                        {Icon && <Icon className="w-5 h-5" />}
+            <div className="flex justify-between items-center mb-5 px-1 group cursor-pointer">
+                <Link to={viewAllLink || '#'} className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-xl text-primary shadow-sm group-hover:bg-primary/20 transition-colors">
+                        {Icon && <Icon className="w-6 h-6" />}
                     </div>
-                    <h2 className="text-xl font-bold tracking-tight">{title}</h2>
-                </div>
+                    <h2 className="text-2xl font-bold tracking-tight group-hover:text-primary transition-colors">{title}</h2>
+                </Link>
                 {viewAllLink && items && items.length > 0 && (
                     <Link to={viewAllLink}>
-                        <Button variant="outline" className="rounded-full text-xs font-semibold px-4 glass-btn border-white/10">
-                            View All
+                        <Button variant="outline" className="rounded-full text-xs font-semibold px-4 border-white/10 hover:bg-white/10 group-hover:border-white/30 transition-all">
+                            View All <ChevronRight className="w-3 h-3 ml-1" />
                         </Button>
                     </Link>
                 )}
@@ -203,7 +202,11 @@ function ShelfSection({ title, icon: Icon, viewAllLink, items, renderItem, empty
                 </div>
             ) : (
                 <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
-                    {items.map(renderItem)}
+                    {items.map((item, index) => (
+                        <div key={index} className="snap-start hover:-translate-y-1 transition-transform duration-300">
+                            {renderItem(item)}
+                        </div>
+                    ))}
                 </div>
             )}
         </section>

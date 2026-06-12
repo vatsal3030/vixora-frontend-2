@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Outlet, useLocation, Link, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, Users, Flag, Film, MessageSquare, Shield, Activity, ListVideo, LogOut } from 'lucide-react'
+import { LayoutDashboard, Users, Flag, Film, MessageSquare, Shield, Activity, ListVideo, MessageCircle } from 'lucide-react'
 import { Navbar } from './Navbar'
 import { useAuth } from '../../context/AuthContext'
 import { cn } from '../../lib/utils'
@@ -23,7 +23,8 @@ function AdminSidebar({ isOpen, isMobile, onClose }) {
         { name: 'Reports', href: '/admin/reports', icon: Flag },
         { name: 'Users', href: '/admin/users', icon: Users },
         { name: 'Videos', href: '/admin/videos', icon: Film },
-        { name: 'Tweets', href: '/admin/tweets', icon: MessageSquare },
+        { name: 'Comments', href: '/admin/comments', icon: MessageSquare },
+        { name: 'Tweets', href: '/admin/tweets', icon: MessageCircle },
         { name: 'Playlists', href: '/admin/playlists', icon: ListVideo },
         { name: 'Audit Logs', href: '/admin/audit-logs', icon: Activity }
     ]

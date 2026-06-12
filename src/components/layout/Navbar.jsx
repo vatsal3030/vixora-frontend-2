@@ -115,6 +115,7 @@ export function Navbar({ onMenuClick, user }) {
                     <form onSubmit={handleSearch} className="relative">
                         <div className="relative flex items-center">
                             <input
+                                id="search-input"
                                 type="text"
                                 placeholder="Search videos..."
                                 className="w-full h-10 pl-4 pr-12 rounded-full glass-input text-sm text-foreground placeholder:text-muted-foreground shadow-sm group-hover:shadow-md"

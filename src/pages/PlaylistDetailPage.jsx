@@ -32,7 +32,7 @@ export default function PlaylistDetailPage() {
     // Sync localVideos with playlist data on load
     useEffect(() => {
         if (playlist) {
-            setLocalVideos(playlist.items || [])
+            setLocalVideos(playlist.videos || playlist.items || [])
         }
     }, [playlist])
 
@@ -76,7 +76,7 @@ export default function PlaylistDetailPage() {
     // Handlers
     const handleReorder = (newVideos) => {
         setLocalVideos(newVideos) // Optimistic update
-        const videoIds = newVideos.map(v => v._id)
+        const videoIds = newVideos.map(v => v._id || v.id)
         reorderMutation.mutate(videoIds)
     }
 

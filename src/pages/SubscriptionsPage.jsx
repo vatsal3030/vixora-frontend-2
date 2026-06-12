@@ -58,7 +58,7 @@ export default function SubscriptionsPage() {
         queryFn: async () => {
             const response = await subscriptionService.getSubscribedChannels()
             const data = response.data.data
-            const items = data?.items || (Array.isArray(data) ? data : [])
+            const items = data?.channels || data?.items || (Array.isArray(data) ? data : [])
             return items.map(item => item.channel ? item.channel : item)
         }
     })
@@ -142,7 +142,7 @@ export default function SubscriptionsPage() {
 
                     {filteredVideos.map((video, index) => (
                         <div
-                            key={video._id || index}
+                            key={video._id || video.id || index}
                             className="animate-in fade-in slide-in-from-bottom-4 duration-500"
                             style={{ animationDelay: `${(index % 20) * 50}ms` }}
                         >

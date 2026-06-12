@@ -41,7 +41,8 @@ export default function LikedVideosPage() {
         queryFn: async ({ pageParam = 1 }) => {
             const response = await likeService.getLikedVideos({
                 page: pageParam,
-                limit: 20
+                limit: 20,
+                sortType: sortBy === 'oldest' ? 'asc' : 'desc'
             })
             return response.data
         },
@@ -215,12 +216,12 @@ export default function LikedVideosPage() {
                             const video = item.video || item
                             if (!video) return null
                             return (
-                                <div key={video._id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
+                                <div key={video._id || video.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
                                     <VideoCard video={video} />
                                     <button
                                         onClick={(e) => {
                                             e.preventDefault()
-                                            unlikeMutation.mutate(video._id)
+                                            unlikeMutation.mutate(video._id || video.id)
                                         }}
                                         className="absolute top-2 right-2 p-2 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 text-white hover:text-destructive z-10"
                                         title="Remove from Liked Videos"

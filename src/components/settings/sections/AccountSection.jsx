@@ -24,6 +24,34 @@ export function AccountSection() {
         onError: (error) => toast.error(error.response?.data?.message || 'Failed to request email change')
     })
 
+    const updateAvatarMutation = useMutation({
+        mutationFn: (type) => userService.updateDefaultAvatar(type),
+        onSuccess: (data) => {
+            toast.success('Default avatar updated successfully')
+            // Optimistically or force refresh auth context if needed.
+            // Assuming AuthContext automatically updates or we reload user details
+            window.location.reload() // simple way to refresh the global user context
+        },
+        onError: (error) => toast.error(error.response?.data?.message || 'Failed to update avatar')
+    })
+
+    const handleDefaultAvatarChange = (type) => {
+        updateAvatarMutation.mutate(type)
+    }
+
+    const updateCoverImageMutation = useMutation({
+        mutationFn: (type) => userService.updateDefaultCoverImage(type),
+        onSuccess: (data) => {
+            toast.success('Default cover image updated successfully')
+            window.location.reload()
+        },
+        onError: (error) => toast.error(error.response?.data?.message || 'Failed to update cover image')
+    })
+
+    const handleDefaultCoverImageChange = (type) => {
+        updateCoverImageMutation.mutate(type)
+    }
+
     // Username checking removed as there is no backend route for changing it.
 
     const handleEmailChange = (e) => {
@@ -71,6 +99,86 @@ export function AccountSection() {
                         <ExternalLink className="w-4 h-4 mr-2" />
                         Edit Profile
                     </Button>
+                </div>
+
+                <SettingDivider />
+
+                {/* Avatar Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <User className="w-5 h-5 text-primary" />
+                        <h3 className="text-lg font-medium">Default Avatar Style</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                        Choose a default generated avatar style. (Custom uploaded avatars will be replaced)
+                    </p>
+                    <div className="flex gap-4 overflow-x-auto pb-2 snap-x scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                        {['adventurer', 'avataaars', 'bottts', 'fun-emoji', 'micah', 'notionists', 'shapes'].map((type) => {
+                            const previewUrl = `https://api.dicebear.com/7.x/${type}/svg?seed=${user?.username || 'vixora'}`
+                            const isCurrent = user?.avatar?.includes(`/${type}/`)
+                            return (
+                                <button
+                                    key={type}
+                                    onClick={() => handleDefaultAvatarChange(type)}
+                                    disabled={updateAvatarMutation.isPending}
+                                    className={cn(
+                                        "relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 snap-center group bg-secondary/50",
+                                        isCurrent ? "border-primary shadow-[0_0_15px_rgba(239,68,68,0.3)] scale-105" : "border-transparent hover:border-white/20 hover:scale-105"
+                                    )}
+                                >
+                                    <img src={previewUrl} alt={type} className="w-full h-full object-cover p-2" />
+                                    {isCurrent && (
+                                        <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                                            <CheckCircle className="w-6 h-6 text-primary drop-shadow-md" />
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-x-0 bottom-0 bg-black/60 translate-y-full group-hover:translate-y-0 transition-transform">
+                                        <p className="text-[10px] font-medium text-center py-1 capitalize text-white truncate px-1">{type}</p>
+                                    </div>
+                                </button>
+                            )
+                        })}
+                    </div>
+                </div>
+
+                <SettingDivider />
+
+                {/* Cover Image Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                        <ExternalLink className="w-5 h-5 text-primary" />
+                        <h3 className="text-lg font-medium">Default Cover Image Style</h3>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                        Choose a default generated cover image style. (Custom uploaded cover images will be replaced)
+                    </p>
+                    <div className="flex gap-4 overflow-x-auto pb-2 snap-x scrollbar-thin scrollbar-thumb-primary/20 scrollbar-track-transparent">
+                        {['identicon', 'initials', 'rings', 'shapes', 'thumbs'].map((type) => {
+                            const previewUrl = `https://api.dicebear.com/7.x/${type}/svg?seed=${user?.username || 'vixora'}cover&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc,ffdfbf`
+                            const isCurrent = user?.coverImage?.includes(`/${type}/`)
+                            return (
+                                <button
+                                    key={`cover-${type}`}
+                                    onClick={() => handleDefaultCoverImageChange(type)}
+                                    disabled={updateCoverImageMutation.isPending}
+                                    className={cn(
+                                        "relative shrink-0 w-32 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 snap-center group bg-secondary/50",
+                                        isCurrent ? "border-primary shadow-[0_0_15px_rgba(239,68,68,0.3)] scale-105" : "border-transparent hover:border-white/20 hover:scale-105"
+                                    )}
+                                >
+                                    <img src={previewUrl} alt={type} className="w-full h-full object-cover" />
+                                    {isCurrent && (
+                                        <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                                            <CheckCircle className="w-6 h-6 text-white drop-shadow-md" />
+                                        </div>
+                                    )}
+                                    <div className="absolute inset-x-0 bottom-0 bg-black/60 translate-y-full group-hover:translate-y-0 transition-transform">
+                                        <p className="text-[10px] font-medium text-center py-1 capitalize text-white truncate px-1">{type}</p>
+                                    </div>
+                                </button>
+                            )
+                        })}
+                    </div>
                 </div>
 
                 <SettingDivider />

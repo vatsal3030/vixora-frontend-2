@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { feedService } from '../services/api'
-import { AlertCircle, RefreshCcw, Video } from 'lucide-react'
+import { AlertCircle, RefreshCcw, Video, Loader2 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import SEO from '../components/common/SEO'
 

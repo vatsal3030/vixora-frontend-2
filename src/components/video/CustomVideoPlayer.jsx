@@ -73,6 +73,14 @@ export default function CustomVideoPlayer({
         setDuration(0)
     }, [videoId])
 
+    // Sync volume to video element on mount and src change
+    useEffect(() => {
+        if (videoRef.current) {
+            videoRef.current.volume = volume;
+            videoRef.current.muted = isMuted;
+        }
+    }, [activeSrc, volume, isMuted])
+
     // Sync prop quality to state
     useEffect(() => {
         setQuality(selectedQuality)
@@ -97,13 +105,15 @@ export default function CustomVideoPlayer({
         const loadProgress = async () => {
             try {
                 const { data } = await watchHistoryService.getWatchProgress(videoId)
-                if (data.success && data.data?.progress && videoRef.current) {
-                    const saved = data.data.progress
+                if (data.success && data.data?.progress !== undefined && videoRef.current) {
                     const total = data.data.duration
-                    // Only resume if within a reasonable range (e.g., >5% and <95%)
-                    if (total > 0 && (saved / total) > 0.05 && (saved / total) < 0.95) {
-                        videoRef.current.currentTime = saved
-                        setCurrentTime(saved)
+                    // Progress is returned as a percentage (0-100) from backend
+                    const savedPercentage = data.data.progress
+                    if (total > 0 && savedPercentage > 5 && savedPercentage < 95) {
+                        const savedSeconds = (savedPercentage / 100) * total
+                        videoRef.current.currentTime = savedSeconds
+                        setCurrentTime(savedSeconds)
+                        setHasLoadedProgress(true)
                     }
                 }
             } catch (err) { console.error(err) }
@@ -305,8 +315,7 @@ export default function CustomVideoPlayer({
     }, [])
 
     // Seek / Scrubbing Logic
-    const handleSeek = useCallback((e) => {
-        // e.preventDefault() // preventDefault might block other interactions if not careful, but okay for mouse move
+    const handleSeek = useCallback((e, commit = false) => {
         if (!progressBarRef.current || !duration) return
 
         const rect = progressBarRef.current.getBoundingClientRect()
@@ -314,27 +323,35 @@ export default function CustomVideoPlayer({
         const percent = x / rect.width
         const time = percent * duration
 
-        if (videoRef.current) {
+        if (commit && videoRef.current) {
             videoRef.current.currentTime = time
         }
         setCurrentTime(time)
+        return time
     }, [duration])
 
     const handleMouseDown = (e) => {
         setIsDragging(true)
-        handleSeek(e)
+        handleSeek(e, true) // Commit immediately on click
     }
 
     useEffect(() => {
+        let lastMove = 0
         const handleMouseMove = (e) => {
             if (isDragging) {
                 e.preventDefault() // Prevent selection
-                handleSeek(e)
+                const now = Date.now()
+                // Throttle visual update slightly and only commit to video every 250ms for smooth scrub
+                if (now - lastMove > 50) {
+                    handleSeek(e, now - lastMove > 250)
+                    if (now - lastMove > 250) lastMove = now
+                }
             }
         }
-        const handleMouseUp = () => {
+        const handleMouseUp = (e) => {
             if (isDragging) {
                 setIsDragging(false)
+                handleSeek(e, true) // Final commit
                 saveProgress()
             }
         }
@@ -508,6 +525,7 @@ export default function CustomVideoPlayer({
                 onError={handlePlayerError}
                 autoPlay={autoPlay}
                 playsInline
+                muted={isMuted}
             />
 
             {/* Buffering Spinner */}

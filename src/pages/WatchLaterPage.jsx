@@ -195,12 +195,12 @@ export default function WatchLaterPage() {
                         {filteredVideos.map((item, index) => {
                             const actualVideo = item.video || item
                             return (
-                                <div key={actualVideo._id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
+                                <div key={actualVideo._id || actualVideo.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
                                     <VideoCard video={actualVideo} />
                                     <button
                                         onClick={(e) => {
                                             e.preventDefault()
-                                            removeMutation.mutate(actualVideo._id)
+                                            removeMutation.mutate(actualVideo._id || actualVideo.id)
                                         }}
                                         className="absolute top-2 right-2 p-2 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black/80 text-white hover:text-destructive z-10"
                                         title="Remove from Watch Later"

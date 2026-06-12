@@ -311,7 +311,13 @@ export default function SearchPage() {
                     {['All', 'Videos', 'Channels', 'Playlists', 'Shorts', 'Tweets'].map((tab) => (
                         <button
                             key={tab}
-                            onClick={() => setFilter(tab)}
+                            onClick={() => {
+                                setSearchParams(prev => {
+                                    const current = new URLSearchParams(prev)
+                                    current.set('filter', tab)
+                                    return current
+                                })
+                            }}
                             className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all shrink-0 ${filter === tab
                                 ? 'bg-primary text-primary-foreground shadow-sm'
                                 : 'bg-secondary/40 text-secondary-foreground hover:bg-secondary'

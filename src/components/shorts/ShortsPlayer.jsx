@@ -3,6 +3,7 @@ import { Play, Pause, Volume2, VolumeX, ThumbsUp, ThumbsDown, MessageSquare, Sha
 import { Link } from 'react-router-dom'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/DropdownMenu'
 import { ReportDialog } from '../common/ReportDialog'
+import { ShareDialog } from '../common/ShareDialog'
 import { Avatar } from '../ui/Avatar'
 import { Button } from '../ui/Button'
 import { formatNumber } from '../../lib/utils'
@@ -79,7 +80,7 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
 
     // Mutations
     const likeMutation = useMutation({
-        mutationFn: () => likeService.toggleVideoLike(video._id),
+        mutationFn: () => likeService.toggleVideoLike(video.id || video._id),
         onMutate: async () => {
             await queryClient.cancelQueries(['shorts'])
             const previousData = queryClient.getQueryData(['shorts'])
@@ -95,7 +96,7 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
     })
 
     const subscribeMutation = useMutation({
-        mutationFn: () => subscriptionService.toggleSubscription(video.owner._id),
+        mutationFn: () => subscriptionService.toggleSubscription(video.owner?.id || video.owner?._id),
         onSuccess: () => {
             toast.success(video.isSubscribed ? "Unsubscribed" : "Subscribed")
             queryClient.invalidateQueries(['shorts'])
@@ -240,7 +241,7 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
 
                     <div className="flex flex-col items-center gap-1">
                         <Link
-                            to={`/watch/${video._id}`}
+                            to={`/watch/${video.id || video._id}`}
                             className="p-3 rounded-full bg-black/40 sm:bg-white/[0.05] sm:border sm:border-white/5 backdrop-blur-sm sm:hover:bg-white/10 hover:bg-black/60 transition-colors text-white"
                         >
                             <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7" />
@@ -248,12 +249,14 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                         <span className="text-white sm:text-muted-foreground text-xs font-bold sm:mt-1">{formatNumber(video.commentsCount)}</span>
                     </div>
 
-                    <div className="flex flex-col items-center gap-1">
-                        <button className="p-3 rounded-full bg-black/40 sm:bg-white/[0.05] sm:border sm:border-white/5 backdrop-blur-sm sm:hover:bg-white/10 hover:bg-black/60 transition-colors text-white">
-                            <Share2 className="w-6 h-6 sm:w-7 sm:h-7" />
-                        </button>
-                        <span className="text-white sm:text-muted-foreground text-xs font-bold sm:mt-1">Share</span>
-                    </div>
+                        <ShareDialog title={video.title} url={`${window.location.origin}/shorts`} trigger={
+                            <button className="flex flex-col items-center gap-1 mt-4">
+                                <div className="p-3 rounded-full bg-black/40 sm:bg-white/[0.05] sm:border sm:border-white/5 backdrop-blur-sm sm:hover:bg-white/10 hover:bg-black/60 transition-colors text-white">
+                                    <Share2 className="w-6 h-6 sm:w-7 sm:h-7" />
+                                </div>
+                                <span className="text-white sm:text-muted-foreground text-xs font-bold sm:mt-1">Share</span>
+                            </button>
+                        } />
 
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -262,7 +265,7 @@ export default function ShortsPlayer({ video, isActive, onTogglePlay }) {
                             </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-[180px] glass-panel border-white/5 text-white bg-black/80 backdrop-blur-xl rounded-2xl shadow-premium p-2">
-                            <ReportDialog targetType="VIDEO" targetId={video._id} trigger={
+                            <ReportDialog targetType="VIDEO" targetId={video.id || video._id} trigger={
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white py-3 px-4 rounded-xl flex items-center">
                                     <Flag className="w-4 h-4 mr-3 text-muted-foreground" />
                                     <span className="font-medium">Report</span>

@@ -11,6 +11,7 @@ import {
     DropdownMenuTrigger,
 } from '../ui/DropdownMenu'
 import { ReportDialog } from '../common/ReportDialog'
+import { ShareDialog } from '../common/ShareDialog'
 
 export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
     const navigate = useNavigate()
@@ -96,13 +97,13 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
                             <Edit2 className="w-4 h-4 mr-2" />
                             Edit playlist
                         </DropdownMenuItem>
-                        {onShare && (
-                            <DropdownMenuItem onClick={() => onShare(playlist)}>
+                        <ShareDialog title={name} url={`${window.location.origin}/playlist/${playlistId}`} trigger={
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                 <Share2 className="w-4 h-4 mr-2" />
                                 Share
                             </DropdownMenuItem>
-                        )}
-                        <ReportDialog targetType="PLAYLIST" targetId={playlist._id} trigger={
+                        } />
+                        <ReportDialog targetType="PLAYLIST" targetId={playlistId} trigger={
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="hover:bg-white/10 cursor-pointer focus:bg-white/10 focus:text-white">
                                 <Flag className="w-4 h-4 mr-2" /> Report
                             </DropdownMenuItem>

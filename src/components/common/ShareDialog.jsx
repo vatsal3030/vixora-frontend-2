@@ -139,29 +139,29 @@ export function ShareDialog({ title, url, trigger, children }) {
                     {/* Social Share Buttons — responsive grid */}
                     <div className="space-y-3">
                         <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Social Networks</label>
-                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                        <div className="flex gap-4 overflow-x-auto pb-4 pt-2 px-1 snap-x scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
                             {shareOptions.map((option) => (
                                 <button
                                     key={option.name}
                                     onClick={() => handleShare(option)}
-                                    className="flex flex-col items-center gap-2 group transition-all duration-200 py-2"
+                                    className="flex flex-col items-center gap-3 group transition-all duration-200 snap-start shrink-0 w-[72px]"
                                 >
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center bg-white/[0.06] border border-white/10 group-hover:scale-110 transition-all duration-200 ${option.color}`}>
-                                        <option.icon className="w-5 h-5" />
+                                    <div className={`w-14 h-14 rounded-full flex items-center justify-center bg-white/[0.04] border border-white/10 group-hover:-translate-y-1 group-hover:shadow-lg transition-all duration-300 ${option.color}`}>
+                                        <option.icon className="w-6 h-6" />
                                     </div>
-                                    <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">{option.name}</span>
+                                    <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors truncate w-full text-center">{option.name}</span>
                                 </button>
                             ))}
 
                             {canShare && (
                                 <button
                                     onClick={handleNativeShare}
-                                    className="flex flex-col items-center gap-2 group transition-all duration-200 py-2"
+                                    className="flex flex-col items-center gap-3 group transition-all duration-200 snap-start shrink-0 w-[72px]"
                                 >
-                                    <div className="w-12 h-12 rounded-full flex items-center justify-center bg-white/[0.06] border border-white/10 group-hover:bg-white/10 group-hover:scale-110 transition-all duration-200">
-                                        <MoreHorizontal className="w-5 h-5 text-foreground" />
+                                    <div className="w-14 h-14 rounded-full flex items-center justify-center bg-white/[0.04] border border-white/10 group-hover:-translate-y-1 group-hover:shadow-lg group-hover:bg-white/10 transition-all duration-300">
+                                        <MoreHorizontal className="w-6 h-6 text-foreground" />
                                     </div>
-                                    <span className="text-[10px] font-medium text-muted-foreground group-hover:text-foreground transition-colors">More</span>
+                                    <span className="text-[11px] font-medium text-muted-foreground group-hover:text-foreground transition-colors truncate w-full text-center">More</span>
                                 </button>
                             )}
                         </div>

@@ -21,7 +21,7 @@ import { cn } from '../lib/utils'
 export default function PlaylistsPage() {
     useDocumentTitle('Playlists - Vixora')
     const queryClient = useQueryClient()
-    const [activeTab, setActiveTab] = useState('all') // 'all', 'playlists', 'courses', 'owned'
+    const [activeTab, setActiveTab] = useState('all') // 'all', 'public', 'private'
     const [sortBy, setSortBy] = useState('recent') // 'recent', 'oldest', 'a-z'
 
     // Modal State
@@ -42,8 +42,7 @@ export default function PlaylistsPage() {
             const res = await playlistService.getMyPlaylists({ 
                 page: pageParam, 
                 limit: 12,
-                sortBy,
-                tab: activeTab !== 'all' ? activeTab : undefined
+                sortBy
             })
             return res.data
         },
@@ -69,13 +68,21 @@ export default function PlaylistsPage() {
     const rawPlaylists = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
 
     // Local sorting for consistency as pages load
+    const filteredPlaylists = useMemo(() => {
+        return rawPlaylists.filter(playlist => {
+            if (activeTab === 'public') return playlist.isPublic === true;
+            if (activeTab === 'private') return playlist.isPublic === false;
+            return true;
+        })
+    }, [rawPlaylists, activeTab])
+
     const sortedPlaylists = useMemo(() => {
-        return [...rawPlaylists].sort((a, b) => {
+        return [...filteredPlaylists].sort((a, b) => {
             if (sortBy === 'oldest') return new Date(a.updatedAt || a.createdAt) - new Date(b.updatedAt || b.createdAt)
             if (sortBy === 'a-z') return (a.name || '').localeCompare(b.name || '')
             return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
         })
-    }, [rawPlaylists, sortBy])
+    }, [filteredPlaylists, sortBy])
 
     // Mutations
     const createMutation = useMutation({
@@ -147,13 +154,13 @@ export default function PlaylistsPage() {
             {/* Filter Tabs */}
             <Tabs defaultValue="all" className="mb-8 w-full" onValueChange={setActiveTab}>
                 <TabsList className="bg-transparent p-0 border-b border-white/10 w-full justify-start rounded-none h-auto gap-8 overflow-x-auto scrollbar-hide">
-                    {['all', 'playlists', 'courses', 'owned'].map((tab) => (
+                    {['all', 'public', 'private'].map((tab) => (
                         <TabsTrigger
                             key={tab}
                             value={tab}
                             className="capitalize rounded-none border-b-2 border-transparent px-0 pb-3 text-sm font-medium text-muted-foreground data-[state=active]:border-white data-[state=active]:text-white data-[state=active]:bg-transparent data-[state=active]:shadow-none transition-all whitespace-nowrap"
                         >
-                            {tab === 'all' ? 'Recently added' : tab}
+                            {tab === 'all' ? 'All Playlists' : tab}
                         </TabsTrigger>
                     ))}
                 </TabsList>

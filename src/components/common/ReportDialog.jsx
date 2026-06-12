@@ -5,7 +5,7 @@ import { Flag, Loader2 } from 'lucide-react'
 import { feedbackService } from '../../services/api'
 import { toast } from 'sonner'
 
-const REPORT_TARGET_TYPES = ['VIDEO', 'COMMENT', 'USER', 'CHANNEL']
+const REPORT_TARGET_TYPES = ['VIDEO', 'COMMENT', 'USER', 'CHANNEL', 'TWEET', 'PLAYLIST']
 
 const REPORT_REASONS = {
     VIDEO: [
@@ -35,6 +35,17 @@ const REPORT_REASONS = {
         'Copyright infringement',
         'Other',
     ],
+    TWEET: [
+        'Spam or misleading',
+        'Hateful or abusive content',
+        'Harassment',
+        'Other',
+    ],
+    PLAYLIST: [
+        'Spam or misleading',
+        'Hateful or abusive content',
+        'Other',
+    ]
 }
 
 const OVERLAY_STYLE = {

@@ -7,6 +7,7 @@ import { formatTimeAgo } from '../../lib/utils'
 import { Heart, MessageSquare, MoreVertical, Flag, Edit, Trash2, Share2 } from 'lucide-react'
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '../ui/DropdownMenu'
 import { ReportDialog } from '../common/ReportDialog'
+import { ShareDialog } from '../common/ShareDialog'
 import { useAuth } from '../../context/AuthContext'
 import { toast } from 'sonner'
 import { likeService } from '../../services/api'
@@ -46,7 +47,8 @@ export function TweetCard({
         }
     }
 
-    const isOwner = user && tweet.owner?._id === user._id
+    const ownerId = typeof tweet.owner === 'object' ? (tweet.owner?._id || tweet.owner?.id) : tweet.owner
+    const isOwner = user && ownerId && (ownerId === user._id || ownerId === user.id)
 
     return (
         <div className="glass-card border border-white/5 p-4 sm:p-5 rounded-2xl hover:bg-white/5 transition-colors group flex gap-3 sm:gap-4 relative">
@@ -101,8 +103,12 @@ export function TweetCard({
                 </div>
 
                 {tweet.image && (
-                    <div className="mt-3 rounded-xl overflow-hidden border border-white/5">
-                        <img src={getMediaUrl(tweet.image)} alt="Attachment" className="max-w-full max-h-[400px] object-cover" loading="lazy" />
+                    <div className="mt-3 rounded-xl overflow-hidden border border-white/5 bg-black/20">
+                        {tweet.image.match(/\.(mp4|webm|mkv)$/i) ? (
+                            <video src={getMediaUrl(tweet.image)} controls className="max-w-full max-h-[400px] w-full object-contain" />
+                        ) : (
+                            <img src={getMediaUrl(tweet.image)} alt="Attachment" className="max-w-full max-h-[400px] object-cover" loading="lazy" />
+                        )}
                     </div>
                 )}
 
@@ -140,11 +146,13 @@ export function TweetCard({
                         </div>
 
                         {/* Share */}
-                        <div className="flex items-center group/action cursor-pointer" onClick={(e) => { e.preventDefault(); navigator.clipboard.writeText(`${window.location.origin}/tweets/${tweet._id || tweet.id}`); toast.success("Link copied!"); }}>
-                            <div className="p-2 rounded-full group-hover/action:bg-green-500/10 transition-colors">
-                                <Share2 className="w-[1.15rem] h-[1.15rem] text-muted-foreground group-hover/action:text-green-400 transition-colors" />
+                        <ShareDialog title={`Post by ${tweet.owner?.fullName || tweet.owner?.username}`} url={`${window.location.origin}/tweets/${tweet._id || tweet.id}`} trigger={
+                            <div className="flex items-center group/action cursor-pointer">
+                                <div className="p-2 rounded-full group-hover/action:bg-green-500/10 transition-colors">
+                                    <Share2 className="w-[1.15rem] h-[1.15rem] text-muted-foreground group-hover/action:text-green-400 transition-colors" />
+                                </div>
                             </div>
-                        </div>
+                        } />
                     </div>
                 )}
             </div>
