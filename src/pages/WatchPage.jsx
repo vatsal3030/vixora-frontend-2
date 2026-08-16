@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
 import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Bell, Loader2, Flag, FileText, Save, Play, Heart, Clock } from 'lucide-react'
@@ -25,22 +25,55 @@ import VideoPlayerSkeleton from '../components/skeletons/VideoPlayerSkeleton'
 import SEO from '../components/common/SEO'
 import { KeyboardShortcutsModal } from '../components/common/KeyboardShortcutsModal'
 import { motion, AnimatePresence } from 'framer-motion'
-import { getStoredQuality } from '../lib/media'
+import { getStoredQuality, getMediaUrl } from '../lib/media'
 import TranscriptPanel from '../components/video/TranscriptPanel'
 import ChaptersPanel from '../components/video/ChaptersPanel'
 import { cuesAsChapters } from '../lib/videoUtils'
 import { ParsedText } from '../components/common/ParsedText'
+import { PlaylistWatchPanel } from '../components/playlist/PlaylistWatchPanel'
 
 export default function WatchPage() {
     const { videoId } = useParams()
-    const [searchParams] = useSearchParams()
+    const [searchParams, setSearchParams] = useSearchParams()
     const playlistId = searchParams.get('list')
+    const initialShuffle = searchParams.get('shuffle') === '1'
+    const [isShuffle, setIsShuffle] = useState(initialShuffle)
+    const [loopMode, setLoopMode] = useState('off') // 'off' | 'all' | 'one'
+
+    const toggleShuffle = () => {
+        setIsShuffle(prev => {
+            const next = !prev
+            if (next) {
+                searchParams.set('shuffle', '1')
+            } else {
+                searchParams.delete('shuffle')
+            }
+            setSearchParams(searchParams, { replace: true })
+            return next
+        })
+    }
+
+    const toggleLoop = () => {
+        setLoopMode(prev => {
+            if (prev === 'off') return 'all'
+            if (prev === 'all') return 'one'
+            return 'off'
+        })
+    }
+
+    const handleDismissPlaylist = () => {
+        searchParams.delete('list')
+        searchParams.delete('shuffle')
+        setSearchParams(searchParams, { replace: true })
+    }
     const { user } = useAuth()
     const queryClient = useQueryClient()
     const [newComment, setNewComment] = useState('')
     const [showShortcuts, setShowShortcuts] = useState(false)
     const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
-    const [autoPlayNext, setAutoPlayNext] = useState(true)
+    const [autoPlayNext, setAutoPlayNext] = useState(() => {
+        try { return localStorage.getItem('vixora_autoplay_next') !== 'false' } catch { return true }
+    })
     const [isTheaterMode, setIsTheaterMode] = useState(false)
     const [likeAnimation, setLikeAnimation] = useState(false)
     const [activeTab, setActiveTab] = useState('next') // 'next' | 'transcript' | 'chapters'
@@ -98,7 +131,7 @@ export default function WatchPage() {
         initialPageParam: 1
     })
 
-    const comments = commentsData?.pages.flatMap(page => page?.items || []) || []
+    const comments = commentsData?.pages.flatMap(page => page?.items || page?.comments || page.data?.items || page.data?.comments || []) || []
 
     const { data: recommendedRaw } = useQuery({
         queryKey: ['recommendations', videoId],
@@ -135,26 +168,83 @@ export default function WatchPage() {
     const transcriptItems = transcriptData?.items || transcriptData?.cues || []
     const chapters = video?.chapters || cuesAsChapters(transcriptItems, 8, video?.thumbnail)
 
+    // Auto-next countdown state
+    const [autoNextCountdown, setAutoNextCountdown] = useState(null) // { secondsLeft, nextVideo, url }
+    const countdownIntervalRef = useRef(null)
+    const countdownTimeoutRef = useRef(null)
+
+    const clearAutoNextCountdown = useCallback(() => {
+        if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current)
+        if (countdownTimeoutRef.current) clearTimeout(countdownTimeoutRef.current)
+        countdownIntervalRef.current = null
+        countdownTimeoutRef.current = null
+        setAutoNextCountdown(null)
+    }, [])
+
+    // Cleanup on unmount — prevents orphaned setTimeout/setInterval
+    useEffect(() => {
+        return () => clearAutoNextCountdown()
+    }, [clearAutoNextCountdown])
+
+    // Persist autoPlayNext preference
+    useEffect(() => {
+        try { localStorage.setItem('vixora_autoplay_next', autoPlayNext ? 'true' : 'false') } catch {}
+    }, [autoPlayNext])
+
     const handleVideoEnd = () => {
-        if (!autoPlayNext) return
+        // If single video looping is enabled, restart video
+        if (loopMode === 'one') {
+            seekToRef.current?.(0)
+            return
+        }
+
         let nextVideo = null
-        if (playlistId && playlist?.items) {
-            const playlistVideos = playlist.items || []
+        if (playlistId && playlist) {
+            const rawItems = playlist.items || playlist.videos || []
+            const playlistVideos = rawItems.map(i => i.video || i)
             const currentIndex = playlistVideos.findIndex(v => (v._id || v.id) === videoId)
-            if (currentIndex !== -1 && currentIndex < playlistVideos.length - 1) {
+
+            if (isShuffle && playlistVideos.length > 1) {
+                const candidates = playlistVideos.filter((_, idx) => idx !== currentIndex)
+                nextVideo = candidates[Math.floor(Math.random() * candidates.length)]
+            } else if (currentIndex !== -1 && currentIndex < playlistVideos.length - 1) {
                 nextVideo = playlistVideos[currentIndex + 1]
+            } else if (loopMode === 'all' && playlistVideos.length > 0) {
+                nextVideo = playlistVideos[0]
             }
         }
-        if (!nextVideo && recommended.length > 0) {
+
+        if (!nextVideo && autoPlayNext && recommended.length > 0) {
             nextVideo = recommended[0]
         }
+
         if (nextVideo?._id || nextVideo?.id) {
             const nextId = nextVideo._id || nextVideo.id
-            toast('Playing next: ' + (nextVideo.title || 'Untitled Video'), { duration: 3000 })
             const url = playlistId
-                ? `/watch/${nextId}?list=${playlistId}`
+                ? `/watch/${nextId}?list=${playlistId}${isShuffle ? '&shuffle=1' : ''}`
                 : `/watch/${nextId}`
-            setTimeout(() => navigate(url), 3000)
+            
+            // Advance with countdown
+            let secondsLeft = playlistId ? 2 : 5
+            setAutoNextCountdown({ secondsLeft, nextVideo, url })
+
+            countdownIntervalRef.current = setInterval(() => {
+                secondsLeft -= 1
+                if (secondsLeft <= 0) {
+                    clearAutoNextCountdown()
+                    navigate(url)
+                } else {
+                    setAutoNextCountdown(prev => prev ? { ...prev, secondsLeft } : null)
+                }
+            }, 1000)
+        }
+    }
+
+    const handlePlayNow = () => {
+        if (autoNextCountdown?.url) {
+            const url = autoNextCountdown.url
+            clearAutoNextCountdown()
+            navigate(url)
         }
     }
 
@@ -208,37 +298,39 @@ export default function WatchPage() {
     })
 
     const likeMutation = useMutation({
-        mutationFn: () => likeService.toggleVideoLike(video._id || video.id),
+        mutationFn: () => likeService.toggleVideoLike(videoId),
         onMutate: async () => {
             await queryClient.cancelQueries(['video', videoId])
             const previousVideo = queryClient.getQueryData(['video', videoId])
             queryClient.setQueryData(['video', videoId], old => ({
                 ...old,
                 isLiked: !old.isLiked,
-                likesCount: old.likesCount + (old.isLiked ? -1 : 1)
+                likesCount: old.isLiked ? old.likesCount - 1 : old.likesCount + 1
             }))
             return { previousVideo }
         },
-        onError: (err, vars, context) => {
+        onError: (err, newTodo, context) => {
             queryClient.setQueryData(['video', videoId], context.previousVideo)
-            toast.error('Like failed')
+            toast.error('Failed to update like')
         },
-        onSuccess: () => queryClient.invalidateQueries(['video', videoId])
+        onSuccess: () => {
+            queryClient.invalidateQueries(['video', videoId])
+            queryClient.invalidateQueries(['likedVideos'])
+        }
     })
 
     const commentMutation = useMutation({
         mutationFn: (content) => commentService.addComment(videoId, content),
         onSuccess: () => {
             setNewComment('')
-            toast.success('Comment added')
-            queryClient.invalidateQueries(['comments', videoId])
+            toast.success('Comment posted')
+            queryClient.invalidateQueries({ queryKey: ['comments', videoId] })
+            queryClient.invalidateQueries({ queryKey: ['video', videoId] })
         },
         onError: () => toast.error('Failed to post comment')
     })
 
     const handleSubscribe = () => user ? subscribeMutation.mutate() : toast.error('Please login to subscribe')
-
-
 
     const handleSubmitComment = (e) => {
         e.preventDefault()
@@ -251,18 +343,34 @@ export default function WatchPage() {
     if (videoError || !video) return <div className="p-10 pt-[80px] text-center text-xl">Video not found</div>
 
     return (
-        <div className={isTheaterMode ? "w-full min-h-screen bg-background relative selection:bg-primary/30" : "container mx-auto px-4 py-6 max-w-[1800px] min-h-screen bg-background relative selection:bg-primary/30"}>
+        <div className={cn(
+            "min-h-screen relative transition-colors duration-500 selection:bg-primary/30",
+            isTheaterMode ? "bg-black" : "bg-background container mx-auto px-4 py-6 max-w-[1800px]"
+        )}>
             <SEO title={video.title} description={video.description} image={video.thumbnail} url={window.location.href} type="video.other" />
-            <div className={`flex flex-col ${isTheaterMode ? '' : 'lg:flex-row'} gap-6`}>
+            
+            {/* Cinematic Background Glow for Theater Mode */}
+            {isTheaterMode && (
+                <div className="absolute top-0 left-0 right-0 h-[85vh] pointer-events-none overflow-hidden z-0">
+                    <div className="absolute inset-0 bg-primary/20 blur-[120px] rounded-full scale-[2] opacity-30 animate-pulse" />
+                </div>
+            )}
+
+            <div className={cn("flex flex-col gap-6 relative z-10", isTheaterMode ? '' : 'lg:flex-row')}>
 
                 {/* Left Column (Video + Info + Comments) */}
                 <div className={`flex-1 flex flex-col gap-6 w-full ${isTheaterMode ? '' : 'min-w-0'}`}>
                     {/* 1. Video Player Section */}
-                    <div className="w-full">
+                    <div className={cn(
+                        "w-full transition-all duration-500 relative",
+                        isTheaterMode ? "-mt-16 w-full" : ""
+                    )}>
                         <CustomVideoPlayer
                             src={playbackUrl}
                             poster={video.thumbnail}
                             videoId={videoId}
+                            initialDuration={video?.duration}
+                            initialProgress={video?.watchProgress}
                             autoPlay={true}
                             onEnded={handleVideoEnd}
                             isTheaterMode={isTheaterMode}
@@ -272,13 +380,70 @@ export default function WatchPage() {
                             availableQualities={availableQualities}
                             onTimeUpdate={setCurrentTime}
                             seekToRef={seekToRef}
-                            className={isTheaterMode ? "w-full h-[85vh]" : "w-full aspect-video shadow-premium rounded-xl overflow-hidden"}
+                            className={cn(
+                                "transition-all duration-500",
+                                isTheaterMode ? "w-full h-[100vh] lg:h-[90vh] object-contain bg-black" : "w-full aspect-video shadow-premium rounded-xl overflow-hidden"
+                            )}
                         />
+
+                        {/* Auto-Next Countdown Overlay */}
+                        <AnimatePresence>
+                            {autoNextCountdown && (
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-30 rounded-xl"
+                                >
+                                    <div className="flex flex-col items-center gap-4 text-center p-6 max-w-sm">
+                                        <div className="relative w-48 aspect-video rounded-lg overflow-hidden shadow-lg">
+                                            {autoNextCountdown.nextVideo?.thumbnail && (
+                                                <img src={getMediaUrl(autoNextCountdown.nextVideo.thumbnail)} alt="Next" className="w-full h-full object-cover" />
+                                            )}
+                                            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
+                                                <div className="relative w-16 h-16">
+                                                    <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                                                        <circle cx="32" cy="32" r="28" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="3" />
+                                                        <circle cx="32" cy="32" r="28" fill="none" stroke="white" strokeWidth="3"
+                                                            strokeDasharray={`${2 * Math.PI * 28}`}
+                                                            strokeDashoffset={`${2 * Math.PI * 28 * (1 - autoNextCountdown.secondsLeft / (playlistId ? 2 : 5))}`}
+                                                            strokeLinecap="round" className="transition-all duration-1000 ease-linear"
+                                                        />
+                                                    </svg>
+                                                    <span className="absolute inset-0 flex items-center justify-center text-white text-xl font-bold">
+                                                        {autoNextCountdown.secondsLeft}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                                                {playlistId ? 'Next in playlist' : 'Playing next'}
+                                            </p>
+                                            <p className="text-sm font-semibold text-white line-clamp-2">{autoNextCountdown.nextVideo?.title || 'Untitled'}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <Button variant="secondary" onClick={clearAutoNextCountdown}
+                                                className="rounded-full bg-white/10 hover:bg-white/20 text-white px-5 h-9">
+                                                Cancel
+                                            </Button>
+                                            <Button onClick={handlePlayNow}
+                                                className="rounded-full bg-white text-black hover:bg-white/90 px-5 h-9 font-semibold">
+                                                <Play className="w-4 h-4 mr-1.5 fill-current" /> Play Now
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* 2. Video Info Section */}
-                    <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : ''} space-y-4`}>
-                        <h1 className="text-xl md:text-2xl font-bold line-clamp-2 mt-2">{video.title}</h1>
+                    <div className={cn(
+                        "space-y-4 transition-opacity duration-300",
+                        isTheaterMode ? "container mx-auto px-4 max-w-[1200px] mt-4 opacity-90 hover:opacity-100" : ""
+                    )}>
+                        <h1 className="text-xl md:text-2xl font-bold text-white break-words leading-tight drop-shadow-sm">{video.title}</h1>
 
                         <div className="flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
                             <div className="flex items-center gap-4 w-full md:w-auto">
@@ -309,7 +474,7 @@ export default function WatchPage() {
                             </div>
 
                             <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0 w-full md:w-auto scrollbar-hide">
-                                <div className="flex items-center glass-card rounded-full h-9 md:h-10 shrink-0 relative">
+                                <div className="flex items-center bg-white/10 hover:bg-white/15 rounded-full h-9 md:h-10 shrink-0 overflow-hidden border border-white/10 transition-colors">
                                     <button
                                         onClick={() => {
                                             if (!user) return navigate('/login')
@@ -317,19 +482,22 @@ export default function WatchPage() {
                                             setTimeout(() => setLikeAnimation(false), 300)
                                             likeMutation.mutate()
                                         }}
-                                        className="flex items-center gap-2 px-4 h-full hover:bg-white/10 transition-colors rounded-l-full"
+                                        className="flex items-center gap-2 px-3.5 h-full hover:bg-white/15 transition-colors text-white active:scale-95"
                                     >
                                         <motion.div
                                             animate={likeAnimation ? { scale: [1, 1.4, 1] } : {}}
                                             transition={{ duration: 0.3 }}
                                         >
-                                            <ThumbsUp className={`w-5 h-5 transition-all duration-300 ${video.isLiked ? 'fill-primary text-primary' : ''}`} />
+                                            <ThumbsUp className={`w-4 h-4 md:w-5 md:h-5 transition-all ${video.isLiked ? 'fill-primary text-primary' : ''}`} />
                                         </motion.div>
-                                        <span className="text-sm font-medium">{formatNumber(video.likesCount)}</span>
+                                        <span className="text-xs md:text-sm font-semibold">{formatNumber(video.likesCount)}</span>
                                     </button>
-                                    <div className="w-[1px] h-5 bg-white/10"></div>
-                                    <button className="px-4 h-full hover:bg-white/10 transition-colors rounded-r-full">
-                                        <ThumbsDown className="w-5 h-5" />
+                                    <div className="w-[1px] h-4 bg-white/20"></div>
+                                    <button
+                                        className="flex items-center justify-center px-3 h-full hover:bg-white/15 transition-colors text-white active:scale-95"
+                                        title="Dislike"
+                                    >
+                                        <ThumbsDown className="w-4 h-4 md:w-5 md:h-5" />
                                     </button>
                                 </div>
 
@@ -342,7 +510,39 @@ export default function WatchPage() {
                                 <Button
                                     variant="secondary"
                                     className="rounded-full bg-white/10 hover:bg-white/20 shrink-0 h-9 md:h-10 text-white px-4"
-                                    onClick={() => toast.success("Download started", { description: "Video is being saved to your device." })}
+                                    onClick={async () => {
+                                        const downloadUrl = video?.videoFile || video?.videoUrl || playbackUrl
+                                        if (!downloadUrl) {
+                                            toast.error("Download unavailable", { description: "No downloadable source found." })
+                                            return
+                                        }
+                                        // If it's an HLS manifest, we can't blob-download — fallback to new tab
+                                        if (downloadUrl.endsWith('.m3u8')) {
+                                            toast.info("Opening video in new tab", { description: "HLS streams can't be downloaded directly." })
+                                            window.open(downloadUrl, '_blank')
+                                            return
+                                        }
+                                        const toastId = toast.loading("Downloading video...", { description: "Please wait while we prepare your download." })
+                                        try {
+                                            const response = await fetch(downloadUrl)
+                                            if (!response.ok) throw new Error('Failed to fetch')
+                                            const blob = await response.blob()
+                                            const url = URL.createObjectURL(blob)
+                                            const a = document.createElement('a')
+                                            a.href = url
+                                            const ext = downloadUrl.split('.').pop()?.split('?')[0] || 'mp4'
+                                            a.download = `${(video?.title || 'video').replace(/[^a-zA-Z0-9_\-\s]/g, '').trim()}.${ext}`
+                                            document.body.appendChild(a)
+                                            a.click()
+                                            document.body.removeChild(a)
+                                            URL.revokeObjectURL(url)
+                                            toast.success("Download complete!", { id: toastId })
+                                        } catch (err) {
+                                            console.error("Download failed:", err)
+                                            toast.error("Download failed", { id: toastId, description: "Opening video in a new tab instead." })
+                                            window.open(downloadUrl, '_blank')
+                                        }
+                                    }}
                                 >
                                     <Download className="w-4 h-4 mr-2" /> Download
                                 </Button>
@@ -382,70 +582,49 @@ export default function WatchPage() {
                             </div>
                         </div>
 
-                        <div
-                            className={`glass-card rounded-xl p-4 text-sm cursor-pointer transition-colors ${isDescriptionExpanded ? '' : 'overflow-hidden'}`}
-                            onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}
-                        >
-                            <div className="font-semibold mb-2 text-white flex items-center gap-2">
-                                <span>{formatViews(video.views)}</span>
-                                <span className="text-muted-foreground">•</span>
+                        {/* Description Box */}
+                        <div className="bg-secondary/40 hover:bg-secondary/60 transition-colors p-4 rounded-xl cursor-pointer"
+                            onClick={() => setIsDescriptionExpanded(!isDescriptionExpanded)}>
+                            <div className="flex gap-3 text-sm font-semibold text-white mb-2">
+                                <span>{formatViews(video.views)} views</span>
+                                <span>•</span>
                                 <span>{formatTimeAgo(video.createdAt)}</span>
                             </div>
-                            <div className="whitespace-pre-line text-gray-300 leading-relaxed font-normal text-[0.95rem]">
-                                {isDescriptionExpanded ? (
-                                    <ParsedText text={video.description} onSeek={(s) => seekToRef.current?.(s)} />
-                                ) : (
-                                    <ParsedText text={(video.description?.substring(0, 180) || '') + (video.description?.length > 180 ? '...' : '')} onSeek={(s) => seekToRef.current?.(s)} />
-                                )}
-                            </div>
-                            {video.description?.length > 180 && (
-                                <button className="text-white mt-2 font-semibold hover:underline text-sm">
-                                    {isDescriptionExpanded ? 'Show less' : '...more'}
-                                </button>
-                            )}
+                            <p className={cn("text-sm text-foreground/90 whitespace-pre-wrap", !isDescriptionExpanded && "line-clamp-3")}>
+                                <ParsedText text={video.description} />
+                            </p>
+                            <button className="text-xs font-bold text-muted-foreground mt-2 hover:text-white transition-colors">
+                                {isDescriptionExpanded ? "Show less" : "...more"}
+                            </button>
                         </div>
                     </div>
 
-                    {/* 4. Comments Section */}
-                    <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : ''} pt-6 pb-20`}>
-                        <div className="flex items-center gap-6 mb-6">
-                            <h3 className="font-bold text-xl">{formatNumber(video.commentsCount)} Comments</h3>
+                    {/* Comments Section */}
+                    <div className="space-y-6 pt-4">
+                        <div className="flex items-center gap-6">
+                            <h2 className="text-xl font-bold text-white">{video.commentsCount || 0} Comments</h2>
                         </div>
 
-                        <form onSubmit={handleSubmitComment} className="flex gap-4 mb-8 items-start">
-                            <Avatar src={user?.avatar} fallback={user?.username || 'G'} size="md" className="w-10 h-10" />
-                            <div className="flex-1 space-y-2">
-                                <input
-                                    type="text"
-                                    placeholder="Add a comment..."
-                                    className="w-full glass-input px-4 py-2 text-sm placeholder:text-muted-foreground focus-visible:ring-primary/50"
-                                    value={newComment}
-                                    onChange={(e) => setNewComment(e.target.value)}
-                                />
-                                <AnimatePresence>
-                                    {newComment && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: -10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -10 }}
-                                            className="flex justify-end gap-2"
-                                        >
-                                            <Button type="button" variant="ghost" onClick={() => setNewComment('')} className="rounded-full hover:bg-white/10 text-white">Cancel</Button>
-                                            <Button type="submit" disabled={commentMutation.isPending} className="bg-primary hover:bg-primary/90 text-white rounded-full px-4">
-                                                {commentMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Comment'}
-                                            </Button>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </form>
-
-                        <div className="space-y-6">
-                            {comments.length === 0 && (
-                                <div className="text-center py-8 text-muted-foreground">
-                                    <p>No comments yet. Be the first to comment!</p>
+                        {user && (
+                            <form onSubmit={handleSubmitComment} className="flex gap-4 items-start">
+                                <Avatar src={user.avatar} fallback={user.username} size="md" />
+                                <div className="flex-1 space-y-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Add a comment..."
+                                        value={newComment}
+                                        onChange={(e) => setNewComment(e.target.value)}
+                                        className="w-full bg-transparent border-b border-border focus:border-primary pb-2 outline-none transition-colors text-sm text-white"
+                                    />
+                                    <div className="flex justify-end gap-2">
+                                        <Button type="button" variant="ghost" size="sm" onClick={() => setNewComment('')} className="rounded-full">Cancel</Button>
+                                        <Button type="submit" size="sm" disabled={!newComment.trim() || commentMutation.isPending} className="rounded-full">Comment</Button>
+                                    </div>
                                 </div>
-                            )}
+                            </form>
+                        )}
+
+                        <div className="space-y-4">
                             {comments.map((comment) => (
                                 <CommentItem key={comment._id || comment.id} comment={comment} videoId={videoId} onSeek={(s) => seekToRef.current?.(s)} />
                             ))}
@@ -458,8 +637,22 @@ export default function WatchPage() {
                     </div>
                 </div>
 
-                {/* 3. Sidebar (Recommendations / Transcript / Chapters) */}
-                <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : 'lg:w-[400px] flex-shrink-0'} flex flex-col gap-4 w-full`}>
+                {/* 3. Sidebar (YouTube Playlist Panel / Recommendations / Transcript / Chapters) */}
+                <div className={`${isTheaterMode ? 'container mx-auto px-4 max-w-[1200px]' : 'lg:w-[400px] xl:w-[420px] flex-shrink-0'} flex flex-col gap-4 w-full`}>
+                    {/* YouTube Style Playlist Panel (Matching Image 4) */}
+                    {playlistId && playlist && (
+                        <PlaylistWatchPanel
+                            playlist={playlist}
+                            playlistId={playlistId}
+                            currentVideoId={videoId}
+                            onClose={handleDismissPlaylist}
+                            isShuffle={isShuffle}
+                            onToggleShuffle={toggleShuffle}
+                            loopMode={loopMode}
+                            onToggleLoop={toggleLoop}
+                        />
+                    )}
+
                     {/* AI Summary Card */}
                     <AISummaryCard videoId={videoId} />
 
@@ -511,28 +704,6 @@ export default function WatchPage() {
                                         </div>
                                     </div>
                                 </div>
-
-                                {playlist ? (
-                                    <div className="glass-card rounded-xl border-white/5 overflow-hidden mb-2">
-                                        <div className="p-2.5 bg-white/5 border-b border-white/5">
-                                            <h4 className="font-bold text-xs truncate">{playlist.name}</h4>
-                                            <p className="text-[10px] text-muted-foreground truncate">{playlist.owner?.username} - {playlist.videos.length} videos</p>
-                                        </div>
-                                        <div className="max-h-[300px] overflow-y-auto">
-                                            {(playlist.items || []).map((v, i) => (
-                                                <Link key={v._id || v.id} to={`/watch/${v._id || v.id}?list=${playlist._id || playlist.id}`}
-                                                    className={`flex gap-2 p-2 hover:bg-white/5 ${(v._id || v.id) === videoId ? 'bg-white/10' : ''}`}>
-                                                    <span className="text-[10px] text-gray-400 w-4 flex-shrink-0 flex items-center">{(v._id || v.id) === videoId ? <Play className="w-2.5 h-2.5 fill-white" /> : i + 1}</span>
-                                                    <img src={v.thumbnail} className="w-20 h-11 object-cover rounded" />
-                                                    <div className="min-w-0">
-                                                        <p className="text-[10px] font-bold line-clamp-2 text-white">{v.title}</p>
-                                                        <p className="text-[9px] text-gray-400">{v.owner?.username}</p>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ) : null}
 
                                 <div className="flex flex-col gap-3">
                                     {recommended?.map((recVideo) => (

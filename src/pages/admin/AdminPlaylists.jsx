@@ -4,10 +4,13 @@ import { toast } from 'sonner'
 import { formatTimeAgo } from '../../lib/utils'
 import { Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
+import { ConfirmationDialog } from '../../components/common/ConfirmationDialog'
 
 export default function AdminPlaylists() {
     const [playlists, setPlaylists] = useState([])
     const [loading, setLoading] = useState(true)
+    const [deleteTargetId, setDeleteTargetId] = useState(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const fetchPlaylists = async () => {
         try {
@@ -27,14 +30,17 @@ export default function AdminPlaylists() {
     }, [])
 
     const handleSoftDelete = async (playlistId) => {
-        if (!confirm('Are you sure you want to delete this playlist?')) return
+        setIsDeleting(true)
         try {
             await adminService.softDeletePlaylist(playlistId)
             toast.success('Playlist deleted')
+            setDeleteTargetId(null)
             fetchPlaylists()
         } catch (err) {
             console.error(err)
             toast.error('Failed to delete playlist')
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -106,7 +112,7 @@ export default function AdminPlaylists() {
                                                     <RotateCcw className="w-4 h-4 mr-2" /> Restore
                                                 </Button>
                                             ) : (
-                                                <Button variant="ghost" size="sm" onClick={() => handleSoftDelete(playlist._id || playlist.id)} className="text-red-500 hover:text-red-400">
+                                                <Button variant="ghost" size="sm" onClick={() => setDeleteTargetId(playlist._id || playlist.id)} className="text-red-500 hover:text-red-400">
                                                     <Trash2 className="w-4 h-4 mr-2" /> Delete
                                                 </Button>
                                             )}
@@ -118,6 +124,15 @@ export default function AdminPlaylists() {
                     </table>
                 </div>
             </div>
+
+            <ConfirmationDialog
+                open={!!deleteTargetId}
+                onOpenChange={(open) => { if (!open) setDeleteTargetId(null) }}
+                title="Delete Playlist"
+                description="Are you sure you want to delete this playlist? This can be reversed by restoring."
+                onConfirm={() => handleSoftDelete(deleteTargetId)}
+                isLoading={isDeleting}
+            />
         </div>
     )
 }

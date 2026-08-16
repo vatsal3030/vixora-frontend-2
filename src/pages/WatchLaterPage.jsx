@@ -3,7 +3,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { useInView } from 'react-intersection-observer'
 import { Link } from 'react-router-dom'
 import {
-    Clock, Trash2, Search, Grid3X3, List, ArrowUpDown, LayoutGrid, Loader2
+    Clock, Trash2, Search, Grid3X3, List, ArrowUpDown, LayoutGrid, Loader2, Play
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { playlistService } from '../services/api'
@@ -58,7 +58,7 @@ export default function WatchLaterPage() {
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
+    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || page.data?.videos || []) || [], [data])
 
     // Remove video mutation
     const removeMutation = useMutation({
@@ -100,18 +100,32 @@ export default function WatchLaterPage() {
             {/* Header */}
             <div className="py-8 container mx-auto px-4">
                 <div className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-primary/10 rounded-xl">
+                            <div className="p-3.5 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-2xl shadow-lg">
                                 <Clock className="w-8 h-8 text-primary" style={{ shapeRendering: 'geometricPrecision' }} />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold">Watch Later</h1>
-                                <p className="text-muted-foreground mt-1">
-                                    {rawVideos.length} videos • Private playlist
+                                <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Watch Later</h1>
+                                <p className="text-xs text-zinc-400 mt-1">
+                                    {filteredVideos.length} videos • Saved to watch later
                                 </p>
                             </div>
                         </div>
+
+                        {filteredVideos.length > 0 && (() => {
+                            const firstItem = filteredVideos[0]
+                            const firstVid = firstItem.video || firstItem
+                            const firstId = firstVid?._id || firstVid?.id
+                            return (
+                                <Link to={firstId ? `/watch/${firstId}` : '#'}>
+                                    <Button className="bg-white text-black hover:bg-white/90 rounded-full font-bold text-xs px-5 h-9 shadow-lg flex items-center gap-2">
+                                        <Play className="w-4 h-4 fill-current" />
+                                        Play all
+                                    </Button>
+                                </Link>
+                            )
+                        })()}
                     </div>
 
                     {/* Controls */}

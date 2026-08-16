@@ -8,11 +8,11 @@ import {
     ListVideo,
     PlaySquare,
     User,
-    ChevronRight,
-    Loader2
+    ChevronRight
 } from 'lucide-react'
 import { watchHistoryService, playlistService, likeService } from '../services/api'
 import { VideoCard } from '../components/video/VideoCard'
+import { VideoCardSkeleton } from '../components/ui/Skeleton'
 import { PlaylistCard } from '../components/playlist/PlaylistCard'
 import { Button } from '../components/ui/Button'
 import SEO from '../components/common/SEO'
@@ -21,7 +21,7 @@ import { Avatar } from '../components/ui/Avatar'
 import { getMediaUrl } from '../lib/media'
 
 export default function LibraryPage() {
-    const { currentUser } = useAuth()
+    const { user: currentUser } = useAuth()
 
     // --- Queries ---
 
@@ -37,7 +37,7 @@ export default function LibraryPage() {
 
     // 2. Watch Later
     const { data: watchLaterData, isLoading: watchLaterLoading } = useQuery({
-        queryKey: ['watchLater'],
+        queryKey: ['watchLater', 'library'],
         queryFn: async () => {
             const res = await playlistService.getWatchLater()
             return res.data.data?.items || res.data.data?.videos || []
@@ -69,8 +69,23 @@ export default function LibraryPage() {
 
     if (isLoading) {
         return (
-            <div className="flex justify-center items-center h-[60vh]">
-                <Loader2 className="w-10 h-10 animate-spin text-primary" />
+            <div className="pb-24 pt-6 px-4 sm:px-6 lg:px-8 container mx-auto max-w-[1600px] min-h-[80vh]">
+                <div className="flex flex-col lg:flex-row gap-10">
+                    <div className="flex-1 w-full min-w-0 flex flex-col gap-12">
+                        {Array.from({ length: 3 }).map((_, i) => (
+                            <div key={`shelf-skeleton-${i}`} className="space-y-4">
+                                <div className="h-8 w-48 bg-white/5 rounded animate-pulse" />
+                                <div className="flex gap-4 overflow-hidden">
+                                    {Array.from({ length: 4 }).map((_, j) => (
+                                        <div key={`card-skeleton-${i}-${j}`} className="w-[240px] sm:w-[280px] flex-shrink-0">
+                                            <VideoCardSkeleton />
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
         )
     }
@@ -79,9 +94,9 @@ export default function LibraryPage() {
         <div className="pb-24 pt-6 px-4 sm:px-6 lg:px-8 container mx-auto max-w-[1600px] min-h-[80vh]">
             <SEO title="Library" description="View your watch history, watch later playlists, and liked videos on Vixora." />
 
-            <div className="flex flex-col lg:flex-row gap-10">
+            <div className="flex flex-col gap-10">
                 {/* Main Content (Shelves) */}
-                <div className="flex-1 w-full min-w-0 flex flex-col gap-12">
+                <div className="w-full flex flex-col gap-12">
 
                     <ShelfSection
                         title="History"
@@ -136,29 +151,6 @@ export default function LibraryPage() {
                     />
 
                 </div>
-
-                {/* Right Sidebar (Profile Summary Stats) - Hidden on Mobile */}
-                <div className="hidden lg:flex flex-col w-[320px] flex-shrink-0">
-                    <div className="sticky top-24 flex flex-col items-center p-8 glass-card rounded-2xl border border-white/5 shadow-glass text-center">
-                        <Avatar
-                            src={getMediaUrl(currentUser?.avatar)}
-                            fallback={currentUser?.fullName || currentUser?.username}
-                            size="xl"
-                            className="w-28 h-28 mb-4 shadow-glass-glow"
-                        />
-                        <h2 className="text-xl font-bold mb-1">{currentUser?.fullName || currentUser?.username}</h2>
-                        <span className="text-muted-foreground text-sm font-medium mb-6">@{currentUser?.username}</span>
-
-                        <div className="w-full h-px bg-white/10 mb-6" />
-
-                        <div className="w-full flex flex-col gap-4 text-sm">
-                            <StatRow label="Subscriptions" icon={User} value={currentUser?.subscriptionsCount || 0} />
-                            <StatRow label="Playlists" icon={ListVideo} value={playlists.length} />
-                            <StatRow label="Liked Videos" icon={ThumbsUp} value={likedData?.length || 0} />
-                            <StatRow label="Watch Later" icon={Clock} value={watchLaterData?.length || 0} />
-                        </div>
-                    </div>
-                </div>
             </div>
 
         </div>
@@ -181,7 +173,7 @@ function ShelfSection({ title, icon: Icon, viewAllLink, items, renderItem, empty
     return (
         <section className="flex flex-col">
             <div className="flex justify-between items-center mb-5 px-1 group cursor-pointer">
-                <Link to={viewAllLink || '#'} className="flex items-center gap-3">
+                <Link to={viewAllLink || '#'} className="flex items-center gap-3 flex-1">
                     <div className="p-2 bg-primary/10 rounded-xl text-primary shadow-sm group-hover:bg-primary/20 transition-colors">
                         {Icon && <Icon className="w-6 h-6" />}
                     </div>
@@ -189,7 +181,7 @@ function ShelfSection({ title, icon: Icon, viewAllLink, items, renderItem, empty
                 </Link>
                 {viewAllLink && items && items.length > 0 && (
                     <Link to={viewAllLink}>
-                        <Button variant="outline" className="rounded-full text-xs font-semibold px-4 border-white/10 hover:bg-white/10 group-hover:border-white/30 transition-all">
+                        <Button variant="outline" className="rounded-full text-xs font-semibold px-4 border-white/10 hover:bg-white/10 group-hover:border-white/30 transition-all z-10 relative">
                             View All <ChevronRight className="w-3 h-3 ml-1" />
                         </Button>
                     </Link>
@@ -203,7 +195,7 @@ function ShelfSection({ title, icon: Icon, viewAllLink, items, renderItem, empty
             ) : (
                 <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 snap-x">
                     {items.map((item, index) => (
-                        <div key={index} className="snap-start hover:-translate-y-1 transition-transform duration-300">
+                        <div key={index} className="snap-start">
                             {renderItem(item)}
                         </div>
                     ))}

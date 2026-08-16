@@ -55,7 +55,7 @@ export default function TagFeedPage() {
         }
     }, [isInView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    const videos = data?.pages.flatMap(page => page.data?.items || []) || []
+    const videos = data?.pages.flatMap(page => page.data?.items || page.data?.videos || []) || []
     const tagMeta = data?.pages[0]?.data?.tag
 
     // Error State

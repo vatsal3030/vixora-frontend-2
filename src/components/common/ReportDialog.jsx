@@ -58,10 +58,14 @@ const PANEL_STYLE = {
     WebkitBackdropFilter: 'blur(24px) saturate(180%)',
 }
 
-export function ReportDialog({ targetType = 'VIDEO', targetId, trigger }) {
-    const [isOpen, setIsOpen] = useState(false)
+export function ReportDialog({ targetType = 'VIDEO', targetId, trigger, open: controlledOpen, onOpenChange: controlledOnOpenChange }) {
+    const [internalOpen, setInternalOpen] = useState(false)
     const [reason, setReason] = useState('')
     const [description, setDescription] = useState('')
+
+    const isControlled = controlledOpen !== undefined
+    const isOpen = isControlled ? controlledOpen : internalOpen
+    const setIsOpen = isControlled ? controlledOnOpenChange : setInternalOpen
 
     const reasons = REPORT_REASONS[targetType] || REPORT_REASONS.VIDEO
 
@@ -97,7 +101,7 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger }) {
     return (
         <>
             {/* Trigger element */}
-            <span onClick={handleOpen}>{trigger}</span>
+            {trigger && <span onClick={handleOpen} className="inline-block cursor-pointer">{trigger}</span>}
 
             {/* Modal overlay */}
             {isOpen && createPortal(

@@ -112,7 +112,7 @@ export function LikedVideoCard({ video, viewMode = 'grid', isSelected, onSelect,
     // GRID VIEW
     return (
         <div className={cn(
-            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-300 hover:shadow-xl hover:-translate-y-1",
+            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-300 hover:shadow-xl",
             isSelected ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
         )}>
             {/* Selection Overlay */}

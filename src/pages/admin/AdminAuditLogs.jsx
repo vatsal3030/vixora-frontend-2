@@ -6,15 +6,22 @@ import { formatTimeAgo } from '../../lib/utils'
 export default function AdminAuditLogs() {
     const [logs, setLogs] = useState([])
     const [loading, setLoading] = useState(true)
+    const [errorMsg, setErrorMsg] = useState(null)
 
     const fetchLogs = async () => {
         try {
             setLoading(true)
+            setErrorMsg(null)
             const res = await adminService.getAuditLogs({ limit: 100 })
             setLogs(res.data.data?.items || [])
         } catch (err) {
             console.error(err)
-            toast.error('Failed to load audit logs')
+            if (err.response?.status === 403) {
+                setErrorMsg('Admin access required to view audit logs.')
+            } else {
+                setErrorMsg('Failed to load audit logs.')
+                toast.error('Failed to load audit logs')
+            }
         } finally {
             setLoading(false)
         }

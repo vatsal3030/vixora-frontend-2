@@ -10,6 +10,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/Select'
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { getMediaUrl } from '../lib/media'
+import { PresetSelectorModal } from '../components/settings/PresetSelectorModal'
 
 export default function ProfilePage() {
     const { user, checkAuth } = useAuth()
@@ -38,6 +39,10 @@ export default function ProfilePage() {
     const [imageToCrop, setImageToCrop] = useState(null)
     const [cropAspect, setCropAspect] = useState(1)
     const [cropType, setCropType] = useState('avatar') // 'avatar' | 'cover'
+
+    // Preset Modal State
+    const [presetModalOpen, setPresetModalOpen] = useState(false)
+    const [presetType, setPresetType] = useState('avatar') // 'avatar' | 'cover'
 
     useEffect(() => {
         if (user) {
@@ -210,10 +215,17 @@ export default function ProfilePage() {
                 />
 
                 {/* Cover Edit Button */}
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
+                    <Button variant="ghost" className="bg-black/50 hover:bg-black/70 text-white backdrop-blur-md gap-2" onClick={() => {
+                        setPresetType('cover')
+                        setPresetModalOpen(true)
+                    }}>
+                        <Layout className="w-4 h-4" />
+                        <span className="hidden sm:inline">Choose Preset</span>
+                    </Button>
                     <Button variant="ghost" className="bg-black/50 hover:bg-black/70 text-white backdrop-blur-md gap-2" onClick={() => coverInputRef.current?.click()}>
                         <Camera className="w-4 h-4" />
-                        <span className="hidden sm:inline">Change Cover</span>
+                        <span className="hidden sm:inline">Upload</span>
                     </Button>
                     <input ref={coverInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'coverImage')} />
                 </div>
@@ -229,8 +241,16 @@ export default function ProfilePage() {
                         <div className="w-36 h-36 md:w-44 md:h-44 rounded-full border-4 border-background overflow-hidden bg-secondary shadow-2xl ring-1 ring-white/10 relative z-10 glass-card">
                             <Avatar src={getMediaUrl(user.avatar)} fallback={user.username} size="w-full h-full text-5xl" className="rounded-none object-cover" />
                         </div>
-                        <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20 cursor-pointer backdrop-blur-[2px] m-1" onClick={() => avatarInputRef.current?.click()}>
-                            <Camera className="w-6 h-6 text-white" />
+                        <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center z-20 backdrop-blur-[2px] m-1 gap-2">
+                            <button className="text-xs text-white hover:text-primary transition-colors flex items-center gap-1" onClick={() => avatarInputRef.current?.click()}>
+                                <Camera className="w-3 h-3" /> Upload
+                            </button>
+                            <button className="text-xs text-white hover:text-primary transition-colors flex items-center gap-1" onClick={() => {
+                                setPresetType('avatar')
+                                setPresetModalOpen(true)
+                            }}>
+                                <User className="w-3 h-3" /> Preset
+                            </button>
                         </div>
                         <input ref={avatarInputRef} type="file" className="hidden" accept="image/*" onChange={(e) => handleImageUpload(e, 'avatar')} />
                     </div>
@@ -343,7 +363,13 @@ export default function ProfilePage() {
                                                     <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-2xl glass-card hover:bg-white/5 transition-colors">
                                                         <Avatar src={getMediaUrl(user.avatar)} fallback={user.username} size="xl" className="mb-4 text-2xl" />
                                                         <p className="text-xs text-muted-foreground text-center mb-4">Recommended: 98x98 px<br />PNG or JPG. Max 4MB.</p>
-                                                        <Button variant="outline" size="sm" onClick={() => avatarInputRef.current?.click()} className="glass-btn border-white/10">Change</Button>
+                                                        <div className="flex gap-2">
+                                                            <Button variant="outline" size="sm" onClick={() => avatarInputRef.current?.click()} className="glass-btn border-white/10">Upload</Button>
+                                                            <Button variant="outline" size="sm" onClick={() => {
+                                                                setPresetType('avatar')
+                                                                setPresetModalOpen(true)
+                                                            }} className="glass-btn border-white/10">Preset</Button>
+                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -354,7 +380,13 @@ export default function ProfilePage() {
                                                             <img src={getMediaUrl(user.coverImage)} className="w-full h-full object-cover opacity-80" alt="Banner preview" />
                                                         </div>
                                                         <p className="text-xs text-muted-foreground text-center mb-4">Recommended: 2048x1152 px<br />Aspect ratio 16:9.</p>
-                                                        <Button variant="outline" size="sm" onClick={() => coverInputRef.current?.click()} className="glass-btn border-white/10">Change</Button>
+                                                        <div className="flex gap-2">
+                                                            <Button variant="outline" size="sm" onClick={() => coverInputRef.current?.click()} className="glass-btn border-white/10">Upload</Button>
+                                                            <Button variant="outline" size="sm" onClick={() => {
+                                                                setPresetType('cover')
+                                                                setPresetModalOpen(true)
+                                                            }} className="glass-btn border-white/10">Preset</Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -435,6 +467,12 @@ export default function ProfilePage() {
                 onCropComplete={handleCropComplete}
                 aspect={cropAspect}
                 title={cropType === 'avatar' ? 'Crop Profile Picture' : 'Crop Channel Banner'}
+            />
+
+            <PresetSelectorModal
+                isOpen={presetModalOpen}
+                onClose={() => setPresetModalOpen(false)}
+                type={presetType}
             />
         </div>
     )

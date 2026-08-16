@@ -5,6 +5,7 @@ import { playlistService } from '../services/api'
 import { PlaylistInfo } from '../components/playlist/PlaylistInfo'
 import { PlaylistVideoList } from '../components/playlist/PlaylistVideoList'
 import { PlaylistModal } from '../components/playlist/PlaylistModal'
+import { ConfirmationDialog } from '../components/common/ConfirmationDialog'
 import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
@@ -17,6 +18,8 @@ export default function PlaylistDetailPage() {
     // States
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [localVideos, setLocalVideos] = useState([]) // For optimistic reordering
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [videoToRemove, setVideoToRemove] = useState(null)
 
     // Fetch Playlist
     const { data: playlist, isLoading, error } = useQuery({
@@ -81,15 +84,11 @@ export default function PlaylistDetailPage() {
     }
 
     const handleDelete = () => {
-        if (window.confirm('Are you sure you want to delete this playlist?')) {
-            deleteMutation.mutate()
-        }
+        setShowDeleteDialog(true)
     }
 
     const handleRemoveVideo = (videoId) => {
-        if (window.confirm('Remove this video from playlist?')) {
-            removeVideoMutation.mutate(videoId)
-        }
+        setVideoToRemove(videoId)
     }
 
     if (isLoading) {
@@ -143,6 +142,7 @@ export default function PlaylistDetailPage() {
                 <div className="flex-1 min-w-0">
                     <PlaylistVideoList
                         videos={localVideos}
+                        playlistId={playlistId}
                         onReorder={handleReorder}
                         onRemove={handleRemoveVideo}
                     />
@@ -156,6 +156,34 @@ export default function PlaylistDetailPage() {
                 onSubmit={(data) => updateMutation.mutate(data)}
                 initialData={playlist}
                 isLoading={updateMutation.isPending}
+            />
+
+            {/* Delete Playlist Confirmation */}
+            <ConfirmationDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                title="Delete Playlist"
+                description="Are you sure you want to delete this playlist? This action cannot be undone."
+                onConfirm={() => {
+                    deleteMutation.mutate()
+                    setShowDeleteDialog(false)
+                }}
+                isLoading={deleteMutation.isPending}
+            />
+
+            {/* Remove Video Confirmation */}
+            <ConfirmationDialog
+                open={!!videoToRemove}
+                onOpenChange={(open) => { if (!open) setVideoToRemove(null) }}
+                title="Remove Video"
+                description="Are you sure you want to remove this video from the playlist?"
+                onConfirm={() => {
+                    if (videoToRemove) {
+                        removeVideoMutation.mutate(videoToRemove)
+                        setVideoToRemove(null)
+                    }
+                }}
+                isLoading={removeVideoMutation.isPending}
             />
         </div>
     )

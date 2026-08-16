@@ -4,10 +4,13 @@ import { toast } from 'sonner'
 import { formatTimeAgo } from '../../lib/utils'
 import { Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
+import { ConfirmationDialog } from '../../components/common/ConfirmationDialog'
 
 export default function AdminComments() {
     const [comments, setComments] = useState([])
     const [loading, setLoading] = useState(true)
+    const [deleteTargetId, setDeleteTargetId] = useState(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const fetchComments = async () => {
         try {
@@ -27,14 +30,17 @@ export default function AdminComments() {
     }, [])
 
     const handleSoftDelete = async (commentId) => {
-        if (!confirm('Are you sure you want to delete this comment?')) return
+        setIsDeleting(true)
         try {
             await adminService.softDeleteComment(commentId)
             toast.success('Comment deleted')
+            setDeleteTargetId(null)
             fetchComments()
         } catch (err) {
             console.error(err)
             toast.error('Failed to delete comment')
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -105,7 +111,7 @@ export default function AdminComments() {
                                                     <RotateCcw className="w-4 h-4 mr-2" /> Restore
                                                 </Button>
                                             ) : (
-                                                <Button variant="ghost" size="sm" onClick={() => handleSoftDelete(comment._id || comment.id)} className="text-red-500 hover:text-red-400">
+                                                <Button variant="ghost" size="sm" onClick={() => setDeleteTargetId(comment._id || comment.id)} className="text-red-500 hover:text-red-400">
                                                     <Trash2 className="w-4 h-4 mr-2" /> Delete
                                                 </Button>
                                             )}
@@ -117,6 +123,15 @@ export default function AdminComments() {
                     </table>
                 </div>
             </div>
+
+            <ConfirmationDialog
+                open={!!deleteTargetId}
+                onOpenChange={(open) => { if (!open) setDeleteTargetId(null) }}
+                title="Delete Comment"
+                description="Are you sure you want to delete this comment? This can be reversed by restoring."
+                onConfirm={() => handleSoftDelete(deleteTargetId)}
+                isLoading={isDeleting}
+            />
         </div>
     )
 }

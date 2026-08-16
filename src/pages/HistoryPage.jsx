@@ -118,7 +118,7 @@ export default function HistoryPage() {
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.items || []) || [], [data])
+    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
 
     // Clear history mutation
     const clearHistoryMutation = useMutation({

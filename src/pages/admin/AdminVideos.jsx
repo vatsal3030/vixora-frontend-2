@@ -5,6 +5,7 @@ import { formatTimeAgo, formatViews } from '../../lib/utils'
 import { getMediaUrl } from '../../lib/media'
 import { MoreVertical, ShieldBan, ShieldCheck, Eye, Trash2 } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
+import { ConfirmationDialog } from '../../components/common/ConfirmationDialog'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -15,6 +16,8 @@ import {
 export default function AdminVideos() {
     const [videos, setVideos] = useState([])
     const [loading, setLoading] = useState(true)
+    const [deleteTargetId, setDeleteTargetId] = useState(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const fetchVideos = async () => {
         try {
@@ -34,14 +37,17 @@ export default function AdminVideos() {
     }, [])
 
     const handleSoftDeleteVideo = async (videoId) => {
-        if (!confirm('Are you sure you want to delete this video?')) return
+        setIsDeleting(true)
         try {
             await adminService.softDeleteVideo(videoId)
             toast.success('Video deleted')
+            setDeleteTargetId(null)
             fetchVideos()
         } catch (err) {
             console.error(err)
             toast.error('Failed to delete video')
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -137,7 +143,7 @@ export default function AdminVideos() {
                                                         {video.isPublished ? <ShieldBan className="w-4 h-4 mr-2" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
                                                         {video.isPublished ? 'Unpublish' : 'Publish'}
                                                     </DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleSoftDeleteVideo(video._id || video.id)} className="text-red-500">
+                                                    <DropdownMenuItem onClick={() => setDeleteTargetId(video._id || video.id)} className="text-red-500">
                                                         <Trash2 className="w-4 h-4 mr-2" /> Delete Video
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
@@ -150,6 +156,15 @@ export default function AdminVideos() {
                     </table>
                 </div>
             </div>
+
+            <ConfirmationDialog
+                open={!!deleteTargetId}
+                onOpenChange={(open) => { if (!open) setDeleteTargetId(null) }}
+                title="Delete Video"
+                description="Are you sure you want to delete this video? This action can be reversed by restoring it."
+                onConfirm={() => handleSoftDeleteVideo(deleteTargetId)}
+                isLoading={isDeleting}
+            />
         </div>
     )
 }

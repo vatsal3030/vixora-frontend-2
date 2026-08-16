@@ -15,12 +15,16 @@ import { toast } from 'sonner'
 import { CreatePlaylistDialog } from './CreatePlaylistDialog'
 import { useQueryClient } from '@tanstack/react-query'
 
-export function AddToPlaylistDialog({ videoId, children }) {
-    const [open, setOpen] = useState(false)
+export function AddToPlaylistDialog({ videoId, children, open: controlledOpen, onOpenChange: controlledOnOpenChange }) {
+    const [internalOpen, setInternalOpen] = useState(false)
     const [playlists, setPlaylists] = useState([])
     const [loading, setLoading] = useState(true)
     const [processing, setProcessing] = useState(null)
     const queryClient = useQueryClient()
+
+    const isControlled = controlledOpen !== undefined
+    const open = isControlled ? controlledOpen : internalOpen
+    const setOpen = isControlled ? controlledOnOpenChange : setInternalOpen
 
     const fetchPlaylists = async () => {
         setLoading(true)
@@ -82,14 +86,19 @@ export function AddToPlaylistDialog({ videoId, children }) {
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                {children || (
+            {children && (
+                <div onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpen(true); }} className="inline-block cursor-pointer">
+                    {children}
+                </div>
+            )}
+            {!children && !isControlled && (
+                <DialogTrigger asChild>
                     <Button variant="secondary" size="sm" className="gap-2">
                         <ListPlus className="w-4 h-4" />
                         Save
                     </Button>
-                )}
-            </DialogTrigger>
+                </DialogTrigger>
+            )}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Save to playlist</DialogTitle>

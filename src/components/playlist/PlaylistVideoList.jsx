@@ -17,7 +17,7 @@ import { PlaylistVideoItem } from './PlaylistVideoItem'
 import { Button } from '../ui/Button'
 import { Loader2 } from 'lucide-react'
 
-export function PlaylistVideoList({ videos, onReorder, onRemove }) {
+export function PlaylistVideoList({ videos, playlistId, onReorder, onRemove }) {
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -39,7 +39,7 @@ export function PlaylistVideoList({ videos, onReorder, onRemove }) {
 
     if (!videos || videos.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-white/10 rounded-xl glass-panel">
+            <div className="flex flex-col items-center justify-center py-20 text-center border border-dashed border-white/10 rounded-2xl glass-panel">
                 <p className="text-muted-foreground mb-4">This playlist has no videos yet.</p>
                 <Button variant="outline" className="glass-btn border-white/10 hover:bg-white/10">Browse Videos</Button>
             </div>
@@ -59,16 +59,15 @@ export function PlaylistVideoList({ videos, onReorder, onRemove }) {
                 <div className="flex flex-col gap-2 pb-10">
                     {videos.map((video, index) => (
                         <PlaylistVideoItem
-                            key={video._id || video.id}
+                            key={video._id || video.id || `pvideo-${index}`}
                             video={video}
+                            playlistId={playlistId}
                             index={index}
                             onRemove={onRemove}
                         />
                     ))}
                 </div>
             </SortableContext>
-
-            {/* Drag Overlay could be added for better UX, but not strictly required by prompt if performance is concern */}
         </DndContext>
     )
 }

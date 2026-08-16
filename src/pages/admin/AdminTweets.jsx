@@ -4,10 +4,13 @@ import { toast } from 'sonner'
 import { formatTimeAgo } from '../../lib/utils'
 import { Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
+import { ConfirmationDialog } from '../../components/common/ConfirmationDialog'
 
 export default function AdminTweets() {
     const [tweets, setTweets] = useState([])
     const [loading, setLoading] = useState(true)
+    const [deleteTargetId, setDeleteTargetId] = useState(null)
+    const [isDeleting, setIsDeleting] = useState(false)
 
     const fetchTweets = async () => {
         try {
@@ -27,14 +30,17 @@ export default function AdminTweets() {
     }, [])
 
     const handleSoftDelete = async (tweetId) => {
-        if (!confirm('Are you sure you want to delete this tweet?')) return
+        setIsDeleting(true)
         try {
             await adminService.softDeleteTweet(tweetId)
             toast.success('Tweet deleted')
+            setDeleteTargetId(null)
             fetchTweets()
         } catch (err) {
             console.error(err)
             toast.error('Failed to delete tweet')
+        } finally {
+            setIsDeleting(false)
         }
     }
 
@@ -105,7 +111,7 @@ export default function AdminTweets() {
                                                     <RotateCcw className="w-4 h-4 mr-2" /> Restore
                                                 </Button>
                                             ) : (
-                                                <Button variant="ghost" size="sm" onClick={() => handleSoftDelete(tweet._id || tweet.id)} className="text-red-500 hover:text-red-400">
+                                                <Button variant="ghost" size="sm" onClick={() => setDeleteTargetId(tweet._id || tweet.id)} className="text-red-500 hover:text-red-400">
                                                     <Trash2 className="w-4 h-4 mr-2" /> Delete
                                                 </Button>
                                             )}
@@ -117,6 +123,15 @@ export default function AdminTweets() {
                     </table>
                 </div>
             </div>
+
+            <ConfirmationDialog
+                open={!!deleteTargetId}
+                onOpenChange={(open) => { if (!open) setDeleteTargetId(null) }}
+                title="Delete Tweet"
+                description="Are you sure you want to delete this tweet? This can be reversed by restoring."
+                onConfirm={() => handleSoftDelete(deleteTargetId)}
+                isLoading={isDeleting}
+            />
         </div>
     )
 }

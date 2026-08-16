@@ -56,6 +56,7 @@ export const videoService = {
 // Comment Service  
 export const commentService = {
     getComments: (videoId, params = {}) => api.get(`/comments/${videoId}`, { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getReplies: (commentId, params = {}) => api.get(`/comments/c/${commentId}/replies`, { params: { limit: 20, ...params } }),
     addComment: (videoId, content, parentId = null) => api.post(`/comments/${videoId}`, { content, parentId }),
     updateComment: (commentId, content) => api.patch(`/comments/c/${commentId}`, { content }),
     deleteComment: (commentId) => api.delete(`/comments/c/${commentId}`)

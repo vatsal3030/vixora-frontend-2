@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { adminService } from '../../services/api'
-import { Users, Film, MessageSquare, Flag } from 'lucide-react'
+import { Users, Film, MessageSquare, Flag, Activity } from 'lucide-react'
 import { toast } from 'sonner'
 import { motion } from 'framer-motion'
 import { AdminDashboardSkeleton } from '../../components/skeletons/AdminDashboardSkeleton'
@@ -93,11 +93,10 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                {/* Recharts Area Chart */}
-                <div className="glass-card p-6 rounded-2xl min-h-[350px] flex flex-col">
-                    <h2 className="text-lg font-bold mb-4">Platform Growth (Weekly)</h2>
-                    <div className="flex-1 min-h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                <div className="glass-card p-6 rounded-2xl min-h-[350px] flex flex-col min-w-0">
+                    <h2 className="text-lg font-bold mb-4 font-display">Platform Growth (Weekly)</h2>
+                    <div className="flex-1 w-full min-w-0 min-h-[300px]">
+                        <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={200}>
                             <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">

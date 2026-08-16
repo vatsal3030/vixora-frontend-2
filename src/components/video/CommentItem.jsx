@@ -13,7 +13,7 @@ import { ConfirmationDialog } from '../common/ConfirmationDialog'
 import { formatNumber } from '../../lib/utils'
 import { ParsedText } from '../common/ParsedText'
 
-export function CommentItem({ comment, videoId, onSeek }) {
+export function CommentItem({ comment, videoId, onSeek, depth = 0 }) {
     const { user } = useAuth()
     const queryClient = useQueryClient()
     const [likesCount, setLikesCount] = useState(comment?.likesCount || 0)
@@ -89,8 +89,33 @@ export function CommentItem({ comment, videoId, onSeek }) {
     }
 
     if (!comment) return null
-    const replies = comment.replies || []
-    const hasReplies = replies.length > 0
+    const embeddedReplies = comment.replies || []
+    // repliesCount from backend _count — tells us total replies that exist
+    const totalRepliesCount = comment.repliesCount || embeddedReplies.length || 0
+    const hasReplies = totalRepliesCount > 0
+
+    // On-demand reply fetching for deeper nesting
+    const [fetchedReplies, setFetchedReplies] = useState([])
+    const [isLoadingReplies, setIsLoadingReplies] = useState(false)
+    const [repliesFetched, setRepliesFetched] = useState(false)
+
+    // Use embedded replies if available (depth 0 from initial query), else use fetched
+    const displayReplies = embeddedReplies.length > 0 ? embeddedReplies : fetchedReplies
+
+    const loadReplies = async () => {
+        if (repliesFetched || isLoadingReplies) return
+        setIsLoadingReplies(true)
+        try {
+            const res = await commentService.getReplies(comment._id || comment.id)
+            const items = res.data?.data?.items || res.data?.data?.replies || []
+            setFetchedReplies(items)
+            setRepliesFetched(true)
+        } catch (err) {
+            toast.error('Failed to load replies')
+        } finally {
+            setIsLoadingReplies(false)
+        }
+    }
 
     return (
         <div className="flex gap-3 items-start group">
@@ -161,6 +186,12 @@ export function CommentItem({ comment, videoId, onSeek }) {
                         <button 
                             onClick={() => {
                                 if (!user) return toast.error("Please login to reply")
+                                if (depth >= 10) {
+                                    return toast.warning("Maximum reply depth reached. You cannot reply further down this thread.")
+                                }
+                                if (!isReplying) {
+                                    setReplyContent(`@${comment.owner?.username} `)
+                                }
                                 setIsReplying(!isReplying)
                             }}
                             className="text-xs font-medium text-muted-foreground hover:text-white transition-colors opacity-0 group-hover:opacity-100"
@@ -197,16 +228,37 @@ export function CommentItem({ comment, videoId, onSeek }) {
                 {hasReplies && (
                     <div className="mt-2">
                         <button 
-                            onClick={() => setShowReplies(!showReplies)}
+                            onClick={() => {
+                                const next = !showReplies
+                                setShowReplies(next)
+                                // If no embedded replies and we haven't fetched yet, fetch on first expand
+                                if (next && embeddedReplies.length === 0 && !repliesFetched) {
+                                    loadReplies()
+                                }
+                            }}
                             className="flex items-center gap-2 text-sm text-primary font-medium hover:bg-primary/10 px-3 py-1.5 rounded-full transition-colors"
                         >
-                            {showReplies ? 'Hide replies' : `View ${replies.length} repl${replies.length === 1 ? 'y' : 'ies'}`}
+                            {showReplies ? 'Hide replies' : `View ${totalRepliesCount} repl${totalRepliesCount === 1 ? 'y' : 'ies'}`}
                         </button>
                         
                         {showReplies && (
-                            <div className="mt-3 space-y-4">
-                                {replies.map(reply => (
-                                    <CommentItem key={reply._id || reply.id} comment={reply} videoId={videoId} onSeek={onSeek} />
+                            <div className={`mt-4 space-y-4 ${depth < 8 ? 'pl-4 sm:pl-6 border-l-2 border-white/10 ml-2' : 'pl-2 border-l border-white/5 ml-1'} relative`}>
+                                {isLoadingReplies && (
+                                    <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
+                                        <Loader2 className="w-4 h-4 animate-spin" /> Loading replies...
+                                    </div>
+                                )}
+                                {displayReplies.map((reply) => (
+                                    <div key={reply._id || reply.id} className="relative">
+                                        {depth < 8 && <div className="absolute -left-4 sm:-left-6 top-5 w-4 sm:w-6 h-[2px] bg-white/10" />}
+                                        {depth < 10 ? (
+                                            <CommentItem comment={reply} videoId={videoId} onSeek={onSeek} depth={depth + 1} />
+                                        ) : (
+                                            <div className="text-xs text-muted-foreground italic py-2">
+                                                Continue this thread →
+                                            </div>
+                                        )}
+                                    </div>
                                 ))}
                             </div>
                         )}

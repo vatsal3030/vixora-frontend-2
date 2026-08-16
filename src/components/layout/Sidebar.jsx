@@ -16,14 +16,17 @@ import {
     Film,
     ChevronRight,
     MessageCircle,
-    SquareUser
+    SquareUser,
+    ShieldAlert
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../../lib/utils'
+import { useAuth } from '../../context/AuthContext'
 
 const sidebarItems = [
     { icon: Home, label: 'Home', path: '/' },
     { icon: TrendingUp, label: 'Trending', path: '/trending' },
-    { icon: Film, label: 'Shorts', path: '/shorts' }, // Added Shorts
+    { icon: Film, label: 'Shorts', path: '/shorts' },
     { icon: MessageCircle, label: 'Community', path: '/tweets' },
     { icon: Users, label: 'Subscriptions', path: '/subscriptions' },
 ]
@@ -41,6 +44,8 @@ const libraryItems = [
 
 export function Sidebar({ isOpen, onClose, isCollapsed }) {
     const location = useLocation()
+    const { user } = useAuth()
+    const isAdmin = ['ADMIN', 'SUPER_ADMIN', 'MODERATOR'].includes(user?.role)
 
     const isActive = (path) => {
         if (path === '/') return location.pathname === '/'
@@ -50,23 +55,28 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
     return (
         <>
             {/* Mobile Overlay */}
-            {isOpen && (
-                <div
-                    onClick={onClose}
-                    className="fixed inset-0 bg-black/60 z-40 lg:hidden animate-in fade-in duration-200"
-                />
-            )}
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={onClose}
+                        className="fixed inset-0 bg-black/60 z-40 lg:hidden"
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Sidebar */}
             <aside
                 className={cn(
-                    // Base Layout - Glass Panel
-                    "fixed top-16 bottom-0 left-0 z-40 glass-panel overflow-y-auto scrollbar-hide transition-all duration-300 ease-in-out shadow-premium border-r border-white/5",
-                    // Mobile: Slide in/out
-                    isOpen ? "translate-x-0" : "-translate-x-full",
-                    // Desktop: Always visible, width controlled by prop
-                    "lg:translate-x-0",
-                    isCollapsed ? "w-[80px]" : "w-[256px] max-w-[85vw]"
+                    // Base Layout
+                    "fixed top-16 bottom-0 left-0 z-40 bg-black/80 backdrop-blur-3xl overflow-y-auto overflow-x-hidden scrollbar-hide border-r border-white/10",
+                    "max-w-[85vw] transition-all duration-300 ease-in-out",
+                    // Width control
+                    isCollapsed ? "lg:w-[80px]" : "lg:w-[256px]",
+                    // Mobile translation
+                    isOpen ? "translate-x-0 w-[256px]" : "-translate-x-full lg:translate-x-0"
                 )}
             >
                 {/* Mobile Close Button (Top Right of Sidebar) */}
@@ -140,6 +150,27 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     )}
                                 </Link>
                             ))}
+
+                            {isAdmin && (
+                                <Link
+                                    to="/admin"
+                                    className={cn(
+                                        "flex items-center gap-3 px-3.5 py-2 rounded-xl transition-all duration-200 group relative overflow-hidden text-amber-400 hover:bg-amber-500/10 hover:text-amber-300",
+                                        isActive('/admin')
+                                            ? "bg-amber-500/15 font-semibold text-amber-300 shadow-inner"
+                                            : "opacity-90",
+                                        isCollapsed && "justify-center px-2"
+                                    )}
+                                    title={isCollapsed ? "Admin Panel" : undefined}
+                                    onClick={() => window.innerWidth < 1024 && onClose()}
+                                >
+                                    <ShieldAlert className="w-[18px] h-[18px] flex-shrink-0 text-amber-400" />
+                                    {!isCollapsed && <span className="text-[15px] font-bold">Admin Panel</span>}
+                                    {isActive('/admin') && !isCollapsed && (
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-amber-400 rounded-r-full shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
+                                    )}
+                                </Link>
+                            )}
                         </nav>
                     </div>
                 </div>

@@ -64,7 +64,7 @@ export default function SubscriptionsPage() {
     })
     const channels = channelsData
 
-    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
+    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || page.data?.videos || []) || [], [data])
 
     // Filter out self-videos and apply channel filter
     const videos = useMemo(() => {
@@ -115,7 +115,7 @@ export default function SubscriptionsPage() {
                     <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>Try Again</Button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
                     {(loadingVideos || (isFetchingNextPage && filteredVideos.length === 0)) && Array.from({ length: 12 }).map((_, i) => (
                         <VideoCardSkeleton key={i} />
                     ))}

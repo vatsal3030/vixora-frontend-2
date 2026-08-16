@@ -3,12 +3,12 @@ import { cn } from '../../lib/utils'
 
 const buttonVariants = {
     variant: {
-        primary: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-brand-red-glow hover:-translate-y-0.5',
+        primary: 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-brand-red-glow',
         ghost: 'hover:bg-accent hover:text-accent-foreground',
         outline: 'border border-input bg-transparent hover:bg-accent hover:text-accent-foreground',
         danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md hover:shadow-red-900/20',
         success: 'bg-green-600 text-white hover:bg-green-700 shadow-md',
-        glass: 'glass-btn hover:-translate-y-0.5',
+        glass: 'glass-btn',
     },
     size: {
         sm: 'h-9 px-3 rounded-lg text-sm',

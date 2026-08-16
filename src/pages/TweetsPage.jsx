@@ -44,7 +44,11 @@ export default function TweetsPage() {
             const res = await tweetService.getFeed({ mode, page: pageParam, limit: 20 })
             return res.data.data
         },
-        getNextPageParam: (lastPage) => lastPage.pagination.hasNextPage ? lastPage.pagination.currentPage + 1 : undefined,
+        getNextPageParam: (lastPage) => {
+            const pagination = lastPage?.pagination || lastPage?.data?.pagination
+            if (!pagination) return undefined
+            return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
+        },
     })
 
     // Fetch next page
@@ -110,7 +114,7 @@ export default function TweetsPage() {
         }
     }
 
-    const tweets = data ? data.pages.flatMap(page => page.items) : []
+    const tweets = data ? data.pages.flatMap(page => page.items || page.tweets || page.data?.items || page.data?.tweets || []) : []
 
     const navTabs = [
         { id: 'forYou', label: 'For You', icon: Sparkles, requiresAuth: true },

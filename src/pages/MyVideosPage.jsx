@@ -7,6 +7,8 @@ import { CreatorVideoCard } from '../components/dashboard/videos/CreatorVideoCar
 import { VideoManagementToolbar } from '../components/dashboard/videos/VideoManagementToolbar'
 import { VideoBulkActions } from '../components/dashboard/videos/VideoBulkActions'
 import { TweetCard } from '../components/tweet/TweetCard'
+import { PlaylistCard } from '../components/playlist/PlaylistCard'
+import { PlaylistCardSkeleton } from '../components/ui/Skeleton'
 import HomePageSkeleton from '../components/skeletons/HomePageSkeleton'
 import { Plus, Loader2, Film, Smartphone, MessageCircle, ListVideo, Globe, Lock, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
@@ -75,7 +77,7 @@ export default function YoursPage() {
     }, [videosInView, hasMoreVideos, loadingMoreVideos, activeTab, fetchMoreVideos])
 
     const allVideos = useMemo(() => {
-        const flattened = _videosData?.pages.flatMap(page => page?.items || []) || []
+        const flattened = _videosData?.pages.flatMap(page => page?.items || page?.videos || page.data?.items || page.data?.videos || []) || []
         return flattened.filter(video => {
             const matchesSearch = (video.title || '').toLowerCase().includes(searchQuery.toLowerCase())
             let matchesFilter = true
@@ -164,7 +166,7 @@ export default function YoursPage() {
     }, [shortsInView, hasMoreShorts, loadingMoreShorts, activeTab, fetchMoreShorts])
 
     const allShorts = useMemo(() => {
-        return _shortsData?.pages.flatMap(page => page?.items || []) || []
+        return _shortsData?.pages.flatMap(page => page?.items || page?.shorts || page?.videos || page.data?.items || page.data?.shorts || page.data?.videos || []) || []
     }, [_shortsData])
 
     // ===================== COMMUNITY TAB =====================
@@ -201,7 +203,7 @@ export default function YoursPage() {
     }, [communityInView, hasMoreTweets, loadingMoreTweets, activeTab, fetchMoreTweets])
 
     const allTweets = useMemo(() => {
-        return _tweetsData?.pages.flatMap(page => page?.items || []) || []
+        return _tweetsData?.pages.flatMap(page => page?.items || page?.tweets || page.data?.items || page.data?.tweets || []) || []
     }, [_tweetsData])
 
     const deleteTweetMutation = useMutation({
@@ -325,7 +327,7 @@ export default function YoursPage() {
                         }>
                             {allVideos.map((video, index) => (
                                 <motion.div
-                                    key={video._id}
+                                    key={video._id || video.id || `video-${index}`}
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: (index % 24) * 0.03 }}
@@ -333,9 +335,9 @@ export default function YoursPage() {
                                     <CreatorVideoCard
                                         video={video}
                                         viewMode={viewMode}
-                                        isSelected={selectedIds.has(video._id)}
+                                        isSelected={selectedIds.has(video._id || video.id)}
                                         onSelect={handleSelect}
-                                        onDelete={() => setVideoToDelete(video._id)}
+                                        onDelete={() => setVideoToDelete(video._id || video.id)}
                                         onTogglePublish={(id) => videoService.togglePublish(id).then(() => {
                                             queryClient.invalidateQueries({ queryKey: ['myVideos'] })
                                             toast.success('Visibility updated')
@@ -389,12 +391,12 @@ export default function YoursPage() {
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                             {allShorts.map((short, index) => (
                                 <motion.div
-                                    key={short._id}
+                                    key={short._id || short.id || `short-${index}`}
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     transition={{ delay: (index % 24) * 0.04 }}
                                     className="relative group glass-card rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all cursor-pointer"
-                                    onClick={() => navigate(`/watch/${short._id}`)}
+                                    onClick={() => navigate(`/watch/${short._id || short.id}`)}
                                 >
                                     <div className="aspect-[9/16] relative bg-black">
                                         <img
@@ -467,90 +469,47 @@ export default function YoursPage() {
             {/* ==================== PLAYLISTS ==================== */}
             {activeTab === 'playlists' && (
                 <>
-                    <div className="flex justify-end mb-4">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-xl font-bold text-white font-display">Your Created Playlists</h2>
+                            <p className="text-xs text-zinc-400 mt-0.5">Playlists you have created and organized</p>
+                        </div>
                         <Link to="/playlists">
-                            <Button size="sm" className="gap-2">
+                            <Button size="sm" className="bg-white text-black hover:bg-white/90 rounded-full font-bold text-xs px-4 h-9 gap-1.5 shadow-md">
                                 <Plus className="w-4 h-4" /> New Playlist
                             </Button>
                         </Link>
                     </div>
+
                     {playlistsLoading ? (
-                        <div className="py-20 text-center"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {Array.from({ length: 8 }).map((_, i) => (
+                                <PlaylistCardSkeleton key={`pl-skel-${i}`} />
+                            ))}
+                        </div>
                     ) : allPlaylists.length === 0 ? (
-                        <div className="text-center py-20 rounded-2xl border border-dashed border-white/10">
-                            <ListVideo className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
-                            <h3 className="text-lg font-semibold mb-2">No playlists yet</h3>
-                            <p className="text-muted-foreground text-sm mb-6">Create playlists to organize your favorite videos.</p>
-                            <Link to="/playlists"><Button>Create Playlist</Button></Link>
+                        <div className="text-center py-20 rounded-2xl border border-dashed border-white/10 glass-panel">
+                            <ListVideo className="w-12 h-12 mx-auto text-zinc-600 mb-4" />
+                            <h3 className="text-lg font-semibold text-white mb-2 font-display">No playlists yet</h3>
+                            <p className="text-zinc-400 text-sm mb-6 max-w-sm mx-auto">Create playlists to organize your favorite videos into custom collections.</p>
+                            <Link to="/playlists">
+                                <Button className="bg-white text-black hover:bg-white/90 rounded-full font-bold px-6">
+                                    Create Playlist
+                                </Button>
+                            </Link>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            {allPlaylists.map((playlist, index) => (
-                                <motion.div
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {allPlaylists.map((playlist) => (
+                                <PlaylistCard
                                     key={playlist._id || playlist.id}
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: index * 0.04 }}
-                                    className="glass-card rounded-xl border border-white/5 hover:border-white/20 transition-all overflow-hidden group"
-                                >
-                                    {/* Stacked thumbnail effect */}
-                                    <Link to={`/playlists/${playlist._id || playlist.id}`}>
-                                        <div className="relative aspect-video bg-secondary/30">
-                                            {playlist.thumbnail ? (
-                                                <img src={getMediaUrl(playlist.thumbnail)} alt={playlist.name} className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center">
-                                                    <ListVideo className="w-10 h-10 text-muted-foreground/30" />
-                                                </div>
-                                            )}
-                                            <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs font-bold px-2 py-0.5 rounded backdrop-blur-sm">
-                                                {playlist.videoCount || 0} videos
-                                            </div>
-                                        </div>
-                                    </Link>
-                                    <div className="p-3">
-                                        <div className="flex items-start justify-between gap-2">
-                                            <div className="min-w-0">
-                                                <h3 className="font-semibold text-sm truncate">{playlist.name}</h3>
-                                                <div className="flex items-center gap-1.5 mt-0.5">
-                                                    {playlist.isPublic ? (
-                                                        <Globe className="w-3 h-3 text-muted-foreground" />
-                                                    ) : (
-                                                        <Lock className="w-3 h-3 text-muted-foreground" />
-                                                    )}
-                                                    <span className="text-xs text-muted-foreground">{playlist.isPublic ? 'Public' : 'Private'}</span>
-                                                    <span className="text-muted-foreground">·</span>
-                                                    <span className="text-xs text-muted-foreground">{formatTimeAgo(playlist.createdAt)}</span>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-1 shrink-0">
-                                                <button
-                                                    onClick={() => togglePlaylistPrivacyMutation.mutate(playlist._id || playlist.id)}
-                                                    className="p-1.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors"
-                                                    title={playlist.isPublic ? 'Make Private' : 'Make Public'}
-                                                >
-                                                    {playlist.isPublic ? <Lock className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />}
-                                                </button>
-                                                <Link to={`/playlists/${playlist._id || playlist.id}`}>
-                                                    <button className="p-1.5 hover:bg-white/10 rounded-lg text-muted-foreground hover:text-white transition-colors" title="Edit">
-                                                        <Pencil className="w-3.5 h-3.5" />
-                                                    </button>
-                                                </Link>
-                                                <button
-                                                    onClick={() => {
-                                                        if (window.confirm('Delete this playlist?')) {
-                                                            deletePlaylistMutation.mutate(playlist._id || playlist.id)
-                                                        }
-                                                    }}
-                                                    className="p-1.5 hover:bg-red-500/10 rounded-lg text-muted-foreground hover:text-red-400 transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
+                                    playlist={playlist}
+                                    onDelete={(p) => {
+                                        if (window.confirm(`Delete playlist "${p.name}"?`)) {
+                                            deletePlaylistMutation.mutate(p._id || p.id)
+                                        }
+                                    }}
+                                />
                             ))}
                         </div>
                     )}

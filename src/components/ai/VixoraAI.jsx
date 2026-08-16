@@ -11,6 +11,7 @@ import { useAuth } from '../../context/AuthContext'
 import { aiService } from '../../services/api'
 import { cn, formatTimeAgo } from '../../lib/utils'
 import { BrandLogo } from '../common/BrandLogo'
+import { ParsedText } from '../common/ParsedText'
 
 // ─── Quick question suggestions ──────────────────────────────────────────────
 const VIDEO_CHIPS = [
@@ -60,7 +61,13 @@ function MessageBubble({ message, onRegenerate }) {
                         ? 'bg-primary text-white rounded-tr-sm'
                         : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-sm'
                 )}>
-                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    {isUser ? (
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                    ) : (
+                        <div className="prose prose-invert max-w-none text-sm leading-relaxed">
+                            <ParsedText text={message.content} />
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer Actions & Timestamp */}
@@ -376,7 +383,10 @@ export default function VixoraAI() {
     const handleQuickAsk = async (question) => {
         if (isSending) return
         setInput('')
-        await sendMessage(question)
+        await sendMessage(question, {
+            videoId: currentVideoId,
+            title: currentVideoId ? 'Video Context Chat' : 'New Conversation'
+        })
     }
 
     const handleSend = async (e) => {

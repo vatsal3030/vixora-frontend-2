@@ -17,6 +17,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { ScrollToTop } from './components/common/ScrollToTop'
 import { KeyboardShortcuts } from './components/common/KeyboardShortcuts'
 import { ErrorBoundary } from './components/error/ErrorBoundary'
+import { NavigationProgress } from './components/common/NavigationProgress'
 import './index.css'
 
 // Lazy load auth pages
@@ -71,6 +72,7 @@ function App() {
         <MiniPlayerProvider>
           <VideoHoverProvider>
             <Router>
+              <NavigationProgress />
               <ScrollToTop />
               <KeyboardShortcuts />
               <Toaster />

@@ -98,8 +98,8 @@ export function DashboardStatsCard({ title, value, icon: Icon, trend, trendValue
             </CardContent>
 
             {/* Sparkline Background */}
-            <div className="absolute inset-x-0 bottom-0 h-16 opacity-10">
-                <ResponsiveContainer width="100%" height={64}>
+            <div className="h-16 w-full mt-4 -mb-2 min-w-0">
+                <ResponsiveContainer width="100%" height={64} minWidth={0} minHeight={40}>
                     <AreaChart data={sparkData}>
                         <defs>
                             <linearGradient id={`gradient-${color}`} x1="0" y1="0" x2="0" y2="1">

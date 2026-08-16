@@ -6,10 +6,12 @@ import { Button } from '../components/ui/Button'
 import { Tabs, TabsList, TabsTrigger } from '../components/ui/Tabs'
 import { PlaylistGrid } from '../components/playlist/PlaylistGrid'
 import { PlaylistCard } from '../components/playlist/PlaylistCard'
+import { PlaylistCardSkeleton } from '../components/ui/Skeleton'
 import { PlaylistModal } from '../components/playlist/PlaylistModal'
 import { playlistService } from '../services/api'
 import { toast } from 'sonner'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { ConfirmationDialog } from '../components/common/ConfirmationDialog'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -27,6 +29,7 @@ export default function PlaylistsPage() {
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingPlaylist, setEditingPlaylist] = useState(null)
+    const [playlistToDelete, setPlaylistToDelete] = useState(null)
 
     // Data Fetching (Infinite)
     const {
@@ -65,7 +68,7 @@ export default function PlaylistsPage() {
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    const rawPlaylists = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
+    const rawPlaylists = useMemo(() => data?.pages.flatMap(page => page.data?.items || page.data?.playlists || []) || [], [data])
 
     // Local sorting for consistency as pages load
     const filteredPlaylists = useMemo(() => {
@@ -125,9 +128,7 @@ export default function PlaylistsPage() {
     }
 
     const handleDelete = (playlist) => {
-        if (window.confirm(`Delete playlist "${playlist.name}"?`)) {
-            deleteMutation.mutate(playlist._id || playlist.id)
-        }
+        setPlaylistToDelete(playlist)
     }
 
     const openCreateModal = () => {
@@ -144,9 +145,12 @@ export default function PlaylistsPage() {
         <div className="container mx-auto px-4 py-8">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold">Your Playlists</h1>
-                <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={openCreateModal}>
-                    <Plus className="w-4 h-4 mr-2" />
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Your Playlists</h1>
+                    <p className="text-xs text-zinc-400 mt-1">Manage and organize your custom playlists</p>
+                </div>
+                <Button className="bg-white text-black hover:bg-white/90 font-bold rounded-full text-xs px-4 h-9 shadow-lg" onClick={openCreateModal}>
+                    <Plus className="w-4 h-4 mr-1.5" />
                     New Playlist
                 </Button>
             </div>
@@ -193,9 +197,11 @@ export default function PlaylistsPage() {
 
             {/* Content */}
             {isLoading && rawPlaylists.length === 0 ? (
-                <div className="flex justify-center items-center h-[30vh]">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
+                <PlaylistGrid>
+                    {Array.from({ length: 12 }).map((_, i) => (
+                        <PlaylistCardSkeleton key={`skeleton-${i}`} />
+                    ))}
+                </PlaylistGrid>
             ) : sortedPlaylists.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-2xl border border-white/5">
                     <div className="w-20 h-20 bg-secondary/30 rounded-full flex items-center justify-center mb-6">
@@ -238,6 +244,20 @@ export default function PlaylistsPage() {
                 onSubmit={editingPlaylist ? handleUpdate : handleCreate}
                 initialData={editingPlaylist}
                 isLoading={createMutation.isPending || updateMutation.isPending}
+            />
+
+            <ConfirmationDialog
+                open={!!playlistToDelete}
+                onOpenChange={(open) => { if (!open) setPlaylistToDelete(null) }}
+                title="Delete Playlist"
+                description={`Are you sure you want to delete "${playlistToDelete?.name}"?`}
+                onConfirm={() => {
+                    if (playlistToDelete) {
+                        deleteMutation.mutate(playlistToDelete._id || playlistToDelete.id)
+                        setPlaylistToDelete(null)
+                    }
+                }}
+                isLoading={deleteMutation.isPending}
             />
         </div>
     )

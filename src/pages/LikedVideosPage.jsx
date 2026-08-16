@@ -3,7 +3,7 @@ import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-q
 import { useInView } from 'react-intersection-observer'
 import { Link } from 'react-router-dom'
 import {
-    Heart, Trash2, Search, Grid3X3, List, ThumbsUp, ArrowUpDown, Loader2
+    Heart, Trash2, Search, Grid3X3, List, ThumbsUp, ArrowUpDown, Loader2, Play
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { likeService } from '../services/api'
@@ -65,7 +65,7 @@ export default function LikedVideosPage() {
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || []) || [], [data])
+    const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || page.data?.videos || []) || [], [data])
 
     // Unlike mutation
     const unlikeMutation = useMutation({
@@ -105,18 +105,32 @@ export default function LikedVideosPage() {
             {/* Header */}
             <div className="py-8 container mx-auto px-4">
                 <div className="flex flex-col gap-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-pink-500/10 rounded-xl">
-                                <ThumbsUp className="w-8 h-8 text-pink-500" style={{ shapeRendering: 'geometricPrecision' }} />
+                            <div className="p-3.5 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-2xl shadow-lg">
+                                <ThumbsUp className="w-8 h-8 text-primary" style={{ shapeRendering: 'geometricPrecision' }} />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold">Liked Videos</h1>
-                                <p className="text-muted-foreground mt-1">
-                                    {rawVideos.length} videos • Private playlist
+                                <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Liked Videos</h1>
+                                <p className="text-xs text-zinc-400 mt-1">
+                                    {filteredVideos.length} videos • Your liked videos
                                 </p>
                             </div>
                         </div>
+
+                        {filteredVideos.length > 0 && (() => {
+                            const firstItem = filteredVideos[0]
+                            const firstVid = firstItem.video || firstItem
+                            const firstId = firstVid?._id || firstVid?.id
+                            return (
+                                <Link to={firstId ? `/watch/${firstId}` : '#'}>
+                                    <Button className="bg-white text-black hover:bg-white/90 rounded-full font-bold text-xs px-5 h-9 shadow-lg flex items-center gap-2">
+                                        <Play className="w-4 h-4 fill-current" />
+                                        Play all
+                                    </Button>
+                                </Link>
+                            )
+                        })()}
                     </div>
 
                     {/* Controls */}

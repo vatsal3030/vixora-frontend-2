@@ -176,7 +176,7 @@ export function WatchLaterCard({
     // GRID VIEW
     return (
         <div className={cn(
-            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 h-full flex flex-col",
+            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-300 hover:shadow-xl h-full flex flex-col",
             isSelected ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
         )}>
             {/* Selection Overlay */}

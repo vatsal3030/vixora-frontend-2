@@ -24,6 +24,7 @@ import { Button } from '../ui/Button'
 import { SidebarToggle } from './Sidebar'
 import NotificationDropdown from './NotificationDropdown'
 import { BrandLogo } from '../common/BrandLogo'
+import { motion, AnimatePresence } from 'framer-motion'
 
 import { useAuth } from '../../context/AuthContext'
 
@@ -69,8 +70,15 @@ export function Navbar({ onMenuClick, user }) {
     return (
         <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-all duration-300" style={{ backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)' }}>
             {/* Mobile Search Overlay */}
-            {showMobileSearch && (
-                <div className="md:hidden absolute inset-0 z-[60] glass-panel flex items-center px-4 gap-3 h-16 animate-in fade-in slide-in-from-top-2 duration-200">
+            <AnimatePresence>
+                {showMobileSearch && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        transition={{ duration: 0.2 }}
+                        className="md:hidden absolute inset-0 z-[60] glass-panel flex items-center px-4 gap-3 h-16"
+                    >
                     <button
                         onClick={() => setShowMobileSearch(false)}
                         className="p-2 hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
@@ -94,8 +102,9 @@ export function Navbar({ onMenuClick, user }) {
                             <Search className="w-4 h-4" />
                         </button>
                     </form>
-                </div>
+                </motion.div>
             )}
+            </AnimatePresence>
 
             <div className="flex h-16 items-center justify-between px-4 lg:px-6">
                 {/* Left: Logo + Menu */}
@@ -220,7 +229,7 @@ export function Navbar({ onMenuClick, user }) {
 
                                     <DropdownMenuSeparator className="bg-white/10" />
 
-                                    {['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(user?.role) && (
+                                    {['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(String(user?.role || '').toUpperCase()) && (
                                         <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 px-3" asChild>
                                             <Link to="/admin/dashboard" className="flex items-center gap-3 w-full py-2.5 text-blue-400">
                                                 <Shield className="w-4 h-4" />

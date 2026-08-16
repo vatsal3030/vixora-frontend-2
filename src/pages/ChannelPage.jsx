@@ -101,8 +101,8 @@ export default function ChannelPage() {
         initialPageParam: 1
     })
 
-    const videos = useMemo(() => videosData?.pages.flatMap(page => page.data?.items || []) || [], [videosData])
-    const shorts = shortsData?.pages.flatMap(page => page.data?.items || []) || []
+    const videos = useMemo(() => videosData?.pages.flatMap(page => page.data?.items || page.data?.videos || []) || [], [videosData])
+    const shorts = shortsData?.pages.flatMap(page => page.data?.items || page.data?.shorts || page.data?.videos || []) || []
 
     // Infinite scroll for Videos
     const { ref: videosRef, inView: videosInView } = useInView({ threshold: 0.1 })
@@ -219,9 +219,11 @@ export default function ChannelPage() {
                                             <VideoCard video={video} type="standard" />
                                         </div>
                                     ))}
+                                    {loadingMoreVideos && (
+                                        Array.from({ length: 4 }).map((_, i) => <VideoCardSkeleton key={`more-vid-${i}`} />)
+                                    )}
                                 </div>
                                 <div ref={videosRef} className="h-10 w-full flex items-center justify-center mt-8">
-                                    {loadingMoreVideos && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
                                     {!hasMoreVideos && videos.length > 0 && (
                                         <p className="text-muted-foreground text-sm">You've reached the end</p>
                                     )}
@@ -269,9 +271,11 @@ export default function ChannelPage() {
                                         </div>
                                     </Link>
                                 ))}
+                                {loadingMoreShorts && (
+                                    Array.from({ length: 5 }).map((_, i) => <VideoCardSkeleton key={`more-short-${i}`} />)
+                                )}
                             </div>
                             <div ref={shortsRef} className="h-10 w-full flex items-center justify-center mt-8">
-                                {loadingMoreShorts && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
                                 {!hasMoreShorts && shorts.length > 0 && (
                                     <p className="text-muted-foreground text-sm">You've reached the end</p>
                                 )}

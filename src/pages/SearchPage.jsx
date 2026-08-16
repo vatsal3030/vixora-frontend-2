@@ -134,7 +134,7 @@ export default function SearchPage() {
     }, [searchData, filter])
 
     const displayItems = useMemo(() => {
-        return searchData?.pages.flatMap(page => page.items || []) || []
+        return searchData?.pages.flatMap(page => page.items || page.videos || page.channels || page.playlists || page.tweets || []) || []
     }, [searchData])
 
     const allVideos = useMemo(() => filter === 'All' ? searchResults?.results?.videos || [] : (filter === 'Videos' ? displayItems : []), [searchResults, filter, displayItems])

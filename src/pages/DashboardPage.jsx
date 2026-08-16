@@ -354,7 +354,7 @@ export default function DashboardPage() {
                                                             <img src={v.thumbnail} alt={v.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <Link to={isMock ? '#' : `/watch/${v._id || v.id}`} className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 mb-1">
+                                                            <Link to={isMock ? '#' : `/watch/${v._id || v.id || v.videoId}`} className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 mb-1">
                                                                 {v.title}
                                                             </Link>
                                                             {isMock && <span className="text-xs bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">Demo</span>}

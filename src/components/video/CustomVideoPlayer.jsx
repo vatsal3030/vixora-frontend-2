@@ -14,6 +14,8 @@ export default function CustomVideoPlayer({
     src,
     poster,
     videoId,
+    initialDuration = 0,
+    initialProgress = null,
     autoPlay = false,
     className = "",
     onEnded,
@@ -36,12 +38,15 @@ export default function CustomVideoPlayer({
     const containerRef = useRef(null)
     const progressBarRef = useRef(null)
     const controlsTimeoutRef = useRef(null)
-    const currentSrcRef = useRef(null) // track loaded src to avoid redundant reloads
+    const currentSrcRef = useRef(null)
+    const pendingSeekTimeRef = useRef(null)
+    const wasPlayingBeforeChangeRef = useRef(false)
+    const hasResumedRef = useRef(false)
 
     // Playback State
     const [isPlaying, setIsPlaying] = useState(false)
     const [currentTime, setCurrentTime] = useState(0)
-    const [duration, setDuration] = useState(0)
+    const [duration, setDuration] = useState(initialDuration || 0)
     const [isBuffering, setIsBuffering] = useState(false)
     const [isEnded, setIsEnded] = useState(false)
 
@@ -70,8 +75,10 @@ export default function CustomVideoPlayer({
         setQuality(getStoredQuality())
         setIsEnded(false)
         setCurrentTime(0)
-        setDuration(0)
-    }, [videoId])
+        setDuration(initialDuration || 0)
+        pendingSeekTimeRef.current = null
+        hasResumedRef.current = false
+    }, [videoId, initialDuration])
 
     // Sync volume to video element on mount and src change
     useEffect(() => {
@@ -94,32 +101,50 @@ export default function CustomVideoPlayer({
         const seconds = Math.floor(time % 60)
 
         if (hours > 0) {
-            return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds} `
+            return `${hours}:${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
         }
-        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds} `
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
     }
 
-    // Load saved progress
+    // Effective total duration
+    const effectiveDuration = duration > 0 && duration !== Infinity ? duration : (initialDuration || 0)
+
+    // Load saved progress and resume from where user left off
     useEffect(() => {
-        if (!videoId) return
+        if (!videoId || hasResumedRef.current) return
         const loadProgress = async () => {
             try {
-                const { data } = await watchHistoryService.getWatchProgress(videoId)
-                if (data.success && data.data?.progress !== undefined && videoRef.current) {
-                    const total = data.data.duration
-                    // Progress is returned as a percentage (0-100) from backend
-                    const savedPercentage = data.data.progress
-                    if (total > 0 && savedPercentage > 5 && savedPercentage < 95) {
-                        const savedSeconds = (savedPercentage / 100) * total
-                        videoRef.current.currentTime = savedSeconds
-                        setCurrentTime(savedSeconds)
-                        setHasLoadedProgress(true)
+                let savedPercentage = null
+                let total = initialDuration || 0
+
+                if (initialProgress) {
+                    savedPercentage = typeof initialProgress === 'object' ? initialProgress.progress : Number(initialProgress)
+                }
+
+                if (savedPercentage === null || isNaN(savedPercentage)) {
+                    const { data } = await watchHistoryService.getWatchProgress(videoId)
+                    if (data?.success && data?.data?.progress !== undefined) {
+                        savedPercentage = Number(data.data.progress)
+                        total = Number(data.data.duration) || total
                     }
                 }
-            } catch (err) { console.error(err) }
+
+                if (savedPercentage > 3 && savedPercentage < 95 && total > 0) {
+                    const savedSeconds = (savedPercentage / 100) * total
+                    pendingSeekTimeRef.current = savedSeconds
+                    hasResumedRef.current = true
+                    if (videoRef.current && videoRef.current.readyState >= 1) {
+                        videoRef.current.currentTime = savedSeconds
+                        setCurrentTime(savedSeconds)
+                        toast.info(`Resumed from ${formatTime(savedSeconds)}`)
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to load watch progress", err)
+            }
         }
         loadProgress()
-    }, [videoId])
+    }, [videoId, initialProgress, initialDuration])
 
     // Save Progress
     const saveProgress = useCallback(async () => {
@@ -128,10 +153,10 @@ export default function CustomVideoPlayer({
             await watchHistoryService.saveWatchProgress(
                 videoId,
                 videoRef.current.currentTime,
-                videoRef.current.duration
+                effectiveDuration || videoRef.current.duration
             )
         } catch { /* Silent */ }
-    }, [videoId])
+    }, [videoId, effectiveDuration])
 
     // ── Quality Switch — Backend Driven ───────────────────────────────────────
     const handleQualityChange = useCallback(async (newQuality) => {
@@ -139,15 +164,17 @@ export default function CustomVideoPlayer({
         const el = videoRef.current
         if (!el || !videoId) return
 
-        const savedTime = el.currentTime
+        const savedTime = el.currentTime || currentTime
         const wasPlaying = !el.paused
+        pendingSeekTimeRef.current = savedTime
+        wasPlayingBeforeChangeRef.current = wasPlaying
+
         setIsSwitchingQuality(true)
         setQuality(newQuality)
-        setStoredQuality(newQuality) // Persist preference
+        setStoredQuality(newQuality)
         onQualityChange?.(newQuality)
 
         try {
-            // Always call backend for specific playback URL per requirement
             const res = await watchService.getStreamMeta(videoId, newQuality.toLowerCase())
             const data = res?.data?.data
             const newSrc = data?.playbackUrl || data?.streaming?.selectedPlaybackUrl
@@ -156,25 +183,14 @@ export default function CustomVideoPlayer({
                 const resolvedNewSrc = newSrc.startsWith('http') ? newSrc : getMediaUrl(newSrc)
                 currentSrcRef.current = resolvedNewSrc
                 setActiveSrc(resolvedNewSrc)
-
-                // Restore playhead after load — use onLoadedMetadata
-                const el = videoRef.current
-                if (el) {
-                    const onLoad = () => {
-                        el.currentTime = savedTime
-                        if (wasPlaying) el.play().catch(() => { })
-                        el.removeEventListener('loadedmetadata', onLoad)
-                    }
-                    el.addEventListener('loadedmetadata', onLoad)
-                }
             }
         } catch (err) {
             console.error('[Player] Quality switch failed:', err)
-            toast.error(`Failed to switch to ${newQuality} `)
+            toast.error(`Failed to switch to ${newQuality}`)
         } finally {
             setIsSwitchingQuality(false)
         }
-    }, [quality, activeSrc, videoId, onQualityChange])
+    }, [quality, activeSrc, videoId, onQualityChange, currentTime])
 
     // Fallback to MAX on error
     const handlePlayerError = useCallback(async () => {
@@ -182,7 +198,9 @@ export default function CustomVideoPlayer({
         console.warn(`[Player] Playback error at ${quality}, falling back to MAX...`)
 
         const el = videoRef.current
-        const savedTime = el?.currentTime || 0
+        const savedTime = el?.currentTime || currentTime
+        pendingSeekTimeRef.current = savedTime
+        wasPlayingBeforeChangeRef.current = el ? !el.paused : false
 
         try {
             const res = await watchService.getStreamMeta(videoId, 'MAX')
@@ -195,53 +213,28 @@ export default function CustomVideoPlayer({
                 setActiveSrc(resolved)
                 setQuality('MAX')
                 onQualityChange?.('MAX')
-
-                if (el) {
-                    const onRestore = () => {
-                        el.currentTime = savedTime
-                        el.play().catch(() => { })
-                        el.removeEventListener('loadedmetadata', onRestore)
-                    }
-                    el.addEventListener('loadedmetadata', onRestore)
-                }
             }
         } catch (err) {
             console.error('[Player] Fallback failed:', err)
         }
-    }, [quality, videoId, onQualityChange])
+    }, [quality, videoId, onQualityChange, currentTime])
 
-    // Sync src prop → activeSrc state (handles late API resolve: undefined → URL)
+    // Sync src prop → activeSrc state (preserves currentTime)
     useEffect(() => {
         if (!src) return
         const resolved = src.startsWith('http') ? src : getMediaUrl(src)
 
-        // Use ref to compare — browser normalizes el.src to absolute URL which causes false mismatches
         if (currentSrcRef.current === resolved) return
 
-        const isInitialLoad = !currentSrcRef.current
+        const el = videoRef.current
+        if (el && el.currentTime > 0) {
+            pendingSeekTimeRef.current = el.currentTime
+            wasPlayingBeforeChangeRef.current = !el.paused
+        }
+
         currentSrcRef.current = resolved
         setActiveSrc(resolved)
-
-        // If a video was already loaded (quality switch mid-session), also call el.load()
-        const el = videoRef.current
-        if (el && (el.readyState > 0 || !isInitialLoad)) {
-            const t = el.currentTime
-            const wasPlaying = !el.paused || (isInitialLoad && autoPlay)
-
-            el.load()
-
-            // Restore playback state after source change
-            if (t > 0) el.currentTime = t
-            if (wasPlaying) {
-                // Delay play slightly to ensure load() has processed the new source
-                const playAttempt = () => el.play().catch(() => {
-                    // Fallback: try once more on interaction or after a short delay
-                    setTimeout(() => el.play().catch(() => { }), 100)
-                })
-                playAttempt()
-            }
-        }
-    }, [src, autoPlay])
+    }, [src])
 
 
     // Play/Pause Toggle
@@ -470,12 +463,43 @@ export default function CustomVideoPlayer({
         }
     }, [seekToRef])
     const handleLoadedMetadata = () => {
-        const d = videoRef.current.duration
-        if (d && d !== Infinity) setDuration(d)
+        const d = videoRef.current?.duration
+        if (d && d !== Infinity && d > 0) {
+            setDuration(d)
+        } else if (initialDuration) {
+            setDuration(initialDuration)
+        }
+
+        if (pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current > 0 && videoRef.current) {
+            const targetTime = pendingSeekTimeRef.current
+            videoRef.current.currentTime = targetTime
+            setCurrentTime(targetTime)
+            pendingSeekTimeRef.current = null
+
+            if (wasPlayingBeforeChangeRef.current || autoPlay) {
+                videoRef.current.play().catch(() => {})
+            }
+        }
     }
+
+    const handleCanPlay = () => {
+        setIsBuffering(false)
+        if (pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current > 0 && videoRef.current) {
+            const targetTime = pendingSeekTimeRef.current
+            videoRef.current.currentTime = targetTime
+            setCurrentTime(targetTime)
+            pendingSeekTimeRef.current = null
+
+            if (wasPlayingBeforeChangeRef.current || autoPlay) {
+                videoRef.current.play().catch(() => {})
+            }
+        }
+    }
+
     const handleDurationChange = () => {
-        const d = videoRef.current.duration
-        if (d && d !== Infinity) setDuration(d)
+        const d = videoRef.current?.duration
+        if (d && d !== Infinity && d > 0) setDuration(d)
+        else if (initialDuration) setDuration(initialDuration)
     }
     const handleWaiting = () => setIsBuffering(true)
     const handlePlaying = () => { setIsBuffering(false); setIsPlaying(true); setIsEnded(false) }
@@ -517,6 +541,7 @@ export default function CustomVideoPlayer({
                 className={cn("w-full h-full", isTheaterMode || isFullscreen ? "object-contain" : "object-cover")}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
+                onCanPlay={handleCanPlay}
                 onDurationChange={handleDurationChange}
                 onWaiting={handleWaiting}
                 onPlaying={handlePlaying}
@@ -562,13 +587,13 @@ export default function CustomVideoPlayer({
                     onMouseLeave={() => setPreviewTime(null)}
                     onMouseDown={handleMouseDown}
                 >
-                    {/* Buffer Bar (Mock loop for now) */}
-                    <div className="absolute top-0 left-0 h-full bg-white/40" style={{ width: `${(currentTime / duration) * 100 + 5}% `, maxWidth: '100%' }} />
+                    {/* Buffer Bar */}
+                    <div className="absolute top-0 left-0 h-full bg-white/40" style={{ width: `${effectiveDuration > 0 ? Math.min(100, (currentTime / effectiveDuration) * 100 + 4) : 0}%`, maxWidth: '100%' }} />
 
                     {/* Current Time Bar */}
                     <div
                         className="absolute top-0 left-0 h-full bg-[#f00]"
-                        style={{ width: `${(currentTime / duration) * 100}% ` }}
+                        style={{ width: `${effectiveDuration > 0 ? Math.min(100, (currentTime / effectiveDuration) * 100) : 0}%` }}
                     >
                         {/* Scrubber Knob */}
                         <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#f00] rounded-full scale-0 group-hover/progress:scale-100 transition-transform duration-200" />
@@ -581,7 +606,6 @@ export default function CustomVideoPlayer({
                             style={{ left: previewPosition }}
                         >
                             {formatTime(previewTime)}
-                            {/* Optionally show thumbnail preview here */}
                         </div>
                     )}
                 </div>
@@ -610,7 +634,7 @@ export default function CustomVideoPlayer({
                                 <div className="relative w-full h-1 bg-white/30 rounded-full">
                                     <div
                                         className="absolute left-0 top-0 h-full bg-white rounded-full"
-                                        style={{ width: `${(isMuted ? 0 : volume) * 100}% ` }}
+                                        style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}
                                     />
                                     <input
                                         type="range"
@@ -630,7 +654,7 @@ export default function CustomVideoPlayer({
                         </div>
 
                         <div className="text-xs font-medium text-white/90 tabular-nums ml-2">
-                            {formatTime(currentTime)} <span className="text-white/40">/</span> {formatTime(duration)}
+                            {formatTime(currentTime)} <span className="text-white/40">/</span> {formatTime(effectiveDuration)}
                         </div>
                     </div>
 

@@ -93,7 +93,7 @@ export default function HomePage() {
         )
     }
 
-    const videos = data?.pages.flatMap(page => page.data?.items || []) || []
+    const videos = data?.pages.flatMap(page => page.data?.items || page.data?.videos || []) || []
 
     return (
         <div className="pb-10">
