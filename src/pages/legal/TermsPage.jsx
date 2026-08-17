@@ -108,7 +108,7 @@ export default function TermsPage() {
                                         key={section.id}
                                         onClick={() => scrollToSection(section.id)}
                                         className={cn(
-                                            "w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm transition-all duration-500 group relative overflow-hidden",
+                                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-500 group relative overflow-hidden",
                                             activeSection === section.id
                                                 ? "text-foreground"
                                                 : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
@@ -203,7 +203,7 @@ export default function TermsPage() {
                                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-yellow-500/10 blur-[100px] rounded-full group-hover:bg-yellow-500/15 transition-colors duration-700" />
 
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
-                                        <div className="w-14 h-14 rounded-2xl bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 group-hover:scale-110 transition-transform duration-500">
+                                        <div className="w-14 h-14 rounded-xl bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 group-hover:scale-110 transition-transform duration-500">
                                             <AlertTriangle className="w-7 h-7 text-yellow-500" />
                                         </div>
                                         <div>
@@ -244,7 +244,7 @@ export default function TermsPage() {
                                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 blur-[100px] rounded-full group-hover:bg-primary/15 transition-colors duration-700" />
 
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
-                                        <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform duration-500">
+                                        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform duration-500">
                                             <Shield className="w-7 h-7 text-primary" />
                                         </div>
                                         <div>
@@ -277,7 +277,7 @@ export default function TermsPage() {
                                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/15 transition-colors duration-700" />
 
                                     <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
-                                        <div className="w-14 h-14 rounded-2xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
+                                        <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
                                             <Lock className="w-7 h-7 text-blue-500" />
                                         </div>
                                         <div>
@@ -322,7 +322,7 @@ export default function TermsPage() {
                                 </div>
                                 <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4 print:hidden">
                                     <Link to="/register?accepted=true">
-                                        <Button size="lg" className="h-16 px-12 bg-primary hover:shadow-[0_0_40px_rgba(239,68,68,0.3)] rounded-2xl text-lg font-bold group transition-all duration-500">
+                                        <Button size="lg" className="h-16 px-12 bg-primary hover:shadow-[0_0_40px_rgba(239,68,68,0.3)] rounded-xl text-lg font-bold group transition-all duration-500">
                                             I Accept Protocol
                                             < ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                         </Button>
@@ -330,7 +330,7 @@ export default function TermsPage() {
                                     <Button
                                         size="lg"
                                         variant="ghost"
-                                        className="h-16 px-12 rounded-2xl text-lg hover:bg-white/5 border border-white/5"
+                                        className="h-16 px-12 rounded-xl text-lg hover:bg-white/5 border border-white/5"
                                         onClick={() => window.print()}
                                     >
                                         Print PDF

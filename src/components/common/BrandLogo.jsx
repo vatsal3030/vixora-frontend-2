@@ -27,7 +27,7 @@ export function BrandLogo({ className, size = 'md' }) {
                     e.target.nextSibling.style.display = 'flex'
                 }}
             />
-            <div className="hidden absolute inset-0 items-center justify-center bg-gradient-to-br from-primary-500 to-primary-700 font-bold text-white uppercase rounded-lg">
+            <div className="hidden absolute inset-0 items-center justify-center bg-gradient-to-br from-primary to-primary/70 font-bold text-white uppercase rounded-lg">
                 V
             </div>
         </div>

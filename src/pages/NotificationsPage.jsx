@@ -135,7 +135,7 @@ export default function NotificationsPage() {
                     ))}
                 </div>
             ) : notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-card rounded-2xl border border-border">
+                <div className="flex flex-col items-center justify-center py-20 text-center space-y-4 bg-card rounded-xl border border-border">
                     <div className="p-4 bg-secondary rounded-full">
                         <Bell className="w-8 h-8 text-muted-foreground" />
                     </div>

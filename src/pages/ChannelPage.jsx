@@ -242,7 +242,7 @@ export default function ChannelPage() {
                             {Array.from({ length: 10 }).map((_, i) => <VideoCardSkeleton key={i} />)}
                         </div>
                     ) : shorts.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 text-center glass-panel rounded-2xl border-white/5">
+                        <div className="flex flex-col items-center justify-center py-20 text-center glass-panel rounded-xl border-white/5">
                             <div className="bg-secondary/30 p-4 rounded-full mb-4">
                                 <Smartphone className="w-8 h-8 text-muted-foreground" />
                             </div>
@@ -258,7 +258,7 @@ export default function ChannelPage() {
                                     <Link
                                         to={`/watch/${video._id || video.id}`}
                                         key={video._id || video.id}
-                                        className="group relative aspect-[9/16] rounded-2xl overflow-hidden bg-zinc-900 border border-white/5 shadow-md animate-in fade-in zoom-in-95 duration-400"
+                                        className="group relative aspect-[9/16] rounded-xl overflow-hidden bg-zinc-900 border border-white/5 shadow-md animate-in fade-in zoom-in-95 duration-400"
                                         style={{ animationDelay: `${(index % 20) * 40}ms` }}
                                     >
                                         <img
@@ -336,7 +336,7 @@ export default function ChannelPage() {
                 {/* ABOUT TAB */}
                 {activeTab === 'About' && (
                     <div className="max-w-3xl mx-auto">
-                        <div className="glass-panel border-white/10 p-6 sm:p-8 rounded-2xl">
+                        <div className="glass-panel border-white/10 p-6 sm:p-8 rounded-xl">
                             <h3 className="text-xl font-bold mb-4 font-display text-white">About {channel.fullName || channel.username}</h3>
                             <div className="text-zinc-300 text-sm leading-relaxed whitespace-pre-wrap">
                                 {channel.channelDescription || channel.description || "No description provided."}

@@ -56,7 +56,7 @@ function MessageBubble({ message, onRegenerate }) {
             )}
             <div className="flex flex-col gap-1 max-w-[85%]">
                 <div className={cn(
-                    'rounded-2xl px-4 py-3 text-sm leading-relaxed relative',
+                    'rounded-xl px-4 py-3 text-sm leading-relaxed relative',
                     isUser
                         ? 'bg-primary text-white rounded-tr-sm'
                         : 'bg-white/5 border border-white/10 text-gray-200 rounded-tl-sm'
@@ -466,7 +466,7 @@ export default function VixoraAI() {
                         exit={{ opacity: 0, y: 20, scale: 0.98 }}
                         transition={{ type: 'spring', stiffness: 300, damping: 28 }}
                         className={cn(
-                            "fixed flex flex-row rounded-2xl overflow-hidden border border-white/10 shadow-3xl shadow-black/60 transition-all duration-500 glass-panel",
+                            "fixed flex flex-row rounded-xl overflow-hidden border border-white/10 shadow-3xl shadow-black/60 transition-all duration-500 glass-panel",
                             isMaximized
                                 ? "inset-4 md:inset-6 z-[200]"
                                 : "bottom-4 md:bottom-6 left-2 right-2 md:left-auto md:right-6 z-[100]"
@@ -740,7 +740,7 @@ export default function VixoraAI() {
                                                 <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mr-3 flex-shrink-0 mt-1">
                                                     <Sparkles className="w-4 h-4 text-primary" />
                                                 </div>
-                                                <div className="bg-white/5 border border-white/10 rounded-2xl rounded-tl-sm px-4 py-2.5">
+                                                <div className="bg-white/5 border border-white/10 rounded-xl rounded-tl-sm px-4 py-2.5">
                                                     <TypingDots />
                                                 </div>
                                             </div>
@@ -765,7 +765,7 @@ export default function VixoraAI() {
                                             rows={1}
                                             placeholder={isSending ? 'AI is processing...' : 'Message Vixora AI...'}
                                             disabled={isSending}
-                                            className="w-full resize-none bg-white/5 border border-white/12 text-white text-sm rounded-2xl pl-4 pr-12 py-3.5 placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 disabled:opacity-40 max-h-[200px] leading-relaxed transition-all shadow-inner"
+                                            className="w-full resize-none bg-white/5 border border-white/12 text-white text-sm rounded-xl pl-4 pr-12 py-3.5 placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 disabled:opacity-40 max-h-[200px] leading-relaxed transition-all shadow-inner"
                                             style={{ scrollbarWidth: 'none' }}
                                         />
                                         <div className="absolute right-3 bottom-3 flex items-center gap-1.5">

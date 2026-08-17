@@ -235,7 +235,7 @@ export const VideoCard = memo(function VideoCard({
     // ── SEARCH (HORIZONTAL LARGE) ─────────────────────────────────────────────
     if (type === 'search') {
         return (
-            <div className="group flex flex-col sm:flex-row gap-4 sm:gap-6 cursor-pointer hover:bg-white/[0.02] p-2 rounded-2xl transition-colors duration-slow">
+            <div className="group flex flex-col sm:flex-row gap-4 sm:gap-6 cursor-pointer hover:bg-white/[0.02] p-2 rounded-xl transition-colors duration-slow">
                 {/* Thumbnail Side - using min-w array of roughly 360px on desktop matching YouTube proportions */}
                 <Link to={`/watch/${videoId}`} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="relative w-full sm:w-[320px] md:w-[360px] sm:min-w-[320px] md:min-w-[360px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 z-0">
                     <img

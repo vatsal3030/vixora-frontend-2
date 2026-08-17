@@ -88,7 +88,7 @@ export default function SubscriptionsPage() {
         <div className="min-h-screen pb-24 pt-6 px-4 sm:px-6 lg:px-8 container mx-auto max-w-[1600px] animate-in fade-in duration-500 bg-gradient-to-br from-background via-background to-primary/5">
             {/* Header Section */}
             <div className="flex items-center gap-3 mb-8">
-                <div className="p-3 bg-primary/10 rounded-2xl relative group">
+                <div className="p-3 bg-primary/10 rounded-xl relative group">
                     <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <ListVideo className="w-6 h-6 text-primary relative z-10" />
                 </div>
@@ -107,7 +107,7 @@ export default function SubscriptionsPage() {
             />
 
             {videosError ? (
-                <div className="text-center py-20 bg-destructive/5 rounded-2xl border border-destructive/20 max-w-lg mx-auto p-6">
+                <div className="text-center py-20 bg-destructive/5 rounded-xl border border-destructive/20 max-w-lg mx-auto p-6">
                     <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-4" />
                     <p className="text-destructive font-semibold text-lg">Failed to load subscriptions</p>
                     <p className="text-sm text-zinc-400 mt-1">Make sure you are logged in and subscribed to channels!</p>
@@ -120,7 +120,7 @@ export default function SubscriptionsPage() {
                     ))}
 
                     {!loadingVideos && videos.length === 0 && (
-                        <div className="col-span-full flex flex-col items-center justify-center py-24 text-center glass-card rounded-2xl border border-white/5 relative overflow-hidden">
+                        <div className="col-span-full flex flex-col items-center justify-center py-24 text-center glass-card rounded-xl border border-white/5 relative overflow-hidden">
                             <div className="relative z-10 flex flex-col items-center">
                                 <div className="p-4 bg-secondary/30 rounded-full mb-6 relative">
                                     <div className="absolute inset-0 bg-primary/10 blur-xl rounded-full animate-pulse" />

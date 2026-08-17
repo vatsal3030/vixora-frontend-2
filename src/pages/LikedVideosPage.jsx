@@ -107,7 +107,7 @@ export default function LikedVideosPage() {
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-3.5 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-2xl shadow-lg">
+                            <div className="p-3.5 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-xl shadow-lg">
                                 <ThumbsUp className="w-8 h-8 text-primary" style={{ shapeRendering: 'geometricPrecision' }} />
                             </div>
                             <div>

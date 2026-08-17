@@ -111,7 +111,7 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger, open: co
                     onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}
                 >
                     <div
-                        className="w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
+                        className="w-full max-w-md max-h-[90vh] flex flex-col rounded-xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
                         style={PANEL_STYLE}
                     >
                         {/* Header */}

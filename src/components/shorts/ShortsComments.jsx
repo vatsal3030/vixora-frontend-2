@@ -75,7 +75,7 @@ export default function ShortsComments({ videoId, commentsCount = 0, onClose }) 
             animate={{ opacity: 1, x: 0, y: 0 }}
             exit={{ opacity: 0, x: window.innerWidth < 1024 ? 0 : 40, y: window.innerWidth < 1024 ? 40 : 0 }}
             transition={{ type: "spring", stiffness: 350, damping: 32 }}
-            className="absolute lg:relative right-0 lg:right-auto top-auto sm:top-0 lg:top-auto bottom-0 lg:bottom-auto w-full sm:w-[350px] lg:w-[400px] xl:w-[450px] h-[65vh] sm:h-full lg:h-[calc(100vh-64px-2rem)] z-[45] bg-[#0f0f0f] sm:rounded-l-2xl rounded-t-2xl lg:rounded-2xl border-t sm:border-t-0 sm:border-l lg:border border-white/10 shadow-2xl flex flex-col shrink-0 overflow-hidden"
+            className="absolute lg:relative right-0 lg:right-auto top-auto sm:top-0 lg:top-auto bottom-0 lg:bottom-auto w-full sm:w-[350px] lg:w-[400px] xl:w-[450px] h-[65vh] sm:h-full lg:h-[calc(100vh-64px-2rem)] z-[45] bg-[#0f0f0f] sm:rounded-l-2xl rounded-t-2xl lg:rounded-xl border-t sm:border-t-0 sm:border-l lg:border border-white/10 shadow-2xl flex flex-col shrink-0 overflow-hidden"
             onClick={handlePanelClick}
         >
             {/* Header matching YouTube Shorts */}

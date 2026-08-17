@@ -232,7 +232,7 @@ export default function ShortsPage() {
                                 />
                             ) : (
                                 <div className="w-full h-full flex justify-center items-center sm:py-2">
-                                    <div className="relative h-full w-full sm:w-auto sm:aspect-[9/16] bg-zinc-900 sm:rounded-2xl" />
+                                    <div className="relative h-full w-full sm:w-auto sm:aspect-[9/16] bg-zinc-900 sm:rounded-xl" />
                                 </div>
                             )}
                         </div>

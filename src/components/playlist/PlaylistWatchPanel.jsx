@@ -38,7 +38,7 @@ export function PlaylistWatchPanel({
     if (!playlist) return null
 
     return (
-        <div className="bg-[#181818] border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col w-full mb-4">
+        <div className="bg-[#181818] border border-white/10 rounded-xl overflow-hidden shadow-2xl flex flex-col w-full mb-4">
             {/* Header (Matching YouTube's Playlist Panel) */}
             <div className="p-3.5 bg-[#202020] border-b border-white/10 flex flex-col gap-2">
                 <div className="flex items-start justify-between gap-3">

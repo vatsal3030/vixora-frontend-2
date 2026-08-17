@@ -59,7 +59,7 @@ export default function AISummaryCard({ videoId }) {
     }
 
     return (
-        <div className="w-full rounded-2xl border border-primary/20 bg-gradient-to-b from-primary/[0.08] to-transparent backdrop-blur-xl overflow-hidden shadow-lg transition-all">
+        <div className="w-full rounded-xl border border-primary/20 bg-gradient-to-b from-primary/[0.08] to-transparent backdrop-blur-xl overflow-hidden shadow-lg transition-all">
             {/* Header */}
             <div
                 onClick={() => setIsExpanded(!isExpanded)}

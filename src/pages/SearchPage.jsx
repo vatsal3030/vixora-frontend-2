@@ -254,7 +254,7 @@ export default function SearchPage() {
         return (
             <div className="py-6 min-h-[80vh] container mx-auto px-4 max-w-4xl flex items-center justify-center">
                 <SEO title="Search" description="Search for videos, channels, shorts, and playlists on Vixora." />
-                <div className="p-8 rounded-2xl text-center w-full">
+                <div className="p-8 rounded-xl text-center w-full">
                     <History className="w-20 h-20 text-muted-foreground/30 mx-auto mb-6 opacity-80" />
                     <h2 className="text-title sm:text-title-lg font-bold mb-3">Search Vixora</h2>
                     <p className="text-muted-foreground mb-8 max-w-md mx-auto">Type something to find videos, channels, shorts, and playlists.</p>

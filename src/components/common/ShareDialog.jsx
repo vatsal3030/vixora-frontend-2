@@ -173,7 +173,7 @@ export function ShareDialog({ title, url, trigger, children, open: controlledOpe
                         <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-2 text-left">
                             PAGE LINK
                         </span>
-                        <div className="flex items-center gap-2 bg-[#121212] border border-white/10 rounded-2xl p-2 pl-3.5 w-full focus-within:border-primary/50 transition-all">
+                        <div className="flex items-center gap-2 bg-[#121212] border border-white/10 rounded-xl p-2 pl-3.5 w-full focus-within:border-primary/50 transition-all">
                             <input
                                 type="text"
                                 readOnly

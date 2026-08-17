@@ -203,7 +203,7 @@ export default function PlaylistsPage() {
                     ))}
                 </PlaylistGrid>
             ) : sortedPlaylists.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-2xl border border-white/5">
+                <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-xl border border-white/5">
                     <div className="w-20 h-20 bg-secondary/30 rounded-full flex items-center justify-center mb-6">
                         <Music2 className="w-10 h-10 text-muted-foreground" />
                     </div>

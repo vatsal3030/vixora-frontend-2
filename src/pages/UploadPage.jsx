@@ -346,7 +346,7 @@ export default function UploadPage() {
                                                 <motion.button
                                                     onClick={() => (isPast || i < currentStep) && setCurrentStep(step.number)}
                                                     className={cn(
-                                                        "relative z-10 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
+                                                        "relative z-10 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500",
                                                         isActive
                                                             ? "bg-primary text-primary-foreground shadow-[0_0_30px_rgba(239,68,68,0.3)] scale-110"
                                                             : isPast
@@ -427,7 +427,7 @@ export default function UploadPage() {
                                                                 <div className="absolute inset-0 bg-primary/5 blur-xl rounded-full" />
                                                             )}
                                                             <div className={cn(
-                                                                "w-12 h-12 rounded-2xl flex items-center justify-center text-2xl transition-all duration-500",
+                                                                "w-12 h-12 rounded-xl flex items-center justify-center text-2xl transition-all duration-500",
                                                                 isSelected ? "bg-primary/20 scale-110" : "bg-white/5 group-hover:bg-white/10"
                                                             )}>
                                                                 {cat.icon}
@@ -527,7 +527,7 @@ export default function UploadPage() {
                                                             </Button>
                                                         </div>
 
-                                                        <div className="p-1 bg-[#111] rounded-2xl border border-white/5 flex gap-1">
+                                                        <div className="p-1 bg-[#111] rounded-xl border border-white/5 flex gap-1">
                                                             <button
                                                                 onClick={() => setIsShort(false)}
                                                                 className={cn(
@@ -557,7 +557,7 @@ export default function UploadPage() {
                                                                     value={title}
                                                                     onChange={(e) => setTitle(e.target.value)}
                                                                     placeholder="Give your video a catchy title"
-                                                                    className="glass-input h-14 text-lg rounded-2xl border-white/5 focus:border-primary/50"
+                                                                    className="glass-input h-14 text-lg rounded-xl border-white/5 focus:border-primary/50"
                                                                 />
                                                             </div>
                                                             <div className="space-y-3">
@@ -566,7 +566,7 @@ export default function UploadPage() {
                                                                     value={description}
                                                                     onChange={(e) => setDescription(e.target.value)}
                                                                     placeholder="What is your video about?"
-                                                                    className="w-full glass-input rounded-2xl p-4 min-h-[160px] resize-y border border-white/5 focus:border-primary/50 transition-all"
+                                                                    className="w-full glass-input rounded-xl p-4 min-h-[160px] resize-y border border-white/5 focus:border-primary/50 transition-all"
                                                                 />
                                                             </div>
                                                             <div className="grid sm:grid-cols-2 gap-6">
@@ -576,7 +576,7 @@ export default function UploadPage() {
                                                                         value={tags}
                                                                         onChange={(e) => setTags(e.target.value)}
                                                                         placeholder="gaming, vlog, tutorial"
-                                                                        className="glass-input h-12 rounded-2xl border-white/5"
+                                                                        className="glass-input h-12 rounded-xl border-white/5"
                                                                     />
                                                                 </div>
                                                                 <div className="space-y-3">
@@ -588,7 +588,7 @@ export default function UploadPage() {
                                                                         value={transcript}
                                                                         onChange={(e) => setTranscript(e.target.value)}
                                                                         placeholder="Paste transcript for AI analysis..."
-                                                                        className="w-full glass-input rounded-2xl p-3 min-h-[48px] h-12 resize-none border border-white/5 focus:border-primary/50 transition-all font-mono text-xs overflow-hidden hover:overflow-y-auto"
+                                                                        className="w-full glass-input rounded-xl p-3 min-h-[48px] h-12 resize-none border border-white/5 focus:border-primary/50 transition-all font-mono text-xs overflow-hidden hover:overflow-y-auto"
                                                                     />
                                                                 </div>
                                                             </div>
@@ -674,7 +674,7 @@ export default function UploadPage() {
                                                     </p>
                                                 </div>
                                                 <div className="relative z-10 p-6 rounded-[2rem] bg-black/40 border border-white/5 flex flex-col sm:flex-row gap-6 text-left group">
-                                                    <div className={cn("aspect-video rounded-2xl overflow-hidden shrink-0 bg-black/50 border border-white/10 group-hover:border-primary/50 transition-colors duration-500", isShort ? "aspect-[9/16] w-24" : "w-40")}>
+                                                    <div className={cn("aspect-video rounded-xl overflow-hidden shrink-0 bg-black/50 border border-white/10 group-hover:border-primary/50 transition-colors duration-500", isShort ? "aspect-[9/16] w-24" : "w-40")}>
                                                         {thumbnailPreview && <img src={thumbnailPreview} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Final Preview" />}
                                                     </div>
                                                     <div className="flex flex-col justify-center flex-1">
@@ -724,7 +724,7 @@ export default function UploadPage() {
                         </TabsContent>
 
                         <TabsContent value="tweet" className="outline-none mt-0">
-                            <div className="glass-card p-6 md:p-8 rounded-2xl border-white/5 space-y-6">
+                            <div className="glass-card p-6 md:p-8 rounded-xl border-white/5 space-y-6">
                                 <div>
                                     <h2 className="text-2xl font-bold mb-2">Create Community Post</h2>
                                     <p className="text-muted-foreground text-sm">Share an update, ask a question, or interact with your subscribers.</p>

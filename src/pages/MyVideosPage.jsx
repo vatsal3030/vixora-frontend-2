@@ -308,7 +308,7 @@ export default function YoursPage() {
                     {videosLoading ? (
                         <HomePageSkeleton />
                     ) : allVideos.length === 0 ? (
-                        <div className="text-center py-20 rounded-2xl border border-dashed border-white/10">
+                        <div className="text-center py-20 rounded-xl border border-dashed border-white/10">
                             <Film className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
                             <h3 className="text-lg font-semibold mb-2">
                                 {searchQuery || filter !== 'all' ? 'No videos found' : 'No videos yet'}
@@ -381,7 +381,7 @@ export default function YoursPage() {
                     {shortsLoading ? (
                         <HomePageSkeleton />
                     ) : allShorts.length === 0 ? (
-                        <div className="text-center py-20 rounded-2xl border border-dashed border-white/10">
+                        <div className="text-center py-20 rounded-xl border border-dashed border-white/10">
                             <Smartphone className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
                             <h3 className="text-lg font-semibold mb-2">No Shorts yet</h3>
                             <p className="text-muted-foreground text-sm mb-6">Upload a vertical video and mark it as a Short.</p>
@@ -438,7 +438,7 @@ export default function YoursPage() {
                     {tweetsLoading ? (
                         <div className="py-20 text-center"><Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" /></div>
                     ) : allTweets.length === 0 ? (
-                        <div className="text-center py-20 rounded-2xl border border-dashed border-white/10">
+                        <div className="text-center py-20 rounded-xl border border-dashed border-white/10">
                             <MessageCircle className="w-12 h-12 mx-auto text-muted-foreground/40 mb-4" />
                             <h3 className="text-lg font-semibold mb-2">No community posts yet</h3>
                             <p className="text-muted-foreground text-sm mb-6">Share updates with your audience.</p>
@@ -488,7 +488,7 @@ export default function YoursPage() {
                             ))}
                         </div>
                     ) : allPlaylists.length === 0 ? (
-                        <div className="text-center py-20 rounded-2xl border border-dashed border-white/10 glass-panel">
+                        <div className="text-center py-20 rounded-xl border border-dashed border-white/10 glass-panel">
                             <ListVideo className="w-12 h-12 mx-auto text-zinc-600 mb-4" />
                             <h3 className="text-lg font-semibold text-white mb-2 font-display">No playlists yet</h3>
                             <p className="text-zinc-400 text-sm mb-6 max-w-sm mx-auto">Create playlists to organize your favorite videos into custom collections.</p>
