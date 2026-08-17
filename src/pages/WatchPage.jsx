@@ -590,9 +590,9 @@ export default function WatchPage() {
                                 <span>•</span>
                                 <span>{formatTimeAgo(video.createdAt)}</span>
                             </div>
-                            <p className={cn("text-sm text-foreground/90 whitespace-pre-wrap", !isDescriptionExpanded && "line-clamp-3")}>
+                            <div className={cn("text-sm text-foreground/90 whitespace-pre-wrap", !isDescriptionExpanded && "line-clamp-3")}>
                                 <ParsedText text={video.description} />
-                            </p>
+                            </div>
                             <button className="text-xs font-bold text-muted-foreground mt-2 hover:text-white transition-colors">
                                 {isDescriptionExpanded ? "Show less" : "...more"}
                             </button>

@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-
 import { VideoCard } from '../components/video/VideoCard'
 import { VideoCardSkeleton } from '../components/ui/Skeleton'
-import { subscriptionService } from '../services/api'
+import { subscriptionService, channelService } from '../services/api'
 import { Disc, AlertCircle, ListVideo, Loader2 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
@@ -16,7 +15,7 @@ export default function SubscriptionsPage() {
     const { user: currentUser } = useAuth()
     const [selectedChannelId, setSelectedChannelId] = useState(null)
 
-    // Fetch Subscribed Videos (Feed) - uses /feed/subscriptions (Infinite)
+    // Fetch Subscribed Videos (Feed) or Channel-specific videos when filtered
     const {
         data,
         isLoading: loadingVideos,
@@ -24,9 +23,17 @@ export default function SubscriptionsPage() {
         fetchNextPage,
         hasNextPage,
         isFetchingNextPage,
+        refetch
     } = useInfiniteQuery({
-        queryKey: ['subscriptionsFeed'],
+        queryKey: ['subscriptionsFeed', selectedChannelId || 'all'],
         queryFn: async ({ pageParam = 1 }) => {
+            if (selectedChannelId) {
+                const response = await channelService.getChannelVideos(selectedChannelId, {
+                    page: pageParam,
+                    limit: 20
+                })
+                return response.data
+            }
             const response = await subscriptionService.getSubscribedVideos({
                 page: pageParam,
                 limit: 20
@@ -38,6 +45,7 @@ export default function SubscriptionsPage() {
             if (!pagination) return undefined
             return pagination.hasNextPage ? (pagination.currentPage || 1) + 1 : undefined
         },
+        staleTime: 1000 * 60 * 3,
         initialPageParam: 1
     })
 
@@ -52,39 +60,29 @@ export default function SubscriptionsPage() {
         }
     }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage])
 
-    // Fetch Subscribed Channels List (Static bar, doesn't need infinite query for now)
+    // Fetch Subscribed Channels List
     const { data: channelsData = [], isLoading: loadingChannels } = useQuery({
         queryKey: ['subscribedChannels'],
         queryFn: async () => {
-            const response = await subscriptionService.getSubscribedChannels()
+            const response = await subscriptionService.getSubscribedChannels({ limit: 100 })
             const data = response.data.data
             const items = data?.channels || data?.items || (Array.isArray(data) ? data : [])
             return items.map(item => item.channel ? item.channel : item)
-        }
+        },
+        staleTime: 1000 * 60 * 5
     })
     const channels = channelsData
 
     const rawVideos = useMemo(() => data?.pages.flatMap(page => page.data?.items || page.data?.videos || []) || [], [data])
 
-    // Filter out self-videos and apply channel filter
+    // Filter out self-videos
     const videos = useMemo(() => {
         return rawVideos.filter(v => {
             const ownerObj = v.owner || v.channel
             const ownerId = typeof ownerObj === 'object' ? (ownerObj?._id || ownerObj?.id) : ownerObj
-            // Never show self videos in subscriptions feed
             return ownerId !== currentUser?._id && ownerId !== currentUser?.id
         })
     }, [rawVideos, currentUser])
-
-    // Filter logic for channel selection
-    const filteredVideos = useMemo(() => {
-        if (!selectedChannelId) return videos
-        return videos.filter(v => {
-            const ownerObj = v.owner || v.channel
-            const ownerId = typeof ownerObj === 'object' ? (ownerObj?._id || ownerObj?.id) : ownerObj
-            return ownerId === selectedChannelId
-        })
-    }, [videos, selectedChannelId])
 
     return (
         <div className="min-h-screen pb-24 pt-6 px-4 sm:px-6 lg:px-8 container mx-auto max-w-[1600px] animate-in fade-in duration-500 bg-gradient-to-br from-background via-background to-primary/5">
@@ -95,10 +93,11 @@ export default function SubscriptionsPage() {
                     <ListVideo className="w-6 h-6 text-primary relative z-10" />
                 </div>
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Subscriptions</h1>
-                    <p className="text-sm text-muted-foreground mt-1">Videos from channels you follow</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-white font-display">Subscriptions</h1>
+                    <p className="text-sm text-zinc-400 mt-1">Latest videos from creators you follow</p>
                 </div>
             </div>
+
             {/* Subscribed Channels Bar */}
             <SubscribedChannelsBar
                 channels={channels}
@@ -108,23 +107,20 @@ export default function SubscriptionsPage() {
             />
 
             {videosError ? (
-                <div className="text-center py-20 bg-destructive/5 rounded-xl border border-destructive/20">
+                <div className="text-center py-20 bg-destructive/5 rounded-2xl border border-destructive/20 max-w-lg mx-auto p-6">
                     <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-4" />
-                    <p className="text-destructive font-medium">Failed to load subscriptions</p>
-                    <p className="text-sm text-destructive/80 mt-1">Make sure you are subscribed to channels!</p>
-                    <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>Try Again</Button>
+                    <p className="text-destructive font-semibold text-lg">Failed to load subscriptions</p>
+                    <p className="text-sm text-zinc-400 mt-1">Make sure you are logged in and subscribed to channels!</p>
+                    <Button variant="outline" className="mt-4 rounded-full" onClick={() => refetch()}>Try Again</Button>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
-                    {(loadingVideos || (isFetchingNextPage && filteredVideos.length === 0)) && Array.from({ length: 12 }).map((_, i) => (
+                    {(loadingVideos || (isFetchingNextPage && videos.length === 0)) && Array.from({ length: 12 }).map((_, i) => (
                         <VideoCardSkeleton key={i} />
                     ))}
 
-                    {!loadingVideos && filteredVideos.length === 0 && (
+                    {!loadingVideos && videos.length === 0 && (
                         <div className="col-span-full flex flex-col items-center justify-center py-24 text-center glass-card rounded-2xl border border-white/5 relative overflow-hidden">
-                            {/* Decorative Background Elements */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
-
                             <div className="relative z-10 flex flex-col items-center">
                                 <div className="p-4 bg-secondary/30 rounded-full mb-6 relative">
                                     <div className="absolute inset-0 bg-primary/10 blur-xl rounded-full animate-pulse" />
@@ -134,17 +130,24 @@ export default function SubscriptionsPage() {
                                     {selectedChannelId ? "No videos from this channel" : "No videos from your subscriptions"}
                                 </h3>
                                 <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
-                                    {selectedChannelId ? "This channel hasn't uploaded any videos yet, or they have been removed." : "You haven't subscribed to any active channels yet, or they haven't uploaded anything recently."}
+                                    {selectedChannelId
+                                        ? "This channel hasn't uploaded any videos yet, or they have been removed."
+                                        : "You haven't subscribed to any active channels yet, or they haven't uploaded anything recently."}
                                 </p>
+                                {selectedChannelId && (
+                                    <Button onClick={() => setSelectedChannelId(null)} variant="outline" className="rounded-full">
+                                        View All Subscriptions
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     )}
 
-                    {filteredVideos.map((video, index) => (
+                    {videos.map((video, index) => (
                         <div
                             key={video._id || video.id || index}
-                            className="animate-in fade-in slide-in-from-bottom-4 duration-500"
-                            style={{ animationDelay: `${(index % 20) * 50}ms` }}
+                            className="animate-in fade-in slide-in-from-bottom-4 duration-400"
+                            style={{ animationDelay: `${(index % 20) * 40}ms` }}
                         >
                             <VideoCard video={video} />
                         </div>
@@ -153,7 +156,7 @@ export default function SubscriptionsPage() {
                     {/* Infinite Scroll Trigger */}
                     <div ref={loadMoreRef} className="col-span-full h-10 w-full flex items-center justify-center mt-8">
                         {isFetchingNextPage && <Loader2 className="w-6 h-6 animate-spin text-primary" />}
-                        {!hasNextPage && filteredVideos.length > 0 && (
+                        {!hasNextPage && videos.length > 0 && (
                             <p className="text-muted-foreground text-sm">You've reached the end</p>
                         )}
                     </div>

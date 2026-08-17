@@ -106,8 +106,10 @@ export default function CustomVideoPlayer({
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
     }
 
-    // Effective total duration
-    const effectiveDuration = duration > 0 && duration !== Infinity ? duration : (initialDuration || 0)
+    // Effective total duration (strictly prioritize metadata duration to prevent HLS chunk duration creeping)
+    const effectiveDuration = (initialDuration && initialDuration > 0)
+        ? initialDuration
+        : (duration > 0 && duration !== Infinity ? duration : (initialDuration || 0))
 
     // Load saved progress and resume from where user left off
     useEffect(() => {
@@ -309,19 +311,19 @@ export default function CustomVideoPlayer({
 
     // Seek / Scrubbing Logic
     const handleSeek = useCallback((e, commit = false) => {
-        if (!progressBarRef.current || !duration) return
+        if (!progressBarRef.current || !effectiveDuration) return
 
         const rect = progressBarRef.current.getBoundingClientRect()
         const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width))
         const percent = x / rect.width
-        const time = percent * duration
+        const time = percent * effectiveDuration
 
         if (commit && videoRef.current) {
             videoRef.current.currentTime = time
         }
         setCurrentTime(time)
         return time
-    }, [duration])
+    }, [effectiveDuration])
 
     const handleMouseDown = (e) => {
         setIsDragging(true)
@@ -361,11 +363,11 @@ export default function CustomVideoPlayer({
 
     // Hover Preview
     const handleProgressHover = (e) => {
-        if (!progressBarRef.current || !duration) return
+        if (!progressBarRef.current || !effectiveDuration) return
         const rect = progressBarRef.current.getBoundingClientRect()
         const x = e.clientX - rect.left
         const percent = Math.max(0, Math.min(100, (x / rect.width) * 100))
-        const time = (percent / 100) * duration
+        const time = (percent / 100) * effectiveDuration
 
         setPreviewPosition(x)
         setPreviewTime(time)
@@ -428,15 +430,15 @@ export default function CustomVideoPlayer({
                 case '0': case '1': case '2': case '3': case '4':
                 case '5': case '6': case '7': case '8': case '9':
                     e.preventDefault()
-                    if (videoRef.current && duration) {
-                        videoRef.current.currentTime = duration * (parseInt(e.key) / 10)
+                    if (videoRef.current && effectiveDuration) {
+                        videoRef.current.currentTime = effectiveDuration * (parseInt(e.key) / 10)
                     }
                     break
             }
         }
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [togglePlay, toggleMute, toggleFullscreen, onToggleTheater, duration])
+    }, [togglePlay, toggleMute, toggleFullscreen, onToggleTheater, effectiveDuration])
 
 
     // Lifecycle Events
@@ -462,12 +464,13 @@ export default function CustomVideoPlayer({
             }
         }
     }, [seekToRef])
+
     const handleLoadedMetadata = () => {
         const d = videoRef.current?.duration
-        if (d && d !== Infinity && d > 0) {
-            setDuration(d)
-        } else if (initialDuration) {
+        if (initialDuration && initialDuration > 0) {
             setDuration(initialDuration)
+        } else if (d && d !== Infinity && d > 0) {
+            setDuration(d)
         }
 
         if (pendingSeekTimeRef.current !== null && pendingSeekTimeRef.current > 0 && videoRef.current) {
@@ -498,8 +501,11 @@ export default function CustomVideoPlayer({
 
     const handleDurationChange = () => {
         const d = videoRef.current?.duration
-        if (d && d !== Infinity && d > 0) setDuration(d)
-        else if (initialDuration) setDuration(initialDuration)
+        if (initialDuration && initialDuration > 0) {
+            setDuration(initialDuration)
+        } else if (d && d !== Infinity && d > 0) {
+            setDuration(d)
+        }
     }
     const handleWaiting = () => setIsBuffering(true)
     const handlePlaying = () => { setIsBuffering(false); setIsPlaying(true); setIsEnded(false) }
