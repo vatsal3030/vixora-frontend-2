@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import Cropper from 'react-easy-crop'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/Dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../ui/Dialog'
 import { Button } from '../ui/Button'
 import { Slider } from '../ui/Slider'
 import getCroppedImg from '../../lib/imageUtils'
@@ -49,6 +49,9 @@ export function ImageCropModal({
             <DialogContent className="sm:max-w-xl">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
+                    <DialogDescription>
+                        Drag to reposition, use the slider to zoom, and rotate as needed before saving.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="relative h-80 w-full bg-black/5 rounded-lg overflow-hidden mt-4">

@@ -102,6 +102,9 @@ export function AddToPlaylistDialog({ videoId, children, open: controlledOpen, o
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
                     <DialogTitle>Save to playlist</DialogTitle>
+                    <DialogDescription>
+                        Choose a playlist to save this video to, or create a new one.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="py-4 space-y-2 max-h-[300px] overflow-y-auto">
