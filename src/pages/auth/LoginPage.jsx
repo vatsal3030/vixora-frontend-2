@@ -129,7 +129,7 @@ export default function LoginPage() {
                     {/* Sign In Button */}
                     <Button
                         type="submit"
-                        className="w-full bg-gradient-to-r from-primary to-red-600 hover:from-primary/90 hover:to-red-600/90 text-primary-foreground font-medium py-2.5 transition-all duration-300 hover:shadow-lg hover:shadow-primary/25"
+                        className="w-full bg-gradient-to-r from-primary to-red-600 hover:from-primary/90 hover:to-red-600/90 text-primary-foreground font-medium py-2.5 transition-all duration-slow hover:shadow-lg hover:shadow-primary/25"
                         disabled={isSubmitting}
                     >
                         {isSubmitting ? (
@@ -187,10 +187,10 @@ export default function LoginPage() {
 
                 {/* Additional Links */}
                 <div className="mt-4 text-center space-y-2">
-                    <Link to="/restore-account" className="text-xs text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200 block py-1.5 px-3 rounded-lg">
+                    <Link to="/restore-account" className="text-xs text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-base block py-1.5 px-3 rounded-lg">
                         Restore deleted account?
                     </Link>
-                    <Link to="/verify-email" className="text-xs text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200 block py-1.5 px-3 rounded-lg">
+                    <Link to="/verify-email" className="text-xs text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-base block py-1.5 px-3 rounded-lg">
                         Verify email address?
                     </Link>
                 </div>
@@ -199,7 +199,7 @@ export default function LoginPage() {
             {/* Sign Up Link */}
             <p className="text-center text-sm text-muted-foreground">
                 Don't have an account?{' '}
-                <Link to="/register" className="font-semibold text-primary hover:text-primary/80 hover:underline transition-all duration-200 hover:bg-primary/10 py-1 px-2 rounded">
+                <Link to="/register" className="font-semibold text-primary hover:text-primary/80 hover:underline transition-all duration-base hover:bg-primary/10 py-1 px-2 rounded">
                     Sign up
                 </Link>
             </p>

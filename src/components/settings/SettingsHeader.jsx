@@ -65,7 +65,7 @@ export function SettingsSearch({ value, onChange, placeholder = "Search settings
                     "bg-secondary/50 border border-border",
                     "text-sm text-foreground placeholder:text-muted-foreground",
                     "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
-                    "transition-all duration-200"
+                    "transition-all duration-base"
                 )}
             />
         </div>

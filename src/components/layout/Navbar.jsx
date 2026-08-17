@@ -174,7 +174,7 @@ export function Navbar({ onMenuClick, user }) {
                                         className="cursor-pointer transition-all hover:ring-2 hover:ring-white/20 select-none touch-manipulation"
                                     />
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-64 p-2 scale-100 animate-in fade-in zoom-in-95 duration-200 glass-panel border-white/10">
+                                <DropdownMenuContent align="end" className="w-64 p-2 scale-100 animate-in fade-in zoom-in-95 duration-base glass-panel border-white/10">
                                     <Link to={user?.username ? `/@${user.username}` : '/profile'} className="flex items-center gap-3 p-3 mb-2 hover:bg-white/5 rounded-xl transition-colors group">
                                         <Avatar
                                             src={user?.avatar}

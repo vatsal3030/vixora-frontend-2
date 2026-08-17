@@ -408,7 +408,7 @@ export default function HistoryPage() {
                                         {videos.map((item, index) => (
                                             <div
                                                 key={`${item._id || item.id}-${index}`}
-                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                                                className="animate-in fade-in slide-in-from-bottom-4 duration-slow"
                                                 style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}
                                             >
                                                 <VideoCard video={item.video || item} />

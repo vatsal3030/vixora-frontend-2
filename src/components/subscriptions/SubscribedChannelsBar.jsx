@@ -33,7 +33,7 @@ export function SubscribedChannelsBar({ channels: rawChannels = [], isLoading, s
                     className="flex flex-col items-center gap-1.5 min-w-[64px] snap-start group/item"
                 >
                     <div className={cn(
-                        "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 border border-white/10",
+                        "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-slow border border-white/10",
                         !selectedChannelId
                             ? "bg-primary text-white shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-105"
                             : "bg-white/5 text-muted-foreground hover:bg-white/10 hover:border-white/20"
@@ -67,7 +67,7 @@ export function SubscribedChannelsBar({ channels: rawChannels = [], isLoading, s
                             className="flex flex-col items-center gap-1.5 min-w-[64px] snap-start group/item"
                         >
                             <div className={cn(
-                                "relative w-14 h-14 rounded-full p-0.5 transition-all duration-300",
+                                "relative w-14 h-14 rounded-full p-0.5 transition-all duration-slow",
                                 isSelected
                                     ? "ring-2 ring-primary bg-primary/10 shadow-[0_0_20px_rgba(239,68,68,0.4)] scale-[1.05]"
                                     : "hover:ring-2 hover:ring-white/20 hover:scale-105 hover:bg-white/5"

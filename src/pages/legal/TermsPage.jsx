@@ -289,7 +289,7 @@ export default function TermsPage() {
                                     <div className="space-y-10">
                                         <div className="relative">
                                             <div className="absolute -left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-blue-500/20 to-transparent" />
-                                            <p className="text-2xl sm:text-3xl font-display font-medium text-foreground/90 leading-tight tracking-tight italic">
+                                            <p className="text-title sm:text-title-lg font-display font-medium text-foreground/90 leading-tight tracking-tight italic">
                                                 "You are the sole custodian of your cryptographic identity and all content broadcasted through your account."
                                             </p>
                                         </div>

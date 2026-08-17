@@ -256,7 +256,7 @@ export default function SearchPage() {
                 <SEO title="Search" description="Search for videos, channels, shorts, and playlists on Vixora." />
                 <div className="p-8 rounded-2xl text-center w-full">
                     <History className="w-20 h-20 text-muted-foreground/30 mx-auto mb-6 opacity-80" />
-                    <h2 className="text-2xl lg:text-3xl font-bold mb-3">Search Vixora</h2>
+                    <h2 className="text-title sm:text-title-lg font-bold mb-3">Search Vixora</h2>
                     <p className="text-muted-foreground mb-8 max-w-md mx-auto">Type something to find videos, channels, shorts, and playlists.</p>
 
                     {history.length > 0 && (

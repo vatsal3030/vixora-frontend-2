@@ -321,11 +321,11 @@ export default function UploadPage() {
 
                     <Tabs defaultValue={defaultTab} className="w-full">
                         <TabsList className="grid w-full grid-cols-2 mb-4 glass-panel border-white/5 relative z-20 h-14 p-1">
-                            <TabsTrigger value="video" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center justify-center gap-2 rounded-xl transition-all duration-300">
+                            <TabsTrigger value="video" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center justify-center gap-2 rounded-xl transition-all duration-slow">
                                 <Video className="w-4 h-4" />
                                 <span className="font-bold uppercase tracking-wider text-xs">Upload Video</span>
                             </TabsTrigger>
-                            <TabsTrigger value="tweet" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center justify-center gap-2 rounded-xl transition-all duration-300">
+                            <TabsTrigger value="tweet" className="data-[state=active]:bg-primary/20 data-[state=active]:text-primary flex items-center justify-center gap-2 rounded-xl transition-all duration-slow">
                                 <MessageSquareHeart className="w-4 h-4" />
                                 <span className="font-bold uppercase tracking-wider text-xs">Community Post</span>
                             </TabsTrigger>
@@ -360,7 +360,7 @@ export default function UploadPage() {
 
                                                 <div className="mt-3 flex flex-col items-center">
                                                     <span className={cn(
-                                                        "text-[10px] font-bold uppercase tracking-widest transition-colors duration-300",
+                                                        "text-[10px] font-bold uppercase tracking-widest transition-colors duration-slow",
                                                         isActive ? "text-primary" : "text-muted-foreground/40"
                                                     )}>
                                                         {`Step 0${i + 1}`}
@@ -433,7 +433,7 @@ export default function UploadPage() {
                                                                 {cat.icon}
                                                             </div>
                                                             <span className={cn(
-                                                                "text-sm font-semibold transition-colors duration-300",
+                                                                "text-sm font-semibold transition-colors duration-slow",
                                                                 isSelected ? "text-primary" : "text-muted-foreground"
                                                             )}>
                                                                 {cat.label}
@@ -824,7 +824,7 @@ export default function UploadPage() {
                             <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                                 <motion.div
                                     className={cn(
-                                        "h-full rounded-full transition-colors duration-300",
+                                        "h-full rounded-full transition-colors duration-slow",
                                         uploadStage === 'complete' ? 'bg-green-500' : 'bg-primary'
                                     )}
                                     initial={{ width: '0%' }}

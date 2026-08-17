@@ -109,7 +109,7 @@ export function PresetSelectorModal({ isOpen, onClose, type = 'avatar' }) // typ
                                             <img
                                                 src={previewUrl}
                                                 alt={preset.label}
-                                                className={`w-full h-full object-cover transition-transform duration-300 ${
+                                                className={`w-full h-full object-cover transition-transform duration-slow ${
                                                     isSelected ? 'scale-110' : 'group-hover:scale-110'
                                                 }`}
                                             />

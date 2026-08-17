@@ -191,7 +191,7 @@ export default function SignUpPage() {
                                 <div className="flex items-center gap-2">
                                     <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
                                         <div
-                                            className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
+                                            className={`h-full ${getPasswordStrengthColor()} transition-all duration-slow`}
                                             style={{ width: passwordStrength.strength === 'strong' ? '100%' : passwordStrength.strength === 'medium' ? '66%' : '33%' }}
                                         />
                                     </div>
@@ -247,7 +247,7 @@ export default function SignUpPage() {
 
                     <Button
                         type="submit"
-                        className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium py-2.5 transition-all duration-300 hover:shadow-lg hover:shadow-red-500/50"
+                        className="w-full bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white font-medium py-2.5 transition-all duration-slow hover:shadow-lg hover:shadow-red-500/50"
                         disabled={isSubmitting}
                     >
                         {isSubmitting ? (
@@ -305,7 +305,7 @@ export default function SignUpPage() {
 
                 <p className="text-center text-sm text-muted-foreground mt-4">
                     Already have an account?{' '}
-                    <Link to="/login" className="font-semibold text-primary hover:text-red-400 hover:underline transition-all duration-200 hover:bg-primary/10 py-1 px-2 rounded">
+                    <Link to="/login" className="font-semibold text-primary hover:text-red-400 hover:underline transition-all duration-base hover:bg-primary/10 py-1 px-2 rounded">
                         Sign in
                     </Link>
                 </p>

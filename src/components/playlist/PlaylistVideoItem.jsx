@@ -73,7 +73,7 @@ export function PlaylistVideoItem({ video, playlistId, index, onRemove }) {
                 <img
                     src={getMediaUrl(actualVideo.thumbnail)}
                     alt={actualVideo.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow"
                     loading="lazy"
                 />
                 {actualVideo.duration ? (

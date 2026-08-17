@@ -146,7 +146,7 @@ export default function PlaylistsPage() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Your Playlists</h1>
+                    <h1 className="text-title sm:text-title-lg font-bold text-white font-display tracking-tight">Your Playlists</h1>
                     <p className="text-xs text-zinc-400 mt-1">Manage and organize your custom playlists</p>
                 </div>
                 <Button className="bg-white text-black hover:bg-white/90 font-bold rounded-full text-xs px-4 h-9 shadow-lg" onClick={openCreateModal}>

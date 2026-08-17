@@ -83,7 +83,7 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
             {/* Thumbnail Wrapper (YouTube Style) */}
             <div
                 onClick={(e) => handlePlayAll(e, false)}
-                className="relative aspect-video rounded-xl overflow-hidden bg-muted/20 z-0 border border-white/5 group-hover:border-white/20 transition-all duration-300"
+                className="relative aspect-video rounded-xl overflow-hidden bg-muted/20 z-0 border border-white/5 group-hover:border-white/20 transition-all duration-slow"
             >
                 {thumbnailSrc ? (
                     <img
@@ -100,13 +100,13 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
                 )}
 
                 {/* YouTube Right Overlay Bar: Video Count & Stack Icon */}
-                <div className="absolute right-0 top-0 bottom-0 w-[38%] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-1 text-white border-l border-white/10 z-10 transition-opacity duration-300 group-hover:opacity-0">
+                <div className="absolute right-0 top-0 bottom-0 w-[38%] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-1 text-white border-l border-white/10 z-10 transition-opacity duration-slow group-hover:opacity-0">
                     <span className="text-sm font-bold">{count}</span>
                     <ListVideo className="w-5 h-5 opacity-90" />
                 </div>
 
                 {/* YouTube Hover Play All Overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center z-20 backdrop-blur-[2px]">
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-slow flex items-center justify-center z-20 backdrop-blur-[2px]">
                     <div className="flex items-center gap-2 text-white font-bold uppercase tracking-wider text-xs bg-black/80 border border-white/20 px-4 py-2 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-transform duration-150">
                         <Play className="w-4 h-4 fill-white" />
                         Play All
@@ -149,7 +149,7 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 -mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-zinc-400 hover:text-white rounded-full"
+                            className="h-8 w-8 -mr-1.5 opacity-0 group-hover:opacity-100 transition-opacity duration-base text-zinc-400 hover:text-white rounded-full"
                         >
                             <MoreVertical className="w-4 h-4" />
                         </Button>

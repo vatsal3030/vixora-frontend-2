@@ -222,7 +222,7 @@ export function CommentItem({ comment, videoId, onSeek, depth = 0 }) {
 
                 {/* Reply Input */}
                 {isReplying && (
-                    <div className="flex gap-3 mt-3 pr-4 animate-in fade-in zoom-in-95 duration-200">
+                    <div className="flex gap-3 mt-3 pr-4 animate-in fade-in zoom-in-95 duration-base">
                         <Avatar src={user?.avatar} fallback={user?.username} size="sm" />
                         <div className="flex-1">
                             <textarea

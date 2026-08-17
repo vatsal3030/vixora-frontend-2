@@ -190,7 +190,7 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex flex-col gap-4">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Channel Dashboard</h1>
+                    <h1 className="text-title sm:text-title-lg font-bold tracking-tight">Channel Dashboard</h1>
                     <p className="text-muted-foreground mt-1 text-sm sm:text-base">Overview of your channel's performance.</p>
                 </div>
 
@@ -351,7 +351,7 @@ export default function DashboardPage() {
                                                 <td className="p-4 pl-6">
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-28 aspect-video bg-black rounded-lg overflow-hidden flex-shrink-0 shadow-sm border border-border/50">
-                                                            <img src={v.thumbnail} alt={v.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                                            <img src={v.thumbnail} alt={v.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow" />
                                                         </div>
                                                         <div className="min-w-0">
                                                             <Link to={isMock ? '#' : `/watch/${v._id || v.id || v.videoId}`} className="font-medium text-foreground hover:text-primary transition-colors line-clamp-2 mb-1">

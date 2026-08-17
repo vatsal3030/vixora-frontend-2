@@ -248,7 +248,7 @@ export default function VerifyEmailPage() {
                                 </div>
                                 <Button
                                     type="submit"
-                                    className="w-full h-11 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold transition-all duration-300 shadow-lg shadow-green-600/25"
+                                    className="w-full h-11 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold transition-all duration-slow shadow-lg shadow-green-600/25"
                                     disabled={loading}
                                 >
                                     {loading ? (
@@ -330,7 +330,7 @@ export default function VerifyEmailPage() {
 
                             <Button
                                 onClick={() => handleVerify()}
-                                className="w-full h-11 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold transition-all duration-300 shadow-lg shadow-green-600/25"
+                                className="w-full h-11 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-semibold transition-all duration-slow shadow-lg shadow-green-600/25"
                                 disabled={loading || otp.some(d => d === '')}
                             >
                                 {loading ? (

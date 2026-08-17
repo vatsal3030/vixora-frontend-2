@@ -116,7 +116,7 @@ export default function HomePage() {
                     <button
                         onClick={() => handleTagClick(null)}
                         className={cn(
-                            "flex-shrink-0 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap min-h-[34px] cursor-pointer",
+                            "flex-shrink-0 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-base whitespace-nowrap min-h-[34px] cursor-pointer",
                             !selectedTag
                                 ? "bg-primary text-white shadow-md shadow-primary/25 scale-105"
                                 : "glass-badge text-zinc-300 hover:text-white hover:bg-white/10"
@@ -141,7 +141,7 @@ export default function HomePage() {
                                     key={tag}
                                     onClick={() => handleTagClick(tag)}
                                     className={cn(
-                                        "flex-shrink-0 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-200 whitespace-nowrap min-h-[34px] cursor-pointer",
+                                        "flex-shrink-0 px-4 py-1.5 rounded-full text-xs sm:text-sm font-semibold transition-all duration-base whitespace-nowrap min-h-[34px] cursor-pointer",
                                         isActive
                                             ? "bg-primary text-white shadow-md shadow-primary/25 scale-105"
                                             : "glass-badge text-zinc-300 hover:text-white hover:bg-white/10"
@@ -160,7 +160,7 @@ export default function HomePage() {
                 {videos.map((video, index) => (
                     <div
                         key={`${video.id || video._id}-${index}`}
-                        className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                        className="animate-in fade-in slide-in-from-bottom-4 duration-slow"
                         style={{ animationDelay: `${(index % 20) * 40}ms`, animationFillMode: 'backwards' }}
                     >
                         <VideoCard video={video} />

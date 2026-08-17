@@ -12,7 +12,7 @@ export function SettingCard({
         <div
             className={cn(
                 "bg-card border border-border rounded-xl",
-                "shadow-sm hover:shadow transition-shadow duration-300",
+                "shadow-sm hover:shadow transition-shadow duration-slow",
                 !noPadding && "p-6",
                 className
             )}

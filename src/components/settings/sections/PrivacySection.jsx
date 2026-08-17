@@ -21,7 +21,7 @@ export function PrivacySection({ settings, onToggle, onSettingChange, isLoading 
                         <button
                             onClick={() => onSettingChange?.('profileVisibility', 'PUBLIC')}
                             className={cn(
-                                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-200",
+                                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-base",
                                 isPublic
                                     ? "border-primary bg-primary/10"
                                     : "border-border hover:border-muted-foreground/50 bg-secondary/30"
@@ -47,7 +47,7 @@ export function PrivacySection({ settings, onToggle, onSettingChange, isLoading 
                         <button
                             onClick={() => onSettingChange?.('profileVisibility', 'PRIVATE')}
                             className={cn(
-                                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-200",
+                                "flex items-center gap-3 p-3 rounded-xl border-2 transition-all duration-base",
                                 !isPublic
                                     ? "border-primary bg-primary/10"
                                     : "border-border hover:border-muted-foreground/50 bg-secondary/30"

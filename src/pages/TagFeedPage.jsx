@@ -111,7 +111,7 @@ export default function TagFeedPage() {
                 {videos.map((video, index) => (
                     <div
                         key={`${video.id}-${index}`}
-                        className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                        className="animate-in fade-in slide-in-from-bottom-4 duration-slow"
                         style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
                     >
                         <VideoCard video={video} />

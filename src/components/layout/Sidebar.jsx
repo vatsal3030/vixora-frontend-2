@@ -105,7 +105,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 onClick={() => window.innerWidth < 1024 && onClose()}
                             >
                                 <item.icon className={cn(
-                                    "w-4 h-4 flex-shrink-0 transition-all duration-300",
+                                    "w-4 h-4 flex-shrink-0 transition-all duration-slow",
                                     isActive(item.path) ? "scale-110" : "group-hover:scale-110"
                                 )} />
                                 {!isCollapsed && <span className="text-sm">{item.label}</span>}
@@ -121,7 +121,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                             <Link to="/library" className="group/lib block px-4 mb-2">
                                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider group-hover/lib:text-white transition-colors cursor-pointer flex items-center justify-between">
                                     Library
-                                    <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-2 group-hover/lib:opacity-100 group-hover/lib:translate-x-0 transition-all duration-300" />
+                                    <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-2 group-hover/lib:opacity-100 group-hover/lib:translate-x-0 transition-all duration-slow" />
                                 </h3>
                             </Link>
                         )}

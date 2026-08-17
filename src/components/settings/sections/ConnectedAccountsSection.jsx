@@ -68,7 +68,7 @@ export function ConnectedAccountsSection() {
                             <div
                                 key={provider.id}
                                 className={cn(
-                                    "flex items-center gap-4 p-4 rounded-xl border transition-all duration-200",
+                                    "flex items-center gap-4 p-4 rounded-xl border transition-all duration-base",
                                     isConnected
                                         ? "border-primary/30 bg-primary/5"
                                         : "border-border bg-secondary/30 hover:border-muted-foreground/30"

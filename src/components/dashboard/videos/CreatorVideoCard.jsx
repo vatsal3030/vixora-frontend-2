@@ -110,7 +110,7 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
         <div className="group relative flex flex-col">
             {/* Selection Overlay */}
             <div className={cn(
-                "absolute top-2 left-2 z-20 transition-opacity duration-200",
+                "absolute top-2 left-2 z-20 transition-opacity duration-base",
                 isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             )}>
                 <Checkbox

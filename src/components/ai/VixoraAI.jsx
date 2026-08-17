@@ -80,7 +80,7 @@ function MessageBubble({ message, onRegenerate }) {
                     </p>
 
                     <div className={cn(
-                        "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200",
+                        "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-base",
                         isUser && "hidden" // Usually don't show actions for own messages in this style, but keep it for AI
                     )}>
                         <button
@@ -164,7 +164,7 @@ function VideoSummaryCard({ videoId, onAsk, context }) {
                 <span className="text-sm font-semibold text-white/90 flex-1 text-left">
                     Video Insight
                 </span>
-                <ChevronLeft className={cn("w-4 h-4 text-muted-foreground transition-transform duration-200", !collapsed && "-rotate-90")} />
+                <ChevronLeft className={cn("w-4 h-4 text-muted-foreground transition-transform duration-base", !collapsed && "-rotate-90")} />
             </button>
 
             <AnimatePresence initial={false}>
@@ -635,7 +635,7 @@ export default function VixoraAI() {
                                         onClick={() => setShowSidebar(!showSidebar)}
                                         className="w-9 h-9 rounded-xl hover:bg-white/5 flex items-center justify-center text-muted-foreground transition-all"
                                     >
-                                        <ChevronLeft className={cn("w-5 h-5 transition-transform duration-300", !showSidebar && "rotate-180")} />
+                                        <ChevronLeft className={cn("w-5 h-5 transition-transform duration-slow", !showSidebar && "rotate-180")} />
                                     </button>
                                     <div className="flex items-center gap-3">
                                         <BrandLogo size="sm" />

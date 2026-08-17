@@ -72,7 +72,7 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
 
             {/* Title & Metadata */}
             <div className="space-y-3.5">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight font-display tracking-tight">
+                <h1 className="text-title sm:text-title-lg font-bold text-white leading-tight font-display tracking-tight">
                     {name}
                 </h1>
 

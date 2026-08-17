@@ -106,7 +106,7 @@ export default function WatchLaterPage() {
                                 <Clock className="w-8 h-8 text-primary" style={{ shapeRendering: 'geometricPrecision' }} />
                             </div>
                             <div>
-                                <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Watch Later</h1>
+                                <h1 className="text-title sm:text-title-lg font-bold text-white font-display tracking-tight">Watch Later</h1>
                                 <p className="text-xs text-zinc-400 mt-1">
                                     {filteredVideos.length} videos • Saved to watch later
                                 </p>
@@ -209,7 +209,7 @@ export default function WatchLaterPage() {
                         {filteredVideos.map((item, index) => {
                             const actualVideo = item.video || item
                             return (
-                                <div key={actualVideo._id || actualVideo.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
+                                <div key={actualVideo._id || actualVideo.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-slow" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
                                     <VideoCard video={actualVideo} />
                                     <button
                                         onClick={(e) => {

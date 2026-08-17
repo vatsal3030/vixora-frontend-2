@@ -111,7 +111,7 @@ export default function LikedVideosPage() {
                                 <ThumbsUp className="w-8 h-8 text-primary" style={{ shapeRendering: 'geometricPrecision' }} />
                             </div>
                             <div>
-                                <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Liked Videos</h1>
+                                <h1 className="text-title sm:text-title-lg font-bold text-white font-display tracking-tight">Liked Videos</h1>
                                 <p className="text-xs text-zinc-400 mt-1">
                                     {filteredVideos.length} videos • Your liked videos
                                 </p>
@@ -230,7 +230,7 @@ export default function LikedVideosPage() {
                             const video = item.video || item
                             if (!video) return null
                             return (
-                                <div key={video._id || video.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
+                                <div key={video._id || video.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-slow" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
                                     <VideoCard video={video} />
                                     <button
                                         onClick={(e) => {

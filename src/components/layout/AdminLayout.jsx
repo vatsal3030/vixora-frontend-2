@@ -34,7 +34,7 @@ function AdminSidebar({ isOpen, isMobile, onClose }) {
             {/* Mobile Overlay */}
             {isMobile && isOpen && (
                 <div
-                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[45] animate-in fade-in duration-200"
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[45] animate-in fade-in duration-base"
                     onClick={onClose}
                 />
             )}

@@ -41,7 +41,7 @@ const Input = forwardRef(
                     )}
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-base">
                         {error}
                     </p>
                 )}

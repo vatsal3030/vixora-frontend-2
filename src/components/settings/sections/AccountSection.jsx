@@ -122,7 +122,7 @@ export function AccountSection() {
                                     onClick={() => handleDefaultAvatarChange(type)}
                                     disabled={updateAvatarMutation.isPending}
                                     className={cn(
-                                        "relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 snap-center group bg-secondary/50",
+                                        "relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-slow snap-center group bg-secondary/50",
                                         isCurrent ? "border-primary shadow-[0_0_15px_rgba(239,68,68,0.3)] scale-105" : "border-transparent hover:border-white/20 hover:scale-105"
                                     )}
                                 >
@@ -162,7 +162,7 @@ export function AccountSection() {
                                     onClick={() => handleDefaultCoverImageChange(type)}
                                     disabled={updateCoverImageMutation.isPending}
                                     className={cn(
-                                        "relative shrink-0 w-32 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300 snap-center group bg-secondary/50",
+                                        "relative shrink-0 w-32 h-20 rounded-xl overflow-hidden border-2 transition-all duration-slow snap-center group bg-secondary/50",
                                         isCurrent ? "border-primary shadow-[0_0_15px_rgba(239,68,68,0.3)] scale-105" : "border-transparent hover:border-white/20 hover:scale-105"
                                     )}
                                 >
@@ -220,7 +220,7 @@ export function AccountSection() {
                                 className={cn(
                                     "w-full bg-secondary/50 border border-border rounded-lg px-4 py-3",
                                     "focus:ring-2 focus:ring-primary focus:outline-none focus:border-transparent",
-                                    "transition-all duration-200"
+                                    "transition-all duration-base"
                                 )}
                                 placeholder="new.email@example.com"
                             />
