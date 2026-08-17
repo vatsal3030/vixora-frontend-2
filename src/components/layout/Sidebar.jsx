@@ -110,7 +110,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 )} />
                                 {!isCollapsed && <span className="text-[14px]">{item.label}</span>}
                                 {isActive(item.path) && !isCollapsed && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                                 )}
                             </Link>
                         ))}
@@ -146,7 +146,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     )} />
                                     {!isCollapsed && <span className="text-[15px]">{item.label}</span>}
                                     {isActive(item.path) && !isCollapsed && (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                                     )}
                                 </Link>
                             ))}
