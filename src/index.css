@@ -143,9 +143,9 @@
     --primary-glow: rgba(239, 68, 68, 0.5);
 
     /* --- STANDARD GRID ---
-       Feed grid gap: gap-x-4 (16px) gap-y-8 (32px) — used by Home, Trending, Channel, Subscriptions.
-       Library grid gap: gap-x-4 (16px) gap-y-6 (24px) — Liked, WatchLater, History, Playlists.
-       These are documented here; applied in code via Tailwind classes.
+       Unified gap for ALL video grid surfaces: gap-x-4 (16px) gap-y-8 (32px).
+       Applies to: Home, Trending, Channel, Subscriptions, Liked, WatchLater, History, Playlists.
+       No per-page overrides — one value everywhere.
     */
   }
 }
