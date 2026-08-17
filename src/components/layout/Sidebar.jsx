@@ -95,7 +95,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 key={item.path}
                                 to={item.path}
                                 className={cn(
-                                    "flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden",
+                                    "flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-base group relative overflow-hidden",
                                     isActive(item.path)
                                         ? "bg-white/10 font-semibold text-white shadow-inner"
                                         : "hover:bg-white/5 text-muted-foreground hover:text-white",
@@ -108,7 +108,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     "w-4 h-4 flex-shrink-0 transition-all duration-300",
                                     isActive(item.path) ? "scale-110" : "group-hover:scale-110"
                                 )} />
-                                {!isCollapsed && <span className="text-[14px]">{item.label}</span>}
+                                {!isCollapsed && <span className="text-sm">{item.label}</span>}
                                 {isActive(item.path) && !isCollapsed && (
                                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                                 )}
@@ -131,7 +131,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     key={item.path}
                                     to={item.path}
                                     className={cn(
-                                        "flex items-center gap-3 px-3.5 py-2 rounded-xl transition-all duration-200 group relative overflow-hidden",
+                                        "flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-base group relative overflow-hidden",
                                         isActive(item.path)
                                             ? "bg-white/10 font-semibold text-white shadow-inner"
                                             : "hover:bg-white/5 text-muted-foreground hover:text-white",
@@ -141,10 +141,10 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     onClick={() => window.innerWidth < 1024 && onClose()}
                                 >
                                     <item.icon className={cn(
-                                        "w-[18px] h-[18px] flex-shrink-0 transition-all duration-300 opacity-80",
-                                        isActive(item.path) ? "scale-105 opacity-100" : "group-hover:scale-110 group-hover:opacity-100"
+                                        "w-4 h-4 flex-shrink-0 transition-all duration-base",
+                                        isActive(item.path) ? "scale-110" : "group-hover:scale-110"
                                     )} />
-                                    {!isCollapsed && <span className="text-[15px]">{item.label}</span>}
+                                    {!isCollapsed && <span className="text-sm">{item.label}</span>}
                                     {isActive(item.path) && !isCollapsed && (
                                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                                     )}
@@ -155,7 +155,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 <Link
                                     to="/admin"
                                     className={cn(
-                                        "flex items-center gap-3 px-3.5 py-2 rounded-xl transition-all duration-200 group relative overflow-hidden text-amber-400 hover:bg-amber-500/10 hover:text-amber-300",
+                                        "flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-base group relative overflow-hidden text-amber-400 hover:bg-amber-500/10 hover:text-amber-300",
                                         isActive('/admin')
                                             ? "bg-amber-500/15 font-semibold text-amber-300 shadow-inner"
                                             : "opacity-90",
@@ -164,8 +164,8 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     title={isCollapsed ? "Admin Panel" : undefined}
                                     onClick={() => window.innerWidth < 1024 && onClose()}
                                 >
-                                    <ShieldAlert className="w-[18px] h-[18px] flex-shrink-0 text-amber-400" />
-                                    {!isCollapsed && <span className="text-[15px] font-bold">Admin Panel</span>}
+                                    <ShieldAlert className="w-4 h-4 flex-shrink-0 text-amber-400" />
+                                    {!isCollapsed && <span className="text-sm font-bold">Admin Panel</span>}
                                     {isActive('/admin') && !isCollapsed && (
                                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-amber-400 rounded-r-full shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
                                     )}

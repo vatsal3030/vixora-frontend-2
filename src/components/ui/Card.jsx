@@ -1,5 +1,4 @@
 import { forwardRef } from 'react'
-import { motion } from 'framer-motion'
 import { cn } from '../../lib/utils'
 
 /**
@@ -15,29 +14,22 @@ import { cn } from '../../lib/utils'
  */
 const Card = forwardRef(
     ({ children, className, hoverable = true, clickable = false, glass = true, onClick, ...props }, ref) => {
-        const Component = hoverable ? motion.div : 'div'
-
         return (
-            <Component
+            <div
                 ref={ref}
                 onClick={onClick}
                 className={cn(
-                    'rounded-lg overflow-hidden',
+                    'rounded-lg overflow-hidden transition-all duration-base',
                     glass
                         ? 'glass-card'
                         : 'bg-card border border-border',
-                    hoverable && !glass && 'transition-all duration-base',
                     clickable && 'cursor-pointer',
                     className
                 )}
-                {...(hoverable && !glass && {
-                    whileHover: { y: -4, scale: 1.01 },
-                    transition: { duration: 0.2, ease: 'easeOut' }
-                })}
                 {...props}
             >
                 {children}
-            </Component>
+            </div>
         )
     }
 )
