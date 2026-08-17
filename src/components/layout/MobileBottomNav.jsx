@@ -26,14 +26,14 @@ export default function MobileBottomNav() {
                         key={item.path}
                         to={item.path}
                         className={cn(
-                            "flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 min-w-[48px] min-h-[44px] transition-all duration-200",
+                            "flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 min-w-[48px] min-h-[44px] transition-all duration-base",
                             isActive(item.path)
                                 ? "text-primary"
                                 : "text-muted-foreground hover:text-foreground"
                         )}
                     >
                         <item.icon className={cn(
-                            "w-5 h-5 transition-all duration-200",
+                            "w-5 h-5 transition-all duration-base",
                             isActive(item.path) && "filter drop-shadow-[0_0_8px_rgba(239,68,68,0.5)]"
                         )} strokeWidth={isActive(item.path) ? 2.5 : 1.5} />
                         <span className="text-[10px] font-medium leading-none">{item.label}</span>

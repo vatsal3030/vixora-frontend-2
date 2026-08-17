@@ -42,7 +42,7 @@ function AdminSidebar({ isOpen, isMobile, onClose }) {
             {/* Sidebar */}
             <aside
                 className={cn(
-                    "fixed top-16 bottom-0 z-[45] flex flex-col glass-sidebar transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] will-change-transform pt-4 overflow-y-auto no-scrollbar",
+                    "fixed top-16 bottom-0 z-[45] flex flex-col glass-sidebar transition-all duration-slow ease-[cubic-bezier(0.2,0.8,0.2,1)] will-change-transform pt-4 overflow-y-auto no-scrollbar",
                     isMobile ? "w-64 -translate-x-full border-r border-[var(--glass-border)] shadow-2xl" : "w-64 md:border-r md:border-[var(--glass-border)]",
                     isMobile && isOpen && "translate-x-0"
                 )}
@@ -67,13 +67,13 @@ function AdminSidebar({ isOpen, isMobile, onClose }) {
                                 to={item.href}
                                 onClick={isMobile ? onClose : undefined}
                                 className={cn(
-                                    "flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group relative",
+                                    "flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-base group relative",
                                     isActive
                                         ? "bg-primary/20 text-primary font-medium"
                                         : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                                 )}
                             >
-                                <Icon className={cn("w-5 h-5 transition-transform duration-200", isActive ? "" : "group-hover:scale-110")} />
+                                <Icon className={cn("w-4 h-4 transition-transform duration-base", isActive ? "" : "group-hover:scale-110")} />
                                 <span className="text-sm">{item.name}</span>
                             </Link>
                         )
@@ -84,9 +84,9 @@ function AdminSidebar({ isOpen, isMobile, onClose }) {
                 <div className="p-4 mt-auto border-t border-[var(--glass-border)] space-y-2">
                     <Link
                         to="/"
-                        className="flex items-center gap-4 px-3 py-3 rounded-xl text-muted-foreground hover:bg-white/5 hover:text-foreground transition-all duration-200"
+                        className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-muted-foreground hover:bg-white/5 hover:text-foreground transition-all duration-base"
                     >
-                        <Shield className="w-5 h-5 flex-shrink-0" />
+                        <Shield className="w-4 h-4 flex-shrink-0" />
                         <span className="text-sm whitespace-nowrap">Exit Admin</span>
                     </Link>
                 </div>
@@ -134,7 +134,7 @@ export function AdminLayout() {
                 {/* Main Content */}
                 <main
                     className={cn(
-                        "flex-1 relative transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] min-w-0 bg-background/50",
+                        "flex-1 relative transition-all duration-slow ease-[cubic-bezier(0.2,0.8,0.2,1)] min-w-0 bg-background/50",
                         !isMobile && "ml-64"
                     )}
                 >

@@ -68,7 +68,7 @@ export function Navbar({ onMenuClick, user }) {
     }, [])
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-all duration-300" style={{ backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)' }}>
+        <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-all duration-slow" style={{ backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)' }}>
             {/* Mobile Search Overlay */}
             <AnimatePresence>
                 {showMobileSearch && (
@@ -231,7 +231,7 @@ export function Navbar({ onMenuClick, user }) {
 
                                     {['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(String(user?.role || '').toUpperCase()) && (
                                         <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 px-3" asChild>
-                                            <Link to="/admin/dashboard" className="flex items-center gap-3 w-full py-2.5 text-blue-400">
+                                            <Link to="/admin/dashboard" className="flex items-center gap-3 w-full py-2.5 text-amber-400">
                                                 <Shield className="w-4 h-4" />
                                                 <span>Admin Panel</span>
                                             </Link>

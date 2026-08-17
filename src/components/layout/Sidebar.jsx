@@ -72,7 +72,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                 className={cn(
                     // Base Layout
                     "fixed top-16 bottom-0 left-0 z-40 bg-black/80 backdrop-blur-3xl overflow-y-auto overflow-x-hidden scrollbar-hide border-r border-white/10",
-                    "max-w-[85vw] transition-all duration-300 ease-in-out",
+                    "max-w-[85vw] transition-all duration-slow ease-in-out",
                     // Width control
                     isCollapsed ? "lg:w-[80px]" : "lg:w-[256px]",
                     // Mobile translation
