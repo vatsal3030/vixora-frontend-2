@@ -68,7 +68,7 @@ export function Navbar({ onMenuClick, user }) {
     }, [])
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-all duration-300" style={{ backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)' }}>
+        <header className="fixed top-0 left-0 right-0 z-50 w-full glass-nav transition-all duration-slow" style={{ backdropFilter: 'blur(48px) saturate(180%)', WebkitBackdropFilter: 'blur(48px) saturate(180%)' }}>
             {/* Mobile Search Overlay */}
             <AnimatePresence>
                 {showMobileSearch && (
@@ -174,7 +174,7 @@ export function Navbar({ onMenuClick, user }) {
                                         className="cursor-pointer transition-all hover:ring-2 hover:ring-white/20 select-none touch-manipulation"
                                     />
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-64 p-2 scale-100 animate-in fade-in zoom-in-95 duration-200 glass-panel border-white/10">
+                                <DropdownMenuContent align="end" className="w-64 p-2 scale-100 animate-in fade-in zoom-in-95 duration-base glass-panel border-white/10">
                                     <Link to={user?.username ? `/@${user.username}` : '/profile'} className="flex items-center gap-3 p-3 mb-2 hover:bg-white/5 rounded-xl transition-colors group">
                                         <Avatar
                                             src={user?.avatar}
@@ -231,7 +231,7 @@ export function Navbar({ onMenuClick, user }) {
 
                                     {['SUPER_ADMIN', 'ADMIN', 'MODERATOR'].includes(String(user?.role || '').toUpperCase()) && (
                                         <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 px-3" asChild>
-                                            <Link to="/admin/dashboard" className="flex items-center gap-3 w-full py-2.5 text-blue-400">
+                                            <Link to="/admin/dashboard" className="flex items-center gap-3 w-full py-2.5 text-amber-400">
                                                 <Shield className="w-4 h-4" />
                                                 <span>Admin Panel</span>
                                             </Link>

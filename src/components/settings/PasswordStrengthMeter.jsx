@@ -64,7 +64,7 @@ export function PasswordStrengthMeter({ password, showRequirements = true, class
                         <div
                             key={index}
                             className={cn(
-                                "h-1.5 flex-1 rounded-full transition-all duration-300",
+                                "h-1.5 flex-1 rounded-full transition-all duration-slow",
                                 index <= strength ? strengthColors[strength] : "bg-secondary"
                             )}
                         />
@@ -79,7 +79,7 @@ export function PasswordStrengthMeter({ password, showRequirements = true, class
                         <div
                             key={index}
                             className={cn(
-                                "flex items-center gap-2 text-sm transition-colors duration-200",
+                                "flex items-center gap-2 text-sm transition-colors duration-base",
                                 req.met ? "text-green-500" : "text-muted-foreground"
                             )}
                         >

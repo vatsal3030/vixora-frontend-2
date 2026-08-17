@@ -74,7 +74,7 @@ export default function AdminDashboard() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
-                            className="glass-card p-6 rounded-2xl flex items-center gap-4 hover:bg-white/5 transition-colors"
+                            className="glass-card p-6 rounded-xl flex items-center gap-4 hover:bg-white/5 transition-colors"
                         >
                             <div className={`p-4 rounded-xl ${stat.bg}`}>
                                 <Icon className={`w-6 h-6 ${stat.color}`} />
@@ -93,7 +93,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                <div className="glass-card p-6 rounded-2xl min-h-[350px] flex flex-col min-w-0">
+                <div className="glass-card p-6 rounded-xl min-h-[350px] flex flex-col min-w-0">
                     <h2 className="text-lg font-bold mb-4 font-display">Platform Growth (Weekly)</h2>
                     <div className="flex-1 w-full min-w-0 min-h-[300px]">
                         <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={200}>
@@ -123,7 +123,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Recent Activity List */}
-                <div className="glass-card p-6 rounded-2xl min-h-[350px] flex flex-col">
+                <div className="glass-card p-6 rounded-xl min-h-[350px] flex flex-col">
                     <h2 className="text-lg font-bold mb-4">Recent Audit Activity</h2>
                     <div className="flex-1 overflow-y-auto pr-2 space-y-4 no-scrollbar">
                         {activity.length === 0 ? (

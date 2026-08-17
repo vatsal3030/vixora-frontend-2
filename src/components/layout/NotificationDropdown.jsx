@@ -96,7 +96,7 @@ export default function NotificationDropdown() {
                 align="end"
                 sideOffset={8}
                 collisionPadding={16}
-                className="w-[380px] max-w-[calc(100vw-32px)] max-h-[500px] overflow-hidden flex flex-col notification-dropdown rounded-2xl border-white/10 shadow-premium bg-black/80 backdrop-blur-xl"
+                className="w-[380px] max-w-[calc(100vw-32px)] max-h-[500px] overflow-hidden flex flex-col notification-dropdown rounded-xl border-white/10 shadow-premium bg-black/80 backdrop-blur-xl"
             >
                 <DropdownMenuLabel className="flex justify-between items-center bg-popover/95 backdrop-blur-sm z-10 py-3 px-4 border-b border-white/10">
                     <span className="font-bold">Notifications</span>

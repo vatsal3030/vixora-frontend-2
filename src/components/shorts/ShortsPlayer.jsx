@@ -324,7 +324,7 @@ export default function ShortsPlayer({ video, isActive, isGlobalMuted, onToggleM
                 {/* Video Player Wrapper (9:16 aspect ratio on desktop) */}
                 <div
                     onClick={handlePlayerClick}
-                    className="relative h-full w-full sm:w-auto sm:aspect-[9/16] sm:rounded-2xl overflow-hidden bg-black shadow-2xl flex-shrink-0 flex items-center justify-center cursor-pointer group/player"
+                    className="relative h-full w-full sm:w-auto sm:aspect-[9/16] sm:rounded-xl overflow-hidden bg-black shadow-2xl flex-shrink-0 flex items-center justify-center cursor-pointer group/player"
                 >
                     {!error ? (
                         <video
@@ -610,7 +610,7 @@ export default function ShortsPlayer({ video, isActive, isGlobalMuted, onToggleM
                                 <MoreVertical className="w-5 h-5" />
                             </button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-[200px] glass-panel border-white/10 text-white bg-[#1a1a1a]/95 backdrop-blur-xl rounded-2xl shadow-premium p-1.5">
+                        <DropdownMenuContent align="end" className="w-[200px] glass-panel border-white/10 text-white bg-[#1a1a1a]/95 backdrop-blur-xl rounded-xl shadow-premium p-1.5">
                             <DropdownMenuItem
                                 onClick={(e) => togglePanel('description', e)}
                                 className="hover:bg-white/10 cursor-pointer py-2.5 px-3 rounded-xl flex items-center gap-2.5"

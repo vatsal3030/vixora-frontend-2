@@ -109,7 +109,7 @@ export function MobileSettingsSelector({ activeSection, onSectionChange, searchQ
                 className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 rounded-xl",
                     "bg-card border border-border",
-                    "text-left transition-all duration-200",
+                    "text-left transition-all duration-base",
                     "hover:bg-accent/50",
                     isOpen && "ring-2 ring-primary"
                 )}
@@ -122,7 +122,7 @@ export function MobileSettingsSelector({ activeSection, onSectionChange, searchQ
                     <p className="text-xs text-muted-foreground truncate">{activeItem?.description}</p>
                 </div>
                 <ChevronDown className={cn(
-                    "w-5 h-5 text-muted-foreground transition-transform duration-200",
+                    "w-5 h-5 text-muted-foreground transition-transform duration-base",
                     isOpen && "rotate-180"
                 )} />
             </button>
@@ -226,7 +226,7 @@ export function SettingsSidebar({ activeSection, onSectionChange, searchQuery, c
                                             key={item.id}
                                             onClick={() => onSectionChange(item.id)}
                                             className={cn(
-                                                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                                                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-base",
                                                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                                                 isActive
                                                     ? "bg-primary text-primary-foreground shadow-md"

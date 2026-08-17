@@ -72,7 +72,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                 className={cn(
                     // Base Layout
                     "fixed top-16 bottom-0 left-0 z-40 bg-black/80 backdrop-blur-3xl overflow-y-auto overflow-x-hidden scrollbar-hide border-r border-white/10",
-                    "max-w-[85vw] transition-all duration-300 ease-in-out",
+                    "max-w-[85vw] transition-all duration-slow ease-in-out",
                     // Width control
                     isCollapsed ? "lg:w-[80px]" : "lg:w-[256px]",
                     // Mobile translation
@@ -95,7 +95,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 key={item.path}
                                 to={item.path}
                                 className={cn(
-                                    "flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden",
+                                    "flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-base group relative overflow-hidden",
                                     isActive(item.path)
                                         ? "bg-white/10 font-semibold text-white shadow-inner"
                                         : "hover:bg-white/5 text-muted-foreground hover:text-white",
@@ -105,12 +105,12 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 onClick={() => window.innerWidth < 1024 && onClose()}
                             >
                                 <item.icon className={cn(
-                                    "w-4 h-4 flex-shrink-0 transition-all duration-300",
+                                    "w-4 h-4 flex-shrink-0 transition-all duration-slow",
                                     isActive(item.path) ? "scale-110" : "group-hover:scale-110"
                                 )} />
-                                {!isCollapsed && <span className="text-[14px]">{item.label}</span>}
+                                {!isCollapsed && <span className="text-sm">{item.label}</span>}
                                 {isActive(item.path) && !isCollapsed && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                                 )}
                             </Link>
                         ))}
@@ -121,7 +121,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                             <Link to="/library" className="group/lib block px-4 mb-2">
                                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider group-hover/lib:text-white transition-colors cursor-pointer flex items-center justify-between">
                                     Library
-                                    <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-2 group-hover/lib:opacity-100 group-hover/lib:translate-x-0 transition-all duration-300" />
+                                    <ChevronRight className="w-3.5 h-3.5 opacity-0 -translate-x-2 group-hover/lib:opacity-100 group-hover/lib:translate-x-0 transition-all duration-slow" />
                                 </h3>
                             </Link>
                         )}
@@ -131,7 +131,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     key={item.path}
                                     to={item.path}
                                     className={cn(
-                                        "flex items-center gap-3 px-3.5 py-2 rounded-xl transition-all duration-200 group relative overflow-hidden",
+                                        "flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-base group relative overflow-hidden",
                                         isActive(item.path)
                                             ? "bg-white/10 font-semibold text-white shadow-inner"
                                             : "hover:bg-white/5 text-muted-foreground hover:text-white",
@@ -141,12 +141,12 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     onClick={() => window.innerWidth < 1024 && onClose()}
                                 >
                                     <item.icon className={cn(
-                                        "w-[18px] h-[18px] flex-shrink-0 transition-all duration-300 opacity-80",
-                                        isActive(item.path) ? "scale-105 opacity-100" : "group-hover:scale-110 group-hover:opacity-100"
+                                        "w-4 h-4 flex-shrink-0 transition-all duration-base",
+                                        isActive(item.path) ? "scale-110" : "group-hover:scale-110"
                                     )} />
-                                    {!isCollapsed && <span className="text-[15px]">{item.label}</span>}
+                                    {!isCollapsed && <span className="text-sm">{item.label}</span>}
                                     {isActive(item.path) && !isCollapsed && (
-                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+                                        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
                                     )}
                                 </Link>
                             ))}
@@ -155,7 +155,7 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                 <Link
                                     to="/admin"
                                     className={cn(
-                                        "flex items-center gap-3 px-3.5 py-2 rounded-xl transition-all duration-200 group relative overflow-hidden text-amber-400 hover:bg-amber-500/10 hover:text-amber-300",
+                                        "flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-base group relative overflow-hidden text-amber-400 hover:bg-amber-500/10 hover:text-amber-300",
                                         isActive('/admin')
                                             ? "bg-amber-500/15 font-semibold text-amber-300 shadow-inner"
                                             : "opacity-90",
@@ -164,8 +164,8 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     title={isCollapsed ? "Admin Panel" : undefined}
                                     onClick={() => window.innerWidth < 1024 && onClose()}
                                 >
-                                    <ShieldAlert className="w-[18px] h-[18px] flex-shrink-0 text-amber-400" />
-                                    {!isCollapsed && <span className="text-[15px] font-bold">Admin Panel</span>}
+                                    <ShieldAlert className="w-4 h-4 flex-shrink-0 text-amber-400" />
+                                    {!isCollapsed && <span className="text-sm font-bold">Admin Panel</span>}
                                     {isActive('/admin') && !isCollapsed && (
                                         <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-amber-400 rounded-r-full shadow-[0_0_8px_rgba(251,191,36,0.5)]" />
                                     )}

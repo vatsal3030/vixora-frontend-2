@@ -113,7 +113,7 @@ export default function ChannelInfo({ channel }) {
                             <Button
                                 variant={isSubscribed ? "secondary" : "default"}
                                 onClick={handleSubscribeClick}
-                                className={`rounded-full px-6 text-xs sm:text-sm font-semibold transition-all duration-300 cursor-pointer ${isSubscribed
+                                className={`rounded-full px-6 text-xs sm:text-sm font-semibold transition-all duration-slow cursor-pointer ${isSubscribed
                                     ? 'bg-zinc-800 text-zinc-200 hover:bg-zinc-700'
                                     : 'bg-primary hover:bg-primary/90 text-white shadow-md shadow-primary/25'
                                     }`}

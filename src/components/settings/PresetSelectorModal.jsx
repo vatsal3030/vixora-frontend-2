@@ -71,7 +71,7 @@ export function PresetSelectorModal({ isOpen, onClose, type = 'avatar' }) // typ
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="relative w-full max-w-2xl bg-background border border-white/10 shadow-2xl rounded-2xl overflow-hidden flex flex-col"
+                        className="relative w-full max-w-2xl bg-background border border-white/10 shadow-2xl rounded-xl overflow-hidden flex flex-col"
                         style={{ maxHeight: '90vh' }}
                     >
                         <div className="p-6 border-b border-white/10 flex items-center justify-between">
@@ -109,7 +109,7 @@ export function PresetSelectorModal({ isOpen, onClose, type = 'avatar' }) // typ
                                             <img
                                                 src={previewUrl}
                                                 alt={preset.label}
-                                                className={`w-full h-full object-cover transition-transform duration-300 ${
+                                                className={`w-full h-full object-cover transition-transform duration-slow ${
                                                     isSelected ? 'scale-110' : 'group-hover:scale-110'
                                                 }`}
                                             />

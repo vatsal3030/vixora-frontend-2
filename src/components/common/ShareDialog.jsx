@@ -156,7 +156,7 @@ export function ShareDialog({ title, url, trigger, children, open: controlledOpe
                                         onClick={() => handleShareClick(net.url)}
                                         className="flex flex-col items-center gap-1.5 group shrink-0 w-[58px] sm:w-[62px] transition-transform active:scale-95"
                                     >
-                                        <div className={`w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center border transition-all duration-200 shadow-md ${net.bg}`}>
+                                        <div className={`w-12 h-12 sm:w-13 sm:h-13 rounded-full flex items-center justify-center border transition-all duration-base shadow-md ${net.bg}`}>
                                             <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
                                         </div>
                                         <span className="text-[10px] sm:text-[11px] font-medium text-zinc-300 group-hover:text-white transition-colors truncate text-center w-full">
@@ -173,7 +173,7 @@ export function ShareDialog({ title, url, trigger, children, open: controlledOpe
                         <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block mb-2 text-left">
                             PAGE LINK
                         </span>
-                        <div className="flex items-center gap-2 bg-[#121212] border border-white/10 rounded-2xl p-2 pl-3.5 w-full focus-within:border-primary/50 transition-all">
+                        <div className="flex items-center gap-2 bg-[#121212] border border-white/10 rounded-xl p-2 pl-3.5 w-full focus-within:border-primary/50 transition-all">
                             <input
                                 type="text"
                                 readOnly

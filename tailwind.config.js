@@ -62,6 +62,21 @@ export default {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
         display: ['Poppins', 'sans-serif'],
       },
+      /* --- TYPOGRAPHY SCALE (Phase 1) ---
+         Canonical sizes. Use these instead of arbitrary text-[Npx] values.
+         Page titles: text-title (mobile) / text-title-lg (desktop via sm: prefix)
+         Section headings: text-lg
+         Body / labels / nav: text-sm (14px) or text-base (16px)
+         Metadata / fine print: text-xs (12px)
+      */
+      fontSize: {
+        'xs':       ['var(--text-xs)',       { lineHeight: '1rem' }],        /* 12px */
+        'sm':       ['var(--text-sm)',       { lineHeight: '1.25rem' }],     /* 14px */
+        'base':     ['var(--text-base)',     { lineHeight: '1.5rem' }],      /* 16px */
+        'lg':       ['var(--text-lg)',       { lineHeight: '1.75rem' }],     /* 20px */
+        'title':    ['var(--text-title)',    { lineHeight: '2rem' }],        /* 24px */
+        'title-lg': ['var(--text-title-lg)', { lineHeight: '2.25rem' }],    /* 30px */
+      },
       spacing: {
         '0.5': '0.125rem',
         '1': '0.25rem',
@@ -74,12 +89,20 @@ export default {
         '12': '3rem',
         '16': '4rem',
       },
+      /* --- BORDER RADIUS SCALE (Phase 1) ---
+         Pick from these 4 + full. No other values.
+         sm  (6px):  badges, tags, small controls
+         md  (8px):  buttons, inputs, dropdowns
+         lg (12px):  cards, panels, containers (= --radius)
+         xl (16px):  modals, large sections
+         full:       pills, avatars
+      */
       borderRadius: {
         'none': '0',
-        'sm': '0.375rem',
-        'md': '0.5rem',
-        'lg': '0.75rem',
-        'xl': '1rem',
+        'sm': 'var(--radius-sm)',     /* 6px */
+        'md': 'var(--radius-md)',     /* 8px */
+        'lg': 'var(--radius-lg)',     /* 12px — default --radius */
+        'xl': 'var(--radius-xl)',     /* 16px */
         'full': '9999px',
       },
       backdropBlur: {
@@ -97,6 +120,24 @@ export default {
         'glass-hover': 'var(--glass-shadow-hover)',
         'glass-glow': 'var(--glass-glow)',
         'glass-glow-strong': 'var(--glass-glow-strong)',
+        'primary-glow': '0 0 8px var(--primary-glow)',
+      },
+      /* --- MOTION TOKENS (Phase 1) ---
+         Durations: fast (150ms), base (200ms), slow (300ms)
+         Easing: ease-out (snappy decel), ease-in-out (smooth)
+         Usage:
+           transition-all duration-fast ease-out   → hover states
+           transition-all duration-base ease-in-out → card/panel state changes
+           transition-all duration-slow ease-out    → page/modal open-close
+      */
+      transitionDuration: {
+        'fast': 'var(--duration-fast)',   /* 150ms */
+        'base': 'var(--duration-base)',   /* 200ms */
+        'slow': 'var(--duration-slow)',   /* 300ms */
+      },
+      transitionTimingFunction: {
+        'ease-out': 'var(--ease-out)',        /* cubic-bezier(0.16, 1, 0.3, 1) */
+        'ease-in-out': 'var(--ease-in-out)',  /* cubic-bezier(0.4, 0, 0.2, 1) */
       },
 
       keyframes: {
@@ -150,3 +191,4 @@ export default {
   },
   plugins: [],
 }
+

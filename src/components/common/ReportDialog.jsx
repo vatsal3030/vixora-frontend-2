@@ -111,7 +111,7 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger, open: co
                     onClick={(e) => { if (e.target === e.currentTarget) setIsOpen(false) }}
                 >
                     <div
-                        className="w-full max-w-md max-h-[90vh] flex flex-col rounded-2xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
+                        className="w-full max-w-md max-h-[90vh] flex flex-col rounded-xl border border-white/10 shadow-2xl shadow-black/50 overflow-hidden"
                         style={PANEL_STYLE}
                     >
                         {/* Header */}
@@ -135,7 +135,7 @@ export function ReportDialog({ targetType = 'VIDEO', targetId, trigger, open: co
                                             key={r}
                                             type="button"
                                             onClick={() => setReason(r)}
-                                            className={`w-full text-left text-sm px-5 py-3.5 rounded-xl border transition-all duration-200 transform active:scale-[0.98] ${reason === r
+                                            className={`w-full text-left text-sm px-5 py-3.5 rounded-xl border transition-all duration-base transform active:scale-[0.98] ${reason === r
                                                 ? 'bg-orange-500/20 border-orange-500/50 text-white shadow-[0_0_20px_rgba(249,115,22,0.1)]'
                                                 : 'bg-white/[0.03] border-white/10 text-gray-300 hover:bg-white/[0.08] hover:border-white/20'
                                                 }`}

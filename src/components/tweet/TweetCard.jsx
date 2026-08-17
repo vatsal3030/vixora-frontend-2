@@ -51,7 +51,7 @@ export function TweetCard({
     const isOwner = user && ownerId && (ownerId === user._id || ownerId === user.id)
 
     return (
-        <div className="glass-card border border-white/5 p-4 sm:p-5 rounded-2xl hover:bg-white/5 transition-colors group flex gap-3 sm:gap-4 relative">
+        <div className="glass-card border border-white/5 p-4 sm:p-5 rounded-xl hover:bg-white/5 transition-colors group flex gap-3 sm:gap-4 relative">
             <Link to={`/@${tweet.owner?.username}`} className="shrink-0 h-fit block">
                 <Avatar src={getMediaUrl(tweet.owner?.avatar)} fallback={tweet.owner?.username} size="md" className="ring-1 ring-white/10 group-hover:ring-white/30 transition-all" />
             </Link>

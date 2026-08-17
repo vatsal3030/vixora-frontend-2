@@ -23,12 +23,12 @@ export function DeletedItemCard({ item, type, isSelected, onSelect, onRestore, o
 
     return (
         <div className={cn(
-            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-200",
+            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-base",
             isSelected ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
         )}>
             {/* Selection Checkbox (Visible on hover or selected) */}
             <div className={cn(
-                "absolute top-2 left-2 z-20 transition-opacity duration-200",
+                "absolute top-2 left-2 z-20 transition-opacity duration-base",
                 isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             )}>
                 <Checkbox

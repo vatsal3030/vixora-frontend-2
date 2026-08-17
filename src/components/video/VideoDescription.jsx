@@ -8,7 +8,7 @@ export default function VideoDescription({ description, views, timestamp }) {
     return (
         <div
             className={cn(
-                "bg-gray-800/50 rounded-xl p-4 cursor-pointer hover:bg-gray-800/70 transition-colors",
+                "bg-secondary/50 rounded-lg p-4 cursor-pointer hover:bg-secondary/70 transition-colors duration-base",
                 isExpanded ? "h-auto" : "h-[100px] overflow-hidden relative"
             )}
             onClick={() => setIsExpanded(!isExpanded)}

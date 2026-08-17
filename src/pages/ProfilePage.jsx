@@ -297,7 +297,7 @@ export default function ProfilePage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.2 }}
-                                className="glass-card p-6 md:p-8 rounded-2xl border border-white/5 space-y-6"
+                                className="glass-card p-6 md:p-8 rounded-xl border border-white/5 space-y-6"
                             >
                                 {activeTab === 'details' && (
                                     <div className="space-y-6">
@@ -360,7 +360,7 @@ export default function ProfilePage() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                 <div className="space-y-4">
                                                     <label className="text-sm font-medium block">Profile Picture</label>
-                                                    <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-2xl glass-card hover:bg-white/5 transition-colors">
+                                                    <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-xl glass-card hover:bg-white/5 transition-colors">
                                                         <Avatar src={getMediaUrl(user.avatar)} fallback={user.username} size="xl" className="mb-4 text-2xl" />
                                                         <p className="text-xs text-muted-foreground text-center mb-4">Recommended: 98x98 px<br />PNG or JPG. Max 4MB.</p>
                                                         <div className="flex gap-2">
@@ -375,7 +375,7 @@ export default function ProfilePage() {
 
                                                 <div className="space-y-4">
                                                     <label className="text-sm font-medium block">Banner Image</label>
-                                                    <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-2xl glass-card hover:bg-white/5 transition-colors">
+                                                    <div className="flex flex-col items-center p-6 border-2 border-dashed border-white/10 rounded-xl glass-card hover:bg-white/5 transition-colors">
                                                         <div className="w-full aspect-[3/1] bg-black/20 rounded-lg overflow-hidden mb-4 relative">
                                                             <img src={getMediaUrl(user.coverImage)} className="w-full h-full object-cover opacity-80" alt="Banner preview" />
                                                         </div>
@@ -409,7 +409,7 @@ export default function ProfilePage() {
 
                                         <div className="space-y-4 pt-4">
                                             {channelData.channelLinks.length === 0 ? (
-                                                <div className="text-center py-12 border-2 border-dashed border-white/5 rounded-2xl">
+                                                <div className="text-center py-12 border-2 border-dashed border-white/5 rounded-xl">
                                                     <LinkIcon className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
                                                     <p className="text-muted-foreground">No links added yet.</p>
                                                 </div>

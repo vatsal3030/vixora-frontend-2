@@ -14,7 +14,7 @@ const Input = forwardRef(
                     <input
                         type={inputType}
                         className={cn(
-                            'flex h-11 w-full rounded-lg px-4 py-2 text-sm',
+                            'flex h-11 w-full rounded-lg px-4 py-2 text-sm transition-all duration-base',
                             'glass-input placeholder:text-muted-foreground',
                             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/10 focus-visible:ring-offset-0',
                             'disabled:cursor-not-allowed disabled:opacity-50',
@@ -41,7 +41,7 @@ const Input = forwardRef(
                     )}
                 </div>
                 {error && (
-                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1 duration-base">
                         {error}
                     </p>
                 )}

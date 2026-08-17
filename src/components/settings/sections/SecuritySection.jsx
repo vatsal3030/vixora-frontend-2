@@ -152,7 +152,7 @@ export function SecuritySection() {
                                     className={cn(
                                         "w-full bg-secondary/50 border border-border rounded-lg px-4 py-3 pr-12",
                                         "focus:ring-2 focus:ring-primary focus:outline-none focus:border-transparent",
-                                        "transition-all duration-200"
+                                        "transition-all duration-base"
                                     )}
                                 />
                                 <button
@@ -179,7 +179,7 @@ export function SecuritySection() {
                                     className={cn(
                                         "w-full bg-secondary/50 border border-border rounded-lg px-4 py-3 pr-12",
                                         "focus:ring-2 focus:ring-primary focus:outline-none focus:border-transparent",
-                                        "transition-all duration-200"
+                                        "transition-all duration-base"
                                     )}
                                 />
                                 <button
@@ -206,7 +206,7 @@ export function SecuritySection() {
                                     className={cn(
                                         "w-full bg-secondary/50 border border-border rounded-lg px-4 py-3 pr-12",
                                         "focus:ring-2 focus:ring-primary focus:outline-none focus:border-transparent",
-                                        "transition-all duration-200",
+                                        "transition-all duration-base",
                                         passwords.confirmPassword && passwords.newPassword !== passwords.confirmPassword && "border-red-500 focus:ring-red-500"
                                     )}
                                 />

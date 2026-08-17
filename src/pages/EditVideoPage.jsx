@@ -124,7 +124,7 @@ export default function EditVideoPage() {
                     </div>
 
                     <form id="edit-form" onSubmit={handleSubmit} className="space-y-6">
-                        <div className="glass-card p-6 rounded-2xl space-y-6">
+                        <div className="glass-card p-6 rounded-xl space-y-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-medium text-foreground/80">Title</label>
                                 <div className="relative">
@@ -177,7 +177,7 @@ export default function EditVideoPage() {
                 <div className="lg:w-[350px] space-y-6">
                     <div className="sticky top-24 space-y-6">
                         {/* Thumbnail Card */}
-                        <div className="glass-card p-4 rounded-2xl space-y-4">
+                        <div className="glass-card p-4 rounded-xl space-y-4">
                             <h3 className="font-semibold text-lg flex items-center gap-2">
                                 <ImageIcon className="w-4 h-4 text-primary" />
                                 Thumbnail
@@ -218,7 +218,7 @@ export default function EditVideoPage() {
                         </div>
 
                         {/* Visibility Card */}
-                        <div className="glass-card p-4 rounded-2xl space-y-4">
+                        <div className="glass-card p-4 rounded-xl space-y-4">
                             <h3 className="font-semibold text-lg flex items-center gap-2">
                                 <Eye className="w-4 h-4 text-primary" />
                                 Visibility

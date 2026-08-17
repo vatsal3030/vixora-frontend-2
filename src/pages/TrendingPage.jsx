@@ -50,7 +50,7 @@ export default function TrendingPage() {
 
     return (
         <div className="space-y-6 py-6 container mx-auto px-4">
-            <div className="glass-panel p-6 rounded-2xl flex items-center gap-4">
+            <div className="glass-panel p-6 rounded-xl flex items-center gap-4">
                 <div className="p-3 bg-red-500/10 rounded-xl">
                     <Flame className="w-8 h-8 text-red-500 fill-red-500/20" />
                 </div>

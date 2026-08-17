@@ -155,7 +155,7 @@ export default function TweetsPage() {
 
                     {/* Compose Box */}
                     {user && (
-                        <div className="bg-card border border-white/5 rounded-2xl p-4 sm:p-5 mb-8 shadow-sm">
+                        <div className="bg-card border border-white/5 rounded-xl p-4 sm:p-5 mb-8 shadow-sm">
                             <div className="flex gap-3 sm:gap-4">
                                 <Avatar src={user.avatar} fallback={user.username} className="w-10 h-10 ring-1 ring-white/10" />
                                 <form onSubmit={handleCreateTweet} className="flex-1">
@@ -203,11 +203,11 @@ export default function TweetsPage() {
                                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
                             </div>
                         ) : status === 'error' ? (
-                            <div className="text-center py-12 text-muted-foreground bg-red-500/5 rounded-2xl border border-red-500/10">
+                            <div className="text-center py-12 text-muted-foreground bg-red-500/5 rounded-xl border border-red-500/10">
                                 Failed to load feed.
                             </div>
                         ) : tweets.length === 0 ? (
-                            <div className="text-center py-16 text-muted-foreground bg-secondary/20 rounded-2xl border border-dashed border-white/5">
+                            <div className="text-center py-16 text-muted-foreground bg-secondary/20 rounded-xl border border-dashed border-white/5">
                                 <span className="block text-4xl mb-3">📭</span>
                                 <h3 className="text-lg font-semibold text-foreground mb-1">No posts right now</h3>
                                 <p className="text-sm">Check back later or start the conversation.</p>
@@ -230,7 +230,7 @@ export default function TweetsPage() {
 
                 {/* Right Sidebar - Hot Topics */}
                 <div className="hidden lg:block">
-                    <div className="sticky top-[100px] glass-card border flex flex-col border-white/5 rounded-2xl p-5 shadow-sm">
+                    <div className="sticky top-[100px] glass-card border flex flex-col border-white/5 rounded-xl p-5 shadow-sm">
                         <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
                             <Flame className="w-5 h-5 text-orange-500" />
                             Trending Topics

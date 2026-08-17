@@ -49,7 +49,7 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
     return (
         <div className="flex flex-col gap-5 md:sticky md:top-24 h-fit bg-gradient-to-b from-white/[0.08] to-transparent p-5 md:p-6 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl">
             {/* Thumbnail */}
-            <div className="relative aspect-video rounded-2xl overflow-hidden group shadow-2xl border border-white/10">
+            <div className="relative aspect-video rounded-xl overflow-hidden group shadow-2xl border border-white/10">
                 <CompositeThumbnail
                     videos={videos}
                     videoCount={totalCount}
@@ -72,7 +72,7 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
 
             {/* Title & Metadata */}
             <div className="space-y-3.5">
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight font-display tracking-tight">
+                <h1 className="text-title sm:text-title-lg font-bold text-white leading-tight font-display tracking-tight">
                     {name}
                 </h1>
 
@@ -166,7 +166,7 @@ export function PlaylistInfo({ playlist, onEdit, onDelete, onShare, isOwner }) {
                 {/* Description */}
                 {description && (
                     <div
-                        className={cn("text-xs text-zinc-400 bg-white/5 p-3.5 rounded-2xl cursor-pointer hover:bg-white/[0.08] transition-colors border border-white/5", !isDescExpanded && "line-clamp-3")}
+                        className={cn("text-xs text-zinc-400 bg-white/5 p-3.5 rounded-xl cursor-pointer hover:bg-white/[0.08] transition-colors border border-white/5", !isDescExpanded && "line-clamp-3")}
                         onClick={() => setIsDescExpanded(!isDescExpanded)}
                     >
                         <p className="whitespace-pre-wrap">{description}</p>

@@ -182,15 +182,15 @@ export const VideoCard = memo(function VideoCard({
     if (isCompact) {
         return (
             <div className="group flex gap-3 cursor-pointer">
-                <Link to={`/watch/${videoId}`} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="relative min-w-[168px] w-[168px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 transition-transform duration-300 group-hover:scale-[1.02]">
+                <Link to={`/watch/${videoId}`} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="relative min-w-[168px] w-[168px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 transition-transform duration-slow group-hover:scale-[1.02]">
                     <img
                         src={getMediaUrl(video.thumbnail)} alt={video.title}
-                        className={`w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-0' : 'opacity-100'}`}
+                        className={`w-full h-full object-cover transition-opacity duration-slow ${isHovered && previewUrl ? 'opacity-0' : 'opacity-100'}`}
                         loading="lazy" decoding="async" onError={e => { e.target.src = THUMBNAIL_FALLBACK }}
                     />
                     <video
                         ref={videoRef}
-                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-100' : 'opacity-0'}`}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-slow ${isHovered && previewUrl ? 'opacity-100' : 'opacity-0'}`}
                         muted playsInline loop preload="none"
                     />
                     <div className="absolute bottom-1 right-1 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
@@ -235,7 +235,7 @@ export const VideoCard = memo(function VideoCard({
     // ── SEARCH (HORIZONTAL LARGE) ─────────────────────────────────────────────
     if (type === 'search') {
         return (
-            <div className="group flex flex-col sm:flex-row gap-4 sm:gap-6 cursor-pointer hover:bg-white/[0.02] p-2 rounded-2xl transition-colors duration-300">
+            <div className="group flex flex-col sm:flex-row gap-4 sm:gap-6 cursor-pointer hover:bg-white/[0.02] p-2 rounded-xl transition-colors duration-slow">
                 {/* Thumbnail Side - using min-w array of roughly 360px on desktop matching YouTube proportions */}
                 <Link to={`/watch/${videoId}`} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="relative w-full sm:w-[320px] md:w-[360px] sm:min-w-[320px] md:min-w-[360px] aspect-video rounded-xl overflow-hidden bg-muted/20 flex-shrink-0 z-0">
                     <img
@@ -253,21 +253,21 @@ export const VideoCard = memo(function VideoCard({
                     <div className={`absolute inset-0 ring-1 ring-inset ring-white/10 rounded-xl transition-all duration-500 ${isHovered ? 'shadow-[0_0_20px_rgba(255,255,255,0.1)] ring-white/30' : ''}`} />
 
                     {isHovered && isFetchingUrl && !previewUrl && (
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-300">
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-all duration-slow">
                             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         </div>
                     )}
-                    <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[11px] font-medium px-1.5 py-0.5 rounded transition-opacity duration-300 z-10">
+                    <div className="absolute bottom-2 right-2 bg-black/80 text-white text-[11px] font-medium px-1.5 py-0.5 rounded transition-opacity duration-slow z-10">
                         {formatDuration(video.duration)}
                     </div>
                     {isHovered && previewUrl && (
-                        <div className="absolute top-2 right-2 flex flex-col gap-2 z-10 transition-all duration-300 animate-in fade-in slide-in-from-top-2">
-                            <button onClick={toggleMute} className="p-1.5 bg-black/60 hover:bg-black/80 hover:scale-110 active:scale-95 rounded-full text-white transition-all duration-200">
+                        <div className="absolute top-2 right-2 flex flex-col gap-2 z-10 transition-all duration-slow animate-in fade-in slide-in-from-top-2">
+                            <button onClick={toggleMute} className="p-1.5 bg-black/60 hover:bg-black/80 hover:scale-110 active:scale-95 rounded-full text-white transition-all duration-base">
                                 {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5" />}
                             </button>
                             <button
                                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); openPlayer(video) }}
-                                className="p-1.5 bg-black/60 hover:bg-black/80 hover:scale-110 active:scale-95 rounded-full text-white transition-all duration-200"
+                                className="p-1.5 bg-black/60 hover:bg-black/80 hover:scale-110 active:scale-95 rounded-full text-white transition-all duration-base"
                                 title="Open in Mini Player"
                             >
                                 <Info className="w-3.5 h-3.5" />
@@ -322,14 +322,14 @@ export const VideoCard = memo(function VideoCard({
                 {/* Thumbnail */}
                 <img
                     src={getMediaUrl(video.thumbnail)} alt={video.title}
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-0' : 'opacity-100'}`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-slow ${isHovered && previewUrl ? 'opacity-0' : 'opacity-100'}`}
                     loading="lazy" decoding="async" onError={e => { e.target.src = THUMBNAIL_FALLBACK }}
                 />
 
                 {/* Video element — always mounted, src set imperatively on hover */}
                 <video
                     ref={videoRef}
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${isHovered && previewUrl ? 'opacity-100' : 'opacity-0'}`}
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-slow ${isHovered && previewUrl ? 'opacity-100' : 'opacity-0'}`}
                     muted playsInline loop preload="none"
                 />
 
@@ -357,7 +357,7 @@ export const VideoCard = memo(function VideoCard({
                 )}
 
                 {/* Duration badge */}
-                <div className={`absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[11px] font-medium px-1.5 py-[2px] rounded transition-opacity duration-200 ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
+                <div className={`absolute bottom-1.5 right-1.5 bg-black/80 text-white text-[11px] font-medium px-1.5 py-[2px] rounded transition-opacity duration-base ${isHovered ? 'opacity-0' : 'opacity-100'}`}>
                     {formatDuration(video.duration)}
                 </div>
 

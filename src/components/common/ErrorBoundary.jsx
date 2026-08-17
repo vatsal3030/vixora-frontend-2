@@ -78,7 +78,7 @@ class ErrorBoundary extends React.Component {
                                     className="relative"
                                 >
                                     <div className="absolute inset-0 bg-red-600/30 blur-2xl rounded-full scale-150 animate-pulse" />
-                                    <div className="relative p-6 bg-red-500/10 rounded-2xl text-red-500 border border-red-500/20 shadow-inner">
+                                    <div className="relative p-6 bg-red-500/10 rounded-xl text-red-500 border border-red-500/20 shadow-inner">
                                         <AlertTriangle className="w-16 h-16" strokeWidth={1.5} />
                                     </div>
                                 </motion.div>
@@ -151,7 +151,7 @@ class ErrorBoundary extends React.Component {
                                                 className="overflow-hidden mt-6"
                                             >
                                                 <div className="relative group">
-                                                    <div className="text-left bg-[#0f0f0f]/80 backdrop-blur-md p-6 rounded-2xl border border-white/10 max-h-64 overflow-auto scrollbar-thin scrollbar-thumb-white/10">
+                                                    <div className="text-left bg-[#0f0f0f]/80 backdrop-blur-md p-6 rounded-xl border border-white/10 max-h-64 overflow-auto scrollbar-thin scrollbar-thumb-white/10">
                                                         <div className="flex justify-between items-start mb-4 sticky top-0 bg-[#0f0f0f]/50 backdrop-blur-sm py-1">
                                                             <span className="text-xs font-semibold uppercase tracking-wider text-red-500/80">Diagnostic Log</span>
                                                             <button 

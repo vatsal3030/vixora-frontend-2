@@ -34,7 +34,7 @@ export function SaveIndicator({ status = 'idle', className }) {
     return (
         <div
             className={cn(
-                "flex items-center gap-2 text-sm transition-all duration-300",
+                "flex items-center gap-2 text-sm transition-all duration-slow",
                 currentState.className,
                 className
             )}

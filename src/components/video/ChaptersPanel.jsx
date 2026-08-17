@@ -79,7 +79,7 @@ export default function ChaptersPanel({ chapters = [], currentTime = 0, poster, 
                             key={i}
                             onClick={() => onSeek?.(ch.startSeconds)}
                             className={cn(
-                                'flex-shrink-0 w-[180px] rounded-xl overflow-hidden border-2 transition-all duration-200 text-left group',
+                                'flex-shrink-0 w-[180px] rounded-xl overflow-hidden border-2 transition-all duration-base text-left group',
                                 isActive
                                     ? 'border-primary shadow-md shadow-primary/20'
                                     : 'border-transparent hover:border-white/20'

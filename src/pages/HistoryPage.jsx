@@ -209,7 +209,7 @@ export default function HistoryPage() {
             <SEO title="History" description="Your recently watched videos on Vixora." />
             {/* Header */}
             <div className="py-6 container mx-auto px-4">
-                <div className="glass-panel p-6 rounded-2xl space-y-6">
+                <div className="glass-panel p-6 rounded-xl space-y-6">
                     <div className="flex items-center justify-between">
                         <h1 className="text-2xl font-bold flex items-center gap-3">
                             <div className="p-2 bg-white/5 rounded-xl">
@@ -408,7 +408,7 @@ export default function HistoryPage() {
                                         {videos.map((item, index) => (
                                             <div
                                                 key={`${item._id || item.id}-${index}`}
-                                                className="animate-in fade-in slide-in-from-bottom-4 duration-300"
+                                                className="animate-in fade-in slide-in-from-bottom-4 duration-slow"
                                                 style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}
                                             >
                                                 <VideoCard video={item.video || item} />

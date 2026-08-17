@@ -207,7 +207,7 @@ export default function RestoreAccountPage() {
 
                             <Button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-medium py-2.5 transition-all duration-300 shadow-lg shadow-amber-600/25"
+                                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-medium py-2.5 transition-all duration-slow shadow-lg shadow-amber-600/25"
                                 disabled={requestRestoreMutation.isPending}
                             >
                                 {requestRestoreMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
@@ -267,7 +267,7 @@ export default function RestoreAccountPage() {
                             </div>
 
                             <Button
-                                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-medium py-2.5 transition-all duration-300 shadow-lg shadow-amber-600/25 border-0"
+                                className="w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-medium py-2.5 transition-all duration-slow shadow-lg shadow-amber-600/25 border-0"
                                 onClick={() => confirmRestoreMutation.mutate({ identifier, otp: otp.join('') })}
                                 disabled={confirmRestoreMutation.isPending || otp.some(d => !d)}
                             >

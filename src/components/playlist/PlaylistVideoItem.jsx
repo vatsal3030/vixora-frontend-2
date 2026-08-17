@@ -49,7 +49,7 @@ export function PlaylistVideoItem({ video, playlistId, index, onRemove }) {
             ref={setNodeRef}
             style={style}
             className={cn(
-                "group flex rounded-2xl p-2.5 hover:bg-white/[0.06] transition-colors gap-3 items-center border border-transparent hover:border-white/5 select-none",
+                "group flex rounded-xl p-2.5 hover:bg-white/[0.06] transition-colors gap-3 items-center border border-transparent hover:border-white/5 select-none",
                 isDragging && "glass-panel shadow-2xl bg-black/60 border-primary/40"
             )}
         >
@@ -73,7 +73,7 @@ export function PlaylistVideoItem({ video, playlistId, index, onRemove }) {
                 <img
                     src={getMediaUrl(actualVideo.thumbnail)}
                     alt={actualVideo.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-slow"
                     loading="lazy"
                 />
                 {actualVideo.duration ? (

@@ -102,11 +102,11 @@ export default function WatchLaterPage() {
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-3.5 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-2xl shadow-lg">
+                            <div className="p-3.5 bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 rounded-xl shadow-lg">
                                 <Clock className="w-8 h-8 text-primary" style={{ shapeRendering: 'geometricPrecision' }} />
                             </div>
                             <div>
-                                <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Watch Later</h1>
+                                <h1 className="text-title sm:text-title-lg font-bold text-white font-display tracking-tight">Watch Later</h1>
                                 <p className="text-xs text-zinc-400 mt-1">
                                     {filteredVideos.length} videos • Saved to watch later
                                 </p>
@@ -209,7 +209,7 @@ export default function WatchLaterPage() {
                         {filteredVideos.map((item, index) => {
                             const actualVideo = item.video || item
                             return (
-                                <div key={actualVideo._id || actualVideo.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-300" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
+                                <div key={actualVideo._id || actualVideo.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-slow" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
                                     <VideoCard video={actualVideo} />
                                     <button
                                         onClick={(e) => {

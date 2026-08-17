@@ -146,7 +146,7 @@ export default function PlaylistsPage() {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display tracking-tight">Your Playlists</h1>
+                    <h1 className="text-title sm:text-title-lg font-bold text-white font-display tracking-tight">Your Playlists</h1>
                     <p className="text-xs text-zinc-400 mt-1">Manage and organize your custom playlists</p>
                 </div>
                 <Button className="bg-white text-black hover:bg-white/90 font-bold rounded-full text-xs px-4 h-9 shadow-lg" onClick={openCreateModal}>
@@ -203,7 +203,7 @@ export default function PlaylistsPage() {
                     ))}
                 </PlaylistGrid>
             ) : sortedPlaylists.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-2xl border border-white/5">
+                <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-xl border border-white/5">
                     <div className="w-20 h-20 bg-secondary/30 rounded-full flex items-center justify-center mb-6">
                         <Music2 className="w-10 h-10 text-muted-foreground" />
                     </div>

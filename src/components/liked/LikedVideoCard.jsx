@@ -112,12 +112,12 @@ export function LikedVideoCard({ video, viewMode = 'grid', isSelected, onSelect,
     // GRID VIEW
     return (
         <div className={cn(
-            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-300 hover:shadow-xl",
+            "group relative rounded-xl overflow-hidden bg-card border transition-all duration-slow hover:shadow-xl",
             isSelected ? "border-primary ring-1 ring-primary" : "border-border hover:border-primary/50"
         )}>
             {/* Selection Overlay */}
             <div className={cn(
-                "absolute top-2 left-2 z-20 transition-opacity duration-200",
+                "absolute top-2 left-2 z-20 transition-opacity duration-base",
                 isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
             )}>
                 <Checkbox
@@ -146,7 +146,7 @@ export function LikedVideoCard({ video, viewMode = 'grid', isSelected, onSelect,
                 </div>
 
                 {/* Hover Play Icon */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-slow">
                     <div className="bg-black/40 rounded-full p-4 backdrop-blur-sm border border-white/10 text-white shadow-lg">
                         <Play className="w-8 h-8 fill-white" />
                     </div>

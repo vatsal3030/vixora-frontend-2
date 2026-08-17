@@ -60,7 +60,7 @@ export function PlaybackSection({ settings, onToggle, onSettingChange, isLoading
                                     key={speed}
                                     onClick={() => onSettingChange?.('defaultPlaybackSpeed', speed)}
                                     className={cn(
-                                        "px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+                                        "px-3 py-2 rounded-lg text-sm font-medium transition-all duration-base",
                                         settings?.defaultPlaybackSpeed === speed
                                             ? "bg-primary text-primary-foreground"
                                             : "bg-secondary hover:bg-secondary/80 text-foreground"

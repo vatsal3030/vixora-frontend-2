@@ -4,7 +4,7 @@ export default function ShortsSkeleton() {
             <div className="flex flex-col sm:flex-row h-full w-full sm:w-auto relative justify-center gap-0 sm:gap-4 animate-pulse">
                 
                 {/* Video Skeleton */}
-                <div className="relative h-full w-full sm:w-[400px] xl:w-[450px] sm:aspect-[9/16] bg-white/5 sm:rounded-2xl shrink-0 border border-white/5" />
+                <div className="relative h-full w-full sm:w-[400px] xl:w-[450px] sm:aspect-[9/16] bg-white/5 sm:rounded-xl shrink-0 border border-white/5" />
                 
                 {/* Desktop Side Actions Skeleton */}
                 <div className="hidden sm:flex flex-col justify-end pb-0 pt-4 pr-2 gap-6 w-16">

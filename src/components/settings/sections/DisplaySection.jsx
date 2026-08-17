@@ -34,7 +34,7 @@ export function DisplaySection({ settings, onToggle, isLoading }) {
                                     key={t.id}
                                     onClick={() => setTheme(t.id)}
                                     className={cn(
-                                        "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-200",
+                                        "flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all duration-base",
                                         isActive
                                             ? "border-primary bg-primary/10"
                                             : "border-border hover:border-muted-foreground/50 bg-secondary/30"

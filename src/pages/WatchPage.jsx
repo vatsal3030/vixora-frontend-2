@@ -440,7 +440,7 @@ export default function WatchPage() {
 
                     {/* 2. Video Info Section */}
                     <div className={cn(
-                        "space-y-4 transition-opacity duration-300",
+                        "space-y-4 transition-opacity duration-slow",
                         isTheaterMode ? "container mx-auto px-4 max-w-[1200px] mt-4 opacity-90 hover:opacity-100" : ""
                     )}>
                         <h1 className="text-xl md:text-2xl font-bold text-white break-words leading-tight drop-shadow-sm">{video.title}</h1>

@@ -2,11 +2,11 @@ import { cn } from '../../lib/utils'
 
 const badgeVariants = {
     variant: {
-        default: 'bg-gray-800 text-gray-100',
-        primary: 'bg-primary-500 text-white',
-        success: 'bg-success text-white',
-        danger: 'bg-danger text-white',
-        warning: 'bg-warning text-black',
+        default: 'bg-secondary text-secondary-foreground',
+        primary: 'bg-primary text-white',
+        success: 'bg-green-600 text-white',
+        danger: 'bg-destructive text-white',
+        warning: 'bg-yellow-500 text-black',
         live: 'bg-red-600 text-white animate-pulse',
     },
 }
@@ -19,7 +19,7 @@ export function Badge({
     return (
         <span
             className={cn(
-                'inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium',
+                'inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-medium',
                 badgeVariants.variant[variant],
                 className
             )}

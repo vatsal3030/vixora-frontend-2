@@ -214,7 +214,7 @@ export default function ForgotPasswordPage() {
                             </div>
                             <Button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-300 shadow-lg shadow-primary/20"
+                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-slow shadow-lg shadow-primary/20"
                                 disabled={requestOtpMutation.isPending}
                             >
                                 {requestOtpMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
@@ -246,7 +246,7 @@ export default function ForgotPasswordPage() {
                                 ))}
                             </div>
                             <Button
-                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-300 shadow-lg shadow-primary/20"
+                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-slow shadow-lg shadow-primary/20"
                                 onClick={() => verifyOtpMutation.mutate({ email, otp: otp.join('') })}
                                 disabled={verifyOtpMutation.isPending || otp.some(d => !d)}
                             >
@@ -289,7 +289,7 @@ export default function ForgotPasswordPage() {
                                 {passwordValue && (
                                     <div className="h-1 w-full bg-muted/50 rounded-full overflow-hidden mt-2">
                                         <div
-                                            className={`h-full ${getStrengthColor()} transition-all duration-300`}
+                                            className={`h-full ${getStrengthColor()} transition-all duration-slow`}
                                             style={{ width: passwordStrength.strength === 'strong' ? '100%' : passwordStrength.strength === 'medium' ? '66%' : '33%' }}
                                         />
                                     </div>
@@ -324,7 +324,7 @@ export default function ForgotPasswordPage() {
 
                             <Button
                                 type="submit"
-                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-300 shadow-lg shadow-primary/20"
+                                className="w-full bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white font-medium py-2.5 transition-all duration-slow shadow-lg shadow-primary/20"
                                 disabled={resetPasswordMutation.isPending}
                             >
                                 {resetPasswordMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}

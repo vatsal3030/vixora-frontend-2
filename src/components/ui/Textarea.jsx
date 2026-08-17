@@ -11,7 +11,7 @@ const Textarea = forwardRef(
                         'glass-input placeholder:text-muted-foreground',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-0',
                         'disabled:cursor-not-allowed disabled:opacity-50',
-                        'transition-all duration-200 resize-y',
+                        'transition-all duration-base resize-y',
                         error && 'border-red-500 focus-visible:ring-red-500/50',
                         className
                     )}

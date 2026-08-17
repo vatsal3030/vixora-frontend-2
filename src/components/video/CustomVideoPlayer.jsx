@@ -530,7 +530,7 @@ export default function CustomVideoPlayer({
         <div
             ref={containerRef}
             className={cn(
-                "relative group bg-black rounded-xl overflow-hidden shadow-premium transition-all duration-300 select-none outline-none",
+                "relative group bg-black rounded-xl overflow-hidden shadow-premium transition-all duration-slow select-none outline-none",
                 isTheaterMode && !isFullscreen ? "h-[75vh] w-full rounded-none" : "aspect-video",
                 isFullscreen ? "rounded-none w-full h-full" : "",
                 className
@@ -570,10 +570,10 @@ export default function CustomVideoPlayer({
             {/* Big Play Animation (Optional, simplified to standard center button when paused) */}
             {!isPlaying && !isBuffering && !isSettingsOpen && (
                 <div className={cn(
-                    "absolute inset-0 flex items-center justify-center z-10 pointer-events-none transition-opacity duration-300",
+                    "absolute inset-0 flex items-center justify-center z-10 pointer-events-none transition-opacity duration-slow",
                     showControls ? "opacity-100" : "opacity-0"
                 )}>
-                    <div className="p-6 bg-white/10 rounded-full backdrop-blur-md border border-white/20 animate-in zoom-in fade-in duration-300 group-hover:scale-110 transition-transform">
+                    <div className="p-6 bg-white/10 rounded-full backdrop-blur-md border border-white/20 animate-in zoom-in fade-in duration-slow group-hover:scale-110 transition-transform">
                         {isEnded ? <Play className="w-12 h-12 text-white fill-white ml-1" /> : <Play className="w-12 h-12 text-white fill-white ml-1" />}
                     </div>
                 </div>
@@ -581,13 +581,13 @@ export default function CustomVideoPlayer({
 
             {/* Controls Overlay */}
             <div className={cn(
-                "absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end px-3 pb-3 pt-20 transition-opacity duration-300 z-30",
+                "absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end px-3 pb-3 pt-20 transition-opacity duration-slow z-30",
                 showControls || isDragging ? "opacity-100" : "opacity-0 cursor-none"
             )}>
 
                 {/* Progress Bar */}
                 <div
-                    className="relative w-full h-[3px] hover:h-[5px] bg-white/20 hover:bg-white/30 transition-all duration-200 cursor-pointer mb-3 group/progress controls-interactive"
+                    className="relative w-full h-[3px] hover:h-[5px] bg-white/20 hover:bg-white/30 transition-all duration-base cursor-pointer mb-3 group/progress controls-interactive"
                     ref={progressBarRef}
                     onMouseMove={handleProgressHover}
                     onMouseLeave={() => setPreviewTime(null)}
@@ -602,7 +602,7 @@ export default function CustomVideoPlayer({
                         style={{ width: `${effectiveDuration > 0 ? Math.min(100, (currentTime / effectiveDuration) * 100) : 0}%` }}
                     >
                         {/* Scrubber Knob */}
-                        <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#f00] rounded-full scale-0 group-hover/progress:scale-100 transition-transform duration-200" />
+                        <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-3.5 h-3.5 bg-[#f00] rounded-full scale-0 group-hover/progress:scale-100 transition-transform duration-base" />
                     </div>
 
                     {/* Hover Tooltip */}
@@ -636,7 +636,7 @@ export default function CustomVideoPlayer({
                                     volume < 0.5 ? <Volume1 className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />
                                 )}
                             </button>
-                            <div className="w-0 overflow-hidden group-hover/volume:w-20 transition-all duration-300 ease-in-out flex items-center px-1">
+                            <div className="w-0 overflow-hidden group-hover/volume:w-20 transition-all duration-slow ease-in-out flex items-center px-1">
                                 <div className="relative w-full h-1 bg-white/30 rounded-full">
                                     <div
                                         className="absolute left-0 top-0 h-full bg-white rounded-full"
@@ -679,7 +679,7 @@ export default function CustomVideoPlayer({
                         <div className="relative">
                             <button
                                 onClick={(e) => { e.stopPropagation(); setIsSettingsOpen(!isSettingsOpen); }}
-                                className={cn("p-2 hover:bg-white/10 rounded-full text-white transition-transform duration-300", isSettingsOpen ? "rotate-45" : "rotate-0")}
+                                className={cn("p-2 hover:bg-white/10 rounded-full text-white transition-transform duration-slow", isSettingsOpen ? "rotate-45" : "rotate-0")}
                             >
                                 <Settings className="w-5 h-5" />
                             </button>
