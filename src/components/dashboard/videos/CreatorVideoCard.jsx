@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom'
-import { MoreVertical, Share2, Pencil, Trash2, Eye, EyeOff, BarChart2, MessageSquare, ThumbsUp, Globe, Lock, FileText, Clock, AlertCircle } from 'lucide-react'
+import { MoreVertical, Share2, Pencil, Trash2, Eye, EyeOff, Globe, Lock, AlertCircle, Sparkles } from 'lucide-react'
 import { formatDuration, formatViews, formatTimeAgo } from '../../../lib/utils'
+import { getMediaUrl } from '../../../lib/media'
 import { Button } from '../../../components/ui/Button'
 import { Checkbox } from '../../../components/ui/Checkbox'
 import { cn } from '../../../lib/utils'
+import { toast } from 'sonner'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,8 +22,13 @@ const StatusBadge = ({ isPublished, isProcessing }) => {
 
 export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelect, onDelete, onTogglePublish }) {
     const isList = viewMode === 'list'
+    const videoId = video?.id || video?._id
 
-
+    const handleCopyLink = (e) => {
+        e.stopPropagation()
+        navigator.clipboard.writeText(`${window.location.origin}/watch/${videoId}`)
+        toast.success("Link copied to clipboard")
+    }
 
     if (isList) {
         return (
@@ -32,14 +39,14 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                 {/* Checkbox */}
                 <Checkbox
                     checked={isSelected}
-                    onCheckedChange={(checked) => onSelect(video._id, checked)}
+                    onCheckedChange={(checked) => onSelect(videoId, checked)}
                     className="mr-2"
                 />
 
                 {/* Thumbnail */}
                 <div className="relative w-40 aspect-video rounded-lg overflow-hidden bg-black/20 shrink-0">
                     <img
-                        src={video.thumbnail}
+                        src={getMediaUrl(video.thumbnail)}
                         alt={video.title}
                         className="w-full h-full object-cover"
                     />
@@ -51,7 +58,7 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                 {/* Info */}
                 <div className="flex-1 min-w-0 grid grid-cols-12 gap-4 items-center">
                     <div className="col-span-12 md:col-span-5">
-                        <Link to={`/watch/${video.id || video._id}`} className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-1 block mb-1">
+                        <Link to={`/watch/${videoId}`} className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-1 block mb-1">
                             {video.title}
                         </Link>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -68,18 +75,16 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                             {formatViews(video.views)}
                         </div>
                         <div className="flex items-center gap-1.5" title="Likes">
-                            <ThumbsUp className="w-4 h-4" />
-                            {formatViews(video.likesCount || 0)}
+                            {formatViews(video.likesCount || 0)} likes
                         </div>
                         <div className="flex items-center gap-1.5" title="Comments">
-                            <MessageSquare className="w-4 h-4" />
-                            {video.commentsCount || 0}
+                            {video.commentsCount || 0} comments
                         </div>
                     </div>
 
                     {/* Actions */}
                     <div className="col-span-2 flex justify-end gap-2">
-                        <Link to={`/video/${video._id || video.id}/edit`}>
+                        <Link to={`/video/${videoId}/edit`}>
                             <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-foreground">
                                 <Pencil className="w-4 h-4" />
                             </Button>
@@ -90,11 +95,20 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                                     <MoreVertical className="w-4 h-4" />
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => onTogglePublish(video._id)}>
+                            <DropdownMenuContent align="end" className="glass-panel border-white/10 text-white bg-black/80 backdrop-blur-xl">
+                                <Link to={`/video/${videoId}/edit`}>
+                                    <DropdownMenuItem className="cursor-pointer hover:bg-white/10">
+                                        <Pencil className="w-4 h-4 mr-2" /> Edit Details
+                                    </DropdownMenuItem>
+                                </Link>
+                                <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer hover:bg-white/10">
+                                    <Share2 className="w-4 h-4 mr-2" /> Copy Link
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => onTogglePublish(videoId)} className="cursor-pointer hover:bg-white/10">
                                     {video.isPublished ? <><EyeOff className="w-4 h-4 mr-2" /> Unpublish</> : <><Eye className="w-4 h-4 mr-2" /> Publish</>}
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onDelete(video._id)} className="text-destructive font-medium">
+                                <DropdownMenuItem onClick={() => onDelete(videoId)} className="text-destructive font-medium cursor-pointer hover:bg-white/10">
                                     <Trash2 className="w-4 h-4 mr-2" /> Delete
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -115,17 +129,17 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
             )}>
                 <Checkbox
                     checked={isSelected}
-                    onCheckedChange={(checked) => onSelect(video._id, checked)}
+                    onCheckedChange={(checked) => onSelect(videoId, checked)}
                     className="bg-black/50 border-white/50 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                 />
             </div>
 
-            <Link to={`/watch/${video.id || video._id}`} className={cn(
+            <Link to={`/watch/${videoId}`} className={cn(
                 "relative aspect-video rounded-xl overflow-hidden bg-muted/20 block transition-all",
                 isSelected ? "ring-2 ring-primary border border-primary" : "border border-transparent group-hover:border-white/10"
             )}>
                 <img
-                    src={video.thumbnail}
+                    src={getMediaUrl(video.thumbnail)}
                     alt={video.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
@@ -143,7 +157,7 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
             {/* Content */}
             <div className="flex gap-3 mt-3 items-start relative px-1">
                 <div className="flex-1 min-w-0 pr-6">
-                    <Link to={`/watch/${video.id || video._id}`} className="font-semibold text-sm line-clamp-2 leading-snug hover:text-primary transition-colors">
+                    <Link to={`/watch/${videoId}`} className="font-semibold text-sm line-clamp-2 leading-snug hover:text-primary transition-colors">
                         {video.title}
                     </Link>
 
@@ -160,20 +174,20 @@ export function CreatorVideoCard({ video, viewMode = 'grid', isSelected, onSelec
                                 <MoreVertical className="w-4 h-4" />
                             </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <Link to={`/video/${video._id || video.id}/edit`}>
-                                <DropdownMenuItem>
+                        <DropdownMenuContent align="end" className="glass-panel border-white/10 text-white bg-black/80 backdrop-blur-xl">
+                            <Link to={`/video/${videoId}/edit`}>
+                                <DropdownMenuItem className="cursor-pointer hover:bg-white/10">
                                     <Pencil className="w-4 h-4 mr-2" /> Edit
                                 </DropdownMenuItem>
                             </Link>
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(`${window.location.origin}/watch/${video._id}`)}>
+                            <DropdownMenuItem onClick={handleCopyLink} className="cursor-pointer hover:bg-white/10">
                                 <Share2 className="w-4 h-4 mr-2" /> Copy Link
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onTogglePublish(video._id)}>
+                            <DropdownMenuItem onClick={() => onTogglePublish(videoId)} className="cursor-pointer hover:bg-white/10">
                                 {video.isPublished ? <><EyeOff className="w-4 h-4 mr-2" /> Unpublish</> : <><Eye className="w-4 h-4 mr-2" /> Publish</>}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onDelete(video._id)} className="text-destructive focus:text-destructive">
+                            <DropdownMenuItem onClick={() => onDelete(videoId)} className="text-destructive focus:text-destructive cursor-pointer hover:bg-white/10">
                                 <Trash2 className="w-4 h-4 mr-2" /> Move to Trash
                             </DropdownMenuItem>
                         </DropdownMenuContent>

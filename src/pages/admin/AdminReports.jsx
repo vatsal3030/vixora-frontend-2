@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Flag, Check, X, Eye } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { formatTimeAgo } from '../../lib/utils'
+import { AdminTableSkeleton } from '../../components/skeletons/AdminTableSkeleton'
 
 export default function AdminReports() {
     const [reports, setReports] = useState([])
@@ -26,10 +27,10 @@ export default function AdminReports() {
         fetchReports()
     }, [])
 
-    const handleResolve = async (reportId, resolution, actionTaken) => {
+    const handleResolve = async (reportId, status, actionTaken) => {
         try {
-            await adminService.resolveReport(reportId, { resolution, actionTaken })
-            toast.success(`Report marked as ${resolution}`)
+            await adminService.resolveReport(reportId, { status, actionTaken })
+            toast.success('Report resolved')
             fetchReports()
         } catch (err) {
             console.error(err)
@@ -40,7 +41,7 @@ export default function AdminReports() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-display font-bold">Reports</h1>
+                <h1 className="text-title sm:text-title-lg font-display font-bold">Reports</h1>
                 <p className="text-muted-foreground mt-1">Review and resolve user reports</p>
             </div>
 
@@ -56,21 +57,19 @@ export default function AdminReports() {
                                 <th className="text-right p-4 pr-6 font-medium text-muted-foreground">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="5" className="p-12 text-center text-muted-foreground">
-                                        Loading reports...
-                                    </td>
-                                </tr>
-                            ) : reports.length === 0 ? (
+                        {loading ? (
+                            <AdminTableSkeleton rows={8} cols={5} />
+                        ) : reports.length === 0 ? (
+                            <tbody>
                                 <tr>
                                     <td colSpan="5" className="p-12 text-center text-muted-foreground">
                                         No pending reports found
                                     </td>
                                 </tr>
-                            ) : (
-                                reports.map((report) => (
+                            </tbody>
+                        ) : (
+                            <tbody className="divide-y divide-white/5">
+                                {reports.map((report) => (
                                     <tr key={report._id || report.id} className="hover:bg-secondary/20 transition-colors">
                                         <td className="p-4 pl-6">
                                             <div className="font-medium flex items-center gap-2">
@@ -118,9 +117,9 @@ export default function AdminReports() {
                                             )}
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
+                                ))}
+                            </tbody>
+                        )}
                     </table>
                 </div>
             </div>

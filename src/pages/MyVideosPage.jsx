@@ -10,7 +10,7 @@ import { TweetCard } from '../components/tweet/TweetCard'
 import { PlaylistCard } from '../components/playlist/PlaylistCard'
 import { PlaylistCardSkeleton } from '../components/ui/Skeleton'
 import HomePageSkeleton from '../components/skeletons/HomePageSkeleton'
-import { Plus, Loader2, Film, Smartphone, MessageCircle, ListVideo, Globe, Lock, Pencil, Trash2 } from 'lucide-react'
+import { Plus, Loader2, Film, Smartphone, MessageCircle, ListVideo, Globe, Lock, Pencil, Trash2, MoreVertical, Share2, Eye, EyeOff } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -19,6 +19,13 @@ import { useInView } from 'react-intersection-observer'
 import { useAuth } from '../context/AuthContext'
 import { getMediaUrl } from '../lib/media'
 import { formatTimeAgo } from '../lib/utils'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+} from "../components/ui/DropdownMenu"
 
 const TABS = [
     { id: 'videos', label: 'Videos', icon: Film },
@@ -389,29 +396,92 @@ export default function YoursPage() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                            {allShorts.map((short, index) => (
-                                <motion.div
-                                    key={short._id || short.id || `short-${index}`}
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: (index % 24) * 0.04 }}
-                                    className="relative group glass-card rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all cursor-pointer"
-                                    onClick={() => navigate(`/watch/${short._id || short.id}`)}
-                                >
-                                    <div className="aspect-[9/16] relative bg-black">
-                                        <img
-                                            src={getMediaUrl(short.thumbnail)}
-                                            alt={short.title}
-                                            className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
-                                        <div className="absolute bottom-0 left-0 right-0 p-2">
-                                            <p className="text-white text-xs font-medium line-clamp-2 leading-snug">{short.title}</p>
-                                            <p className="text-white/50 text-[10px] mt-0.5">{(short.views || 0).toLocaleString()} views</p>
+                            {allShorts.map((short, index) => {
+                                const shortId = short._id || short.id
+                                return (
+                                    <motion.div
+                                        key={shortId || `short-${index}`}
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        transition={{ delay: (index % 24) * 0.04 }}
+                                        className="relative group glass-card rounded-xl overflow-hidden border border-white/5 hover:border-white/20 transition-all flex flex-col"
+                                    >
+                                        <div 
+                                            className="aspect-[9/16] relative bg-black cursor-pointer"
+                                            onClick={() => navigate(`/watch/${shortId}`)}
+                                        >
+                                            <img
+                                                src={getMediaUrl(short.thumbnail)}
+                                                alt={short.title}
+                                                className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
+                                            
+                                            {/* Status Badge */}
+                                            <div className="absolute top-2 left-2">
+                                                {short.isPublished ? (
+                                                    <span className="bg-green-500/80 text-white px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1 backdrop-blur-sm">
+                                                        <Globe className="w-2.5 h-2.5" /> Public
+                                                    </span>
+                                                ) : (
+                                                    <span className="bg-red-500/80 text-white px-1.5 py-0.5 rounded text-[9px] font-bold flex items-center gap-1 backdrop-blur-sm">
+                                                        <Lock className="w-2.5 h-2.5" /> Private
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* Action Menu (Top-Right) */}
+                                            <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button size="icon" variant="ghost" className="h-7 w-7 text-white bg-black/60 hover:bg-black/80 backdrop-blur-sm rounded-full opacity-90 group-hover:opacity-100">
+                                                            <MoreVertical className="w-3.5 h-3.5" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="glass-panel border-white/10 text-white bg-black/90 backdrop-blur-xl">
+                                                        <Link to={`/video/${shortId}/edit`}>
+                                                            <DropdownMenuItem className="cursor-pointer hover:bg-white/10 text-xs">
+                                                                <Pencil className="w-3.5 h-3.5 mr-2" /> Edit Details
+                                                            </DropdownMenuItem>
+                                                        </Link>
+                                                        <DropdownMenuItem 
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(`${window.location.origin}/watch/${shortId}`)
+                                                                toast.success('Link copied to clipboard')
+                                                            }} 
+                                                            className="cursor-pointer hover:bg-white/10 text-xs"
+                                                        >
+                                                            <Share2 className="w-3.5 h-3.5 mr-2" /> Copy Link
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem 
+                                                            onClick={() => videoService.togglePublish(shortId).then(() => {
+                                                                queryClient.invalidateQueries({ queryKey: ['myShorts'] })
+                                                                toast.success('Visibility updated')
+                                                            })} 
+                                                            className="cursor-pointer hover:bg-white/10 text-xs"
+                                                        >
+                                                            {short.isPublished ? <><EyeOff className="w-3.5 h-3.5 mr-2" /> Make Private</> : <><Eye className="w-3.5 h-3.5 mr-2" /> Make Public</>}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem 
+                                                            onClick={() => setVideoToDelete(shortId)} 
+                                                            className="text-destructive focus:text-destructive cursor-pointer hover:bg-white/10 text-xs"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5 mr-2" /> Move to Trash
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+
+                                            {/* Details Bottom */}
+                                            <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                                                <p className="text-white text-xs font-semibold line-clamp-2 leading-snug">{short.title}</p>
+                                                <p className="text-white/60 text-[10px] mt-0.5">{(short.views || 0).toLocaleString()} views • {formatTimeAgo(short.createdAt)}</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                    </motion.div>
+                                )
+                            })}
                         </div>
                     )}
                     

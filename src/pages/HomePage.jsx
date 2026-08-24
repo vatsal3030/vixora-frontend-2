@@ -155,8 +155,8 @@ export default function HomePage() {
                 </div>
             </div>
 
-            {/* Video Grid — Responsive 4-column layout */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+            {/* Video Grid — Responsive 3-column layout (YouTube standard) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                 {videos.map((video, index) => (
                     <div
                         key={`${video.id || video._id}-${index}`}

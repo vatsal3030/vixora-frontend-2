@@ -58,6 +58,8 @@ export const commentService = {
     getComments: (videoId, params = {}) => api.get(`/comments/${videoId}`, { params: { limit: DEFAULT_LIMIT, ...params } }),
     getReplies: (commentId, params = {}) => api.get(`/comments/c/${commentId}/replies`, { params: { limit: 20, ...params } }),
     addComment: (videoId, content, parentId = null) => api.post(`/comments/${videoId}`, { content, parentId }),
+    getTweetComments: (tweetId, params = {}) => api.get(`/comments/t/${tweetId}`, { params: { limit: DEFAULT_LIMIT, ...params } }),
+    addTweetComment: (tweetId, content, parentId = null) => api.post(`/comments/t/${tweetId}`, { content, parentId }),
     updateComment: (commentId, content) => api.patch(`/comments/c/${commentId}`, { content }),
     deleteComment: (commentId) => api.delete(`/comments/c/${commentId}`)
 }
@@ -324,6 +326,10 @@ export const adminService = {
 
     getAuditLogs: (params = {}) => api.get('/admin/audit-logs', { params: { limit: DEFAULT_LIMIT, ...params } }),
     getAuditLog: (logId) => api.get(`/admin/audit-logs/${logId}`),
+
+    // User Activity
+    getUserActivities: (params = {}) => api.get('/admin/user-activity', { params: { limit: DEFAULT_LIMIT, ...params } }),
+    getUserActivityStats: (params = {}) => api.get('/admin/user-activity/stats', { params }),
 
     // Feed management
     seedFeedTopics: (topics) => api.post('/admin/feed/topics/seed', topics ? { topics } : {})

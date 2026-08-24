@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Sparkles, Loader2, MessageSquare, RefreshCw, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react'
 import { aiService } from '../../services/api'
-import { ParsedText } from '../common/ParsedText'
+import MarkdownRenderer from '../common/MarkdownRenderer'
 import { cn } from '../../lib/utils'
 
 export default function AISummaryCard({ videoId }) {
@@ -109,7 +109,7 @@ export default function AISummaryCard({ videoId }) {
                             "text-xs text-zinc-300 leading-relaxed",
                             !isExpanded && "line-clamp-3"
                         )}>
-                            <ParsedText text={summary} />
+                            <MarkdownRenderer content={summary} compact className="text-xs text-zinc-300" />
                         </div>
 
                         <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px]">

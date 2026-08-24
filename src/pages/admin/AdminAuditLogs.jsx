@@ -2,26 +2,20 @@ import { useState, useEffect } from 'react'
 import { adminService } from '../../services/api'
 import { toast } from 'sonner'
 import { formatTimeAgo } from '../../lib/utils'
+import { AdminTableSkeleton } from '../../components/skeletons/AdminTableSkeleton'
 
 export default function AdminAuditLogs() {
     const [logs, setLogs] = useState([])
     const [loading, setLoading] = useState(true)
-    const [errorMsg, setErrorMsg] = useState(null)
 
     const fetchLogs = async () => {
         try {
             setLoading(true)
-            setErrorMsg(null)
-            const res = await adminService.getAuditLogs({ limit: 100 })
+            const res = await adminService.getAuditLogs({ limit: 50 })
             setLogs(res.data.data?.items || [])
         } catch (err) {
             console.error(err)
-            if (err.response?.status === 403) {
-                setErrorMsg('Admin access required to view audit logs.')
-            } else {
-                setErrorMsg('Failed to load audit logs.')
-                toast.error('Failed to load audit logs')
-            }
+            toast.error('Failed to load audit logs')
         } finally {
             setLoading(false)
         }
@@ -34,7 +28,7 @@ export default function AdminAuditLogs() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-display font-bold">Audit Logs</h1>
+                <h1 className="text-title sm:text-title-lg font-display font-bold">Audit Logs</h1>
                 <p className="text-muted-foreground mt-1">Track administrative actions across the platform</p>
             </div>
 
@@ -49,21 +43,19 @@ export default function AdminAuditLogs() {
                                 <th className="text-right p-4 pr-6 font-medium text-muted-foreground">Timestamp</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="4" className="p-12 text-center text-muted-foreground">
-                                        Loading logs...
-                                    </td>
-                                </tr>
-                            ) : logs.length === 0 ? (
+                        {loading ? (
+                            <AdminTableSkeleton rows={8} cols={4} />
+                        ) : logs.length === 0 ? (
+                            <tbody>
                                 <tr>
                                     <td colSpan="4" className="p-12 text-center text-muted-foreground">
                                         No audit logs found
                                     </td>
                                 </tr>
-                            ) : (
-                                logs.map((log) => (
+                            </tbody>
+                        ) : (
+                            <tbody className="divide-y divide-white/5">
+                                {logs.map((log) => (
                                     <tr key={log._id || log.id} className="hover:bg-secondary/20 transition-colors">
                                         <td className="p-4 pl-6">
                                             <div className="text-sm font-medium">@{log.admin?.username}</div>
@@ -84,9 +76,9 @@ export default function AdminAuditLogs() {
                                             <div className="text-[10px] text-muted-foreground/60 mt-1">{new Date(log.createdAt).toLocaleString()}</div>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
+                                ))}
+                            </tbody>
+                        )}
                     </table>
                 </div>
             </div>

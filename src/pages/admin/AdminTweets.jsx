@@ -5,6 +5,7 @@ import { formatTimeAgo } from '../../lib/utils'
 import { Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { ConfirmationDialog } from '../../components/common/ConfirmationDialog'
+import { AdminTableSkeleton } from '../../components/skeletons/AdminTableSkeleton'
 
 export default function AdminTweets() {
     const [tweets, setTweets] = useState([])
@@ -58,7 +59,7 @@ export default function AdminTweets() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-display font-bold">Tweets</h1>
+                <h1 className="text-title sm:text-title-lg font-display font-bold">Tweets</h1>
                 <p className="text-muted-foreground mt-1">Manage global platform tweets</p>
             </div>
 
@@ -73,21 +74,19 @@ export default function AdminTweets() {
                                 <th className="text-right p-4 pr-6 font-medium text-muted-foreground">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="4" className="p-12 text-center text-muted-foreground">
-                                        Loading tweets...
-                                    </td>
-                                </tr>
-                            ) : tweets.length === 0 ? (
+                        {loading ? (
+                            <AdminTableSkeleton rows={8} cols={4} />
+                        ) : tweets.length === 0 ? (
+                            <tbody>
                                 <tr>
                                     <td colSpan="4" className="p-12 text-center text-muted-foreground">
                                         No tweets found
                                     </td>
                                 </tr>
-                            ) : (
-                                tweets.map((tweet) => (
+                            </tbody>
+                        ) : (
+                            <tbody className="divide-y divide-white/5">
+                                {tweets.map((tweet) => (
                                     <tr key={tweet._id || tweet.id} className={`transition-colors ${tweet.isDeleted ? 'bg-red-500/5' : 'hover:bg-secondary/20'}`}>
                                         <td className="p-4 pl-6">
                                             <p className={`line-clamp-2 ${tweet.isDeleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
@@ -117,9 +116,9 @@ export default function AdminTweets() {
                                             )}
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
+                                ))}
+                            </tbody>
+                        )}
                     </table>
                 </div>
             </div>

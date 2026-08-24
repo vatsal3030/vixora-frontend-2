@@ -5,6 +5,7 @@ import { formatTimeAgo } from '../../lib/utils'
 import { Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { ConfirmationDialog } from '../../components/common/ConfirmationDialog'
+import { AdminTableSkeleton } from '../../components/skeletons/AdminTableSkeleton'
 
 export default function AdminComments() {
     const [comments, setComments] = useState([])
@@ -58,7 +59,7 @@ export default function AdminComments() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-display font-bold">Comments</h1>
+                <h1 className="text-title sm:text-title-lg font-display font-bold">Comments</h1>
                 <p className="text-muted-foreground mt-1">Manage global platform comments</p>
             </div>
 
@@ -73,21 +74,19 @@ export default function AdminComments() {
                                 <th className="text-right p-4 pr-6 font-medium text-muted-foreground">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="4" className="p-12 text-center text-muted-foreground">
-                                        Loading comments...
-                                    </td>
-                                </tr>
-                            ) : comments.length === 0 ? (
+                        {loading ? (
+                            <AdminTableSkeleton rows={8} cols={4} />
+                        ) : comments.length === 0 ? (
+                            <tbody>
                                 <tr>
                                     <td colSpan="4" className="p-12 text-center text-muted-foreground">
                                         No comments found
                                     </td>
                                 </tr>
-                            ) : (
-                                comments.map((comment) => (
+                            </tbody>
+                        ) : (
+                            <tbody className="divide-y divide-white/5">
+                                {comments.map((comment) => (
                                     <tr key={comment._id || comment.id} className={`transition-colors ${comment.isDeleted ? 'bg-red-500/5' : 'hover:bg-secondary/20'}`}>
                                         <td className="p-4 pl-6">
                                             <p className={`line-clamp-2 ${comment.isDeleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
@@ -117,9 +116,9 @@ export default function AdminComments() {
                                             )}
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
+                                ))}
+                            </tbody>
+                        )}
                     </table>
                 </div>
             </div>

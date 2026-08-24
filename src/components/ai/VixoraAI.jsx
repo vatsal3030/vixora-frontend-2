@@ -11,7 +11,7 @@ import { useAuth } from '../../context/AuthContext'
 import { aiService } from '../../services/api'
 import { cn, formatTimeAgo } from '../../lib/utils'
 import { BrandLogo } from '../common/BrandLogo'
-import { ParsedText } from '../common/ParsedText'
+import MarkdownRenderer from '../common/MarkdownRenderer'
 
 // ─── Quick question suggestions ──────────────────────────────────────────────
 const VIDEO_CHIPS = [
@@ -65,7 +65,7 @@ function MessageBubble({ message, onRegenerate }) {
                         <p className="whitespace-pre-wrap">{message.content}</p>
                     ) : (
                         <div className="prose prose-invert max-w-none text-sm leading-relaxed">
-                            <ParsedText text={message.content} />
+                            <MarkdownRenderer content={message.content} />
                         </div>
                     )}
                 </div>

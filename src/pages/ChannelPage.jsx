@@ -199,7 +199,7 @@ export default function ChannelPage() {
                 {activeTab === 'Videos' && (
                     <>
                         {loadingVideos ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                                 {Array.from({ length: 8 }).map((_, i) => <VideoCardSkeleton key={i} />)}
                             </div>
                         ) : videos.length === 0 ? (
@@ -210,7 +210,7 @@ export default function ChannelPage() {
                             </div>
                         ) : (
                             <>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                                     {videos.map((video, index) => (
                                         <div
                                             key={video._id || video.id}
@@ -291,7 +291,7 @@ export default function ChannelPage() {
                 {activeTab === 'Playlists' && (
                     <>
                         {loadingPlaylists ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                                 {Array.from({ length: 8 }).map((_, i) => <PlaylistCardSkeleton key={i} />)}
                             </div>
                         ) : playlists?.length === 0 ? (
@@ -301,7 +301,7 @@ export default function ChannelPage() {
                                 <p className="text-sm text-zinc-400">This channel hasn't created any playlists.</p>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-4 gap-y-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-8">
                                 {playlists.map((playlist) => (
                                     <PlaylistCard
                                         key={playlist.id || playlist._id}

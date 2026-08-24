@@ -5,6 +5,7 @@ import { formatTimeAgo } from '../../lib/utils'
 import { Trash2, RotateCcw } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { ConfirmationDialog } from '../../components/common/ConfirmationDialog'
+import { AdminTableSkeleton } from '../../components/skeletons/AdminTableSkeleton'
 
 export default function AdminPlaylists() {
     const [playlists, setPlaylists] = useState([])
@@ -58,7 +59,7 @@ export default function AdminPlaylists() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-display font-bold">Playlists</h1>
+                <h1 className="text-title sm:text-title-lg font-display font-bold">Playlists</h1>
                 <p className="text-muted-foreground mt-1">Manage global user playlists</p>
             </div>
 
@@ -73,21 +74,19 @@ export default function AdminPlaylists() {
                                 <th className="text-right p-4 pr-6 font-medium text-muted-foreground">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="4" className="p-12 text-center text-muted-foreground">
-                                        Loading playlists...
-                                    </td>
-                                </tr>
-                            ) : playlists.length === 0 ? (
+                        {loading ? (
+                            <AdminTableSkeleton rows={8} cols={4} />
+                        ) : playlists.length === 0 ? (
+                            <tbody>
                                 <tr>
                                     <td colSpan="4" className="p-12 text-center text-muted-foreground">
                                         No playlists found
                                     </td>
                                 </tr>
-                            ) : (
-                                playlists.map((playlist) => (
+                            </tbody>
+                        ) : (
+                            <tbody className="divide-y divide-white/5">
+                                {playlists.map((playlist) => (
                                     <tr key={playlist._id || playlist.id} className={`transition-colors ${playlist.isDeleted ? 'bg-red-500/5' : 'hover:bg-secondary/20'}`}>
                                         <td className="p-4 pl-6">
                                             <p className={`font-medium ${playlist.isDeleted ? 'text-muted-foreground line-through' : 'text-foreground'}`}>
@@ -118,9 +117,9 @@ export default function AdminPlaylists() {
                                             )}
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
+                                ))}
+                            </tbody>
+                        )}
                     </table>
                 </div>
             </div>

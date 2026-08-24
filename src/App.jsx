@@ -64,6 +64,7 @@ const AdminComments = lazy(() => import('./pages/admin/AdminComments'))
 const AdminTweets = lazy(() => import('./pages/admin/AdminTweets'))
 const AdminPlaylists = lazy(() => import('./pages/admin/AdminPlaylists'))
 const AdminAuditLogs = lazy(() => import('./pages/admin/AdminAuditLogs'))
+const AdminUserActivity = lazy(() => import('./pages/admin/AdminUserActivity'))
 
 function App() {
   return (
@@ -101,6 +102,7 @@ function App() {
                     <Route path="dashboard" element={<AdminDashboard />} />
                     <Route path="reports" element={<AdminReports />} />
                     <Route path="users" element={<AdminUsers />} />
+                    <Route path="user-activity" element={<AdminUserActivity />} />
                     <Route path="videos" element={<AdminVideos />} />
                     <Route path="comments" element={<AdminComments />} />
                     <Route path="tweets" element={<AdminTweets />} />

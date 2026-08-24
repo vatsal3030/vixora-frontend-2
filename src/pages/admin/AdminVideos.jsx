@@ -6,6 +6,7 @@ import { getMediaUrl } from '../../lib/media'
 import { MoreVertical, ShieldBan, ShieldCheck, Eye, Trash2 } from 'lucide-react'
 import { Button } from '../../components/ui/Button'
 import { ConfirmationDialog } from '../../components/common/ConfirmationDialog'
+import { AdminTableSkeleton } from '../../components/skeletons/AdminTableSkeleton'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -70,7 +71,7 @@ export default function AdminVideos() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-display font-bold">Videos</h1>
+                <h1 className="text-title sm:text-title-lg font-display font-bold">Videos</h1>
                 <p className="text-muted-foreground mt-1">Manage global platform videos</p>
             </div>
 
@@ -86,21 +87,19 @@ export default function AdminVideos() {
                                 <th className="text-right p-4 pr-6 font-medium text-muted-foreground">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                <tr>
-                                    <td colSpan="5" className="p-12 text-center text-muted-foreground">
-                                        Loading videos...
-                                    </td>
-                                </tr>
-                            ) : videos.length === 0 ? (
+                        {loading ? (
+                            <AdminTableSkeleton rows={8} cols={5} />
+                        ) : videos.length === 0 ? (
+                            <tbody>
                                 <tr>
                                     <td colSpan="5" className="p-12 text-center text-muted-foreground">
                                         No videos found
                                     </td>
                                 </tr>
-                            ) : (
-                                videos.map((video) => (
+                            </tbody>
+                        ) : (
+                            <tbody className="divide-y divide-white/5">
+                                {videos.map((video) => (
                                     <tr key={video._id || video.id} className="hover:bg-secondary/20 transition-colors">
                                         <td className="p-4 pl-6">
                                             <div className="flex gap-4 items-start">
@@ -150,9 +149,9 @@ export default function AdminVideos() {
                                             </DropdownMenu>
                                         </td>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
+                                ))}
+                            </tbody>
+                        )}
                     </table>
                 </div>
             </div>

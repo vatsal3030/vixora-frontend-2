@@ -6,6 +6,7 @@ import { userService } from '../../../services/api'
 import { toast } from 'sonner'
 import { SettingCard, SettingSectionHeader, SettingDivider } from '../SettingCard'
 import { Button } from '../../ui/Button'
+import { Avatar } from '../../ui/Avatar'
 import { User, Mail, AtSign, ExternalLink, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { cn } from '../../../lib/utils'
 
@@ -73,19 +74,13 @@ export function AccountSection() {
 
                 {/* Profile Quick Link */}
                 <div className="flex items-center gap-4 p-3 bg-accent/30 rounded-xl mb-6">
-                    <div className="w-16 h-16 rounded-full overflow-hidden bg-secondary flex-shrink-0">
-                        {user?.avatar ? (
-                            <img
-                                src={user.avatar}
-                                alt={user.fullName || user.username}
-                                className="w-full h-full object-cover"
-                            />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-muted-foreground">
-                                {user?.fullName?.[0] || user?.username?.[0] || '?'}
-                            </div>
-                        )}
-                    </div>
+                    <Avatar
+                        src={user?.avatar}
+                        alt={user?.fullName || user?.username}
+                        fallback={user?.username}
+                        size="lg"
+                        className="flex-shrink-0"
+                    />
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-foreground truncate">{user?.fullName || user?.username}</h3>
                         <p className="text-sm text-muted-foreground truncate">@{user?.username}</p>
