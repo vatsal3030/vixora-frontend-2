@@ -693,10 +693,6 @@ export default function VixoraAI() {
 
                             {/* Messages Container */}
                             <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6 custom-scrollbar scroll-smooth">
-                                {currentVideoId && !isLoading && messages.length < 5 && (
-                                    <VideoSummaryCard videoId={currentVideoId} onAsk={handleQuickAsk} context={contextHealth} />
-                                )}
-
                                 {isLoading ? (
                                     <div className="flex flex-col items-center justify-center py-20 space-y-4">
                                         <div className="relative">

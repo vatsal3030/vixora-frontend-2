@@ -5,6 +5,7 @@ import ShortsPlayer from '../components/shorts/ShortsPlayer'
 import { Loader2, ChevronUp, ChevronDown } from 'lucide-react'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { toast } from 'sonner'
+import SEO from '../components/common/SEO'
 
 export default function ShortsPage() {
     useDocumentTitle('Shorts - Vixora')
@@ -207,6 +208,12 @@ export default function ShortsPage() {
 
     return (
         <div className="relative w-full h-[calc(100vh-64px)] bg-[#0f0f0f] overflow-hidden">
+            <SEO
+                title="Shorts — Trending Vertical Video Feed"
+                description="Explore trending vertical shorts on Vixora. Fast-paced, high-definition videos with instant community reactions and creator highlights."
+                keywords="Vixora Shorts, vertical video, viral videos, shorts feed, short video creator"
+                url="https://app.vixora.co.in/shorts"
+            />
             {/* Scrollable Container with Snap Scroll */}
             <div
                 ref={containerRef}

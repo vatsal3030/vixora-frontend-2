@@ -8,6 +8,7 @@ import { feedService } from '../services/api'
 import { Flame, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '../components/ui/Button'
 import { motion } from 'framer-motion'
+import SEO from '../components/common/SEO'
 
 export default function TrendingPage() {
     useDocumentTitle('Trending - Vixora')
@@ -50,6 +51,12 @@ export default function TrendingPage() {
 
     return (
         <div className="space-y-6 py-6 container mx-auto px-4">
+            <SEO
+                title="Trending Videos"
+                description="Discover the most popular, viral, and trending videos right now on Vixora. Powered by real-time audience velocity and community engagement."
+                keywords="Trending videos, viral videos, popular videos, top creators, Vixora trending"
+                url="https://app.vixora.co.in/trending"
+            />
             <div className="glass-panel p-6 rounded-xl flex items-center gap-4">
                 <div className="p-3 bg-red-500/10 rounded-xl">
                     <Flame className="w-8 h-8 text-red-500 fill-red-500/20" />

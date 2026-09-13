@@ -1,349 +1,478 @@
-import { motion } from 'framer-motion'
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { ArrowLeft, Shield, AlertTriangle, FileText, Lock, ChevronRight } from 'lucide-react'
+import {
+    ArrowLeft, Shield, FileText, Lock, ChevronRight, Download,
+    Sparkles, CheckCircle2, Trash2, Cpu, Scale, HelpCircle,
+    Eye, AlertCircle, Printer, Search
+} from 'lucide-react'
 import { Button } from '../../components/ui/Button'
-import { useEffect, useState } from 'react'
+import { BrandLogo } from '../../components/common/BrandLogo'
 import { cn } from '../../lib/utils'
+import SEO from '../../components/common/SEO'
 
-const SECTIONS = [
-    { id: 'status', title: 'Experimental Status', icon: AlertTriangle, color: 'text-yellow-500' },
-    { id: 'privacy', title: 'Data & Privacy', icon: Shield, color: 'text-primary' },
-    { id: 'responsibility', title: 'User Responsibility', icon: Lock, color: 'text-blue-500' },
+const LEGAL_SECTIONS = [
+    {
+        id: 'terms-of-service',
+        title: 'Terms of Service',
+        subtitle: 'Core Platform Agreement & User Standards',
+        icon: Scale,
+        badge: 'General',
+        color: 'text-rose-500',
+        content: [
+            {
+                heading: '1. Acceptance of Terms',
+                body: 'By accessing or utilizing Vixora, including our video streaming infrastructure, creator studio, and native AI capabilities, you enter into a legally binding agreement with Vixora Inc. If you do not agree to these terms, you must refrain from using the platform.'
+            },
+            {
+                heading: '2. User Accounts & Security',
+                body: 'You are responsible for safeguarding your authentication credentials, session tokens, and any activity executed under your channel. Vixora employs encrypted HTTP-only session tokens and role-based access control. Promptly notify security@vixora.co.in of any suspected unauthorized access.'
+            },
+            {
+                heading: '3. Streaming & Fair Usage',
+                body: 'Vixora provides adaptive multi-bitrate HLS streaming up to 4K 60fps. Automated scrapers, denial-of-service attempts, unauthorized stream ripping, and bulk credential replay attacks are strictly prohibited and result in immediate termination.'
+            },
+            {
+                heading: '4. Termination & Suspension',
+                body: 'Vixora reserves the right to suspend or terminate accounts that engage in copyright infringement, malicious behavior, or violation of community guidelines. Suspended users may request a formal appeal via the moderation portal.'
+            }
+        ]
+    },
+    {
+        id: 'privacy-policy',
+        title: 'Privacy & Data Governance',
+        subtitle: 'Zero Ad-Tracking & Data Protection',
+        icon: Shield,
+        badge: 'Privacy',
+        color: 'text-emerald-400',
+        content: [
+            {
+                heading: '1. Information We Collect',
+                body: 'We collect minimal necessary telemetry: profile information (username, email, avatar), uploaded media metadata, watch history, and playlist curation. We do not sell, rent, or trade your personal data with third-party advertisers.'
+            },
+            {
+                heading: '2. Cookie & Session Storage Policy',
+                body: 'Vixora uses secure HTTP-only cookies strictly for authenticated user state, csrf prevention, and personalized video preferences (playback speed, volume levels, theme presets). No invasive cross-site tracking cookies are utilized.'
+            },
+            {
+                heading: '3. Data Retention & Erasure',
+                body: 'You may request an export or complete deletion of your account and personal history at any time. When an account is purged, all associated personal identifiers are irrevocably erased from active clusters within 72 hours.'
+            },
+            {
+                heading: '4. International Compliance',
+                body: 'Our architecture adheres to global privacy benchmarks including GDPR (EU/EEA) and CCPA (California). Users maintain rights to data access, portability, restriction of processing, and erasure.'
+            }
+        ]
+    },
+    {
+        id: 'ai-processing',
+        title: 'AI & Video Intelligence Policy',
+        subtitle: 'Gemini Multi-Tier Engine Transparency',
+        icon: Sparkles,
+        badge: 'AI Systems',
+        color: 'text-primary',
+        content: [
+            {
+                heading: '1. Model Architecture & Pipeline',
+                body: 'Vixora operates a multi-tier AI engine powered by Google Gemini (gemini-3.6-flash) combined with high-speed contextual inference. Video transcripts and chat prompts are processed in-flight with sub-second latency to generate summaries, chapter marks, and temporal citations.'
+            },
+            {
+                heading: '2. User Content is NOT Used for Public Model Training',
+                body: 'Your private chats, uploaded video transcripts, and viewing questions are strictly utilized for immediate real-time response generation. Vixora does not use your proprietary video content or private prompts to train public foundation models.'
+            },
+            {
+                heading: '3. Accuracy & Hallucination Disclaimers',
+                body: 'AI video summaries and conversational responses are synthesized through automated language models. While engineered for high fidelity, AI responses may occasionally misinterpret nuance. Users should verify critical timestamps against original video frames.'
+            },
+            {
+                heading: '4. Daily Quotas & Rate Limits',
+                body: 'To ensure democratized access and prevent bot exhaustion, Vixora enforces daily message budgets and token caps per account tier. Fair usage limits automatically replenish every 24 hours UTC.'
+            }
+        ]
+    },
+    {
+        id: 'creator-ip',
+        title: 'Creator IP & Content Rights',
+        subtitle: '100% Ownership & Distribution Terms',
+        icon: FileText,
+        badge: 'Copyright',
+        color: 'text-amber-400',
+        content: [
+            {
+                heading: '1. Creators Retain 100% Ownership',
+                body: 'You retain full intellectual property ownership of all videos, audio stems, thumbnails, and descriptions you broadcast on Vixora. We assert zero claim of ownership over your creative output.'
+            },
+            {
+                heading: '2. Worldwide Distribution License',
+                body: 'By uploading content to Vixora, you grant Vixora a non-exclusive, worldwide, royalty-free license strictly to ingest, transcode (adaptive HLS bitrates), cache, distribute, and display your video to audience members according to your chosen visibility (Public, Unlisted, Private).'
+            },
+            {
+                heading: '3. Digital Millennium Copyright Act (DMCA)',
+                body: 'Vixora responds decisively to validated copyright notices conforming to the DMCA. Copyright holders can submit infringement notices with certified proof of rights to dmca@vixora.co.in.'
+            },
+            {
+                heading: '4. Creator Monetization & Revenue',
+                body: 'Creators eligible for platform partner programs receive transparent revenue splits calculated from platform subscriptions and creator tipping, with automated monthly payouts and detailed analytics.'
+            }
+        ]
+    },
+    {
+        id: 'trash-recovery',
+        title: '7-Day Trash & Recovery Policy',
+        subtitle: 'Soft-Delete Safety Net for Content',
+        icon: Trash2,
+        badge: 'Data Safety',
+        color: 'text-blue-400',
+        content: [
+            {
+                heading: '1. Soft-Delete Protection',
+                body: 'To safeguard creators against accidental deletion or unauthorized account breaches, deleted videos are immediately moved to your private Trash vault rather than being permanently destroyed.'
+            },
+            {
+                heading: '2. 7-Day Restoration Window',
+                body: 'Videos in the Trash vault remain fully restorable with all associated likes, comments, and analytics intact for exactly 7 calendar days (168 hours). You can restore any video with one click from Your Channel Studio -> Trash.'
+            },
+            {
+                heading: '3. Automated Permanent Pruning',
+                body: 'After the 7-day grace period concludes, Vixora\'s automated background worker permanently and irrevocably purges the video files, HLS manifests, and Cloudinary media assets from cloud storage.'
+            },
+            {
+                heading: '4. Immediate Manual Purge',
+                body: 'Creators who explicitly require immediate and permanent removal for legal or privacy reasons can select "Delete Forever" inside the Trash vault, bypassing the 7-day safety period.'
+            }
+        ]
+    },
+    {
+        id: 'community-guidelines',
+        title: 'Community Guidelines & Safety',
+        subtitle: 'Fostering Constructive, Safe Discussions',
+        icon: Lock,
+        badge: 'Safety',
+        color: 'text-violet-400',
+        content: [
+            {
+                heading: '1. Harassment & Hate Speech',
+                body: 'Targeted harassment, hate speech directed at protected characteristics, incitement to violence, and malicious doxxing are met with zero tolerance and immediate account termination.'
+            },
+            {
+                heading: '2. Spam, Deceptive Practices & Bot Manipulation',
+                body: 'Artificially inflating view counts, subscribers, likes, or comments through bot networks or click farms is strictly prohibited. Recursive comment threads must remain constructive and genuine.'
+            },
+            {
+                heading: '3. Sensitive & Explicit Content',
+                body: 'Sexually explicit material, non-consensual imagery, and extreme gore are strictly disallowed. Age-restricted and mature content must be accurately flagged during the video upload workflow.'
+            }
+        ]
+    }
 ]
 
 export default function TermsPage() {
-    const [activeSection, setActiveSection] = useState('')
+    const [activeTab, setActiveTab] = useState('terms-of-service')
+    const [searchQuery, setSearchQuery] = useState('')
 
+    // Set document title
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        setActiveSection(entry.target.id)
-                    }
-                })
-            },
-            { threshold: 0.5 }
-        )
-
-        SECTIONS.forEach((section) => {
-            const el = document.getElementById(section.id)
-            if (el) observer.observe(el)
-        })
-
-        return () => observer.disconnect()
+        document.title = 'Vixora Legal Center - Terms, Privacy & AI Governance'
     }, [])
 
-    const scrollToSection = (id) => {
-        const el = document.getElementById(id)
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }
+    const handlePrint = () => {
+        window.print()
     }
 
+    const filteredSections = LEGAL_SECTIONS.filter(section => {
+        if (!searchQuery.trim()) return true
+        const query = searchQuery.toLowerCase()
+        return (
+            section.title.toLowerCase().includes(query) ||
+            section.subtitle.toLowerCase().includes(query) ||
+            section.content.some(c => c.heading.toLowerCase().includes(query) || c.body.toLowerCase().includes(query))
+        )
+    })
+
+    const currentSection = LEGAL_SECTIONS.find(s => s.id === activeTab) || LEGAL_SECTIONS[0]
+
     return (
-        <div className="min-h-screen relative overflow-hidden bg-[#050505] selection:bg-primary/30">
-            {/* --- PREMIUM BACKGROUND DECORATIONS --- */}
-            <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden print:hidden">
-                {/* Primary floating glow */}
-                <motion.div
-                    animate={{
-                        scale: [1, 1.2, 1],
-                        opacity: [0.3, 0.5, 0.3],
-                        x: [0, 50, 0],
-                        y: [0, -30, 0]
-                    }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-[-10%] left-[-10%] w-[60%] aspect-square bg-primary/10 blur-[120px] rounded-full"
-                />
-
-                {/* Secondary accent glow */}
-                <motion.div
-                    animate={{
-                        scale: [1, 1.1, 1],
-                        opacity: [0.2, 0.4, 0.2],
-                        x: [0, -40, 0],
-                        y: [0, 60, 0]
-                    }}
-                    transition={{ duration: 18, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-                    className="absolute bottom-[-20%] right-[-10%] w-[50%] aspect-square bg-blue-500/5 blur-[100px] rounded-full"
-                />
-
-                {/* Subtle mesh grid overlay */}
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] contrast-150 brightness-150" />
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background" />
+        <div className="min-h-screen bg-[#050507] text-[#f7f8f8] selection:bg-primary/30 font-sans relative overflow-x-hidden">
+            <SEO
+                title="Terms of Service, Privacy & AI Governance"
+                description="Official legal policies governing Vixora streaming services, creator IP ownership, privacy standards, 7-day trash recovery, and Gemini AI processing rules."
+                keywords="Vixora terms, Vixora privacy policy, Vixora AI policy, creator IP rights, DMCA, streaming agreement"
+                url="https://app.vixora.co.in/terms"
+            />
+            {/* Ambient Background Backlights (Hidden on Print) */}
+            <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden print:hidden">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-gradient-to-b from-primary/15 via-red-600/5 to-transparent rounded-full blur-[140px]" />
+                <div className="absolute top-[45%] -right-48 w-[600px] h-[600px] bg-red-600/5 rounded-full blur-[160px]" />
+                <div className="absolute top-[75%] -left-48 w-[600px] h-[600px] bg-emerald-600/5 rounded-full blur-[160px]" />
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pt-28 pb-20">
-                {/* Back Link */}
-                <motion.div
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="mb-8 print:hidden"
-                >
-                    <Link to="/register">
-                        <Button variant="ghost" size="sm" className="gap-2 group pl-0 hover:bg-white/5 pr-4 rounded-full text-muted-foreground hover:text-foreground transition-all">
-                            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                            Back to Register
-                        </Button>
-                    </Link>
-                </motion.div>
+            {/* PRINT-ONLY OFFICIAL LEGAL HEADER */}
+            <div className="hidden print:block p-8 border-b-2 border-black text-black">
+                <div className="flex justify-between items-center mb-4">
+                    <div>
+                        <h1 className="text-2xl font-bold font-serif tracking-tight">VIXORA PLATFORM LEGAL SPECIFICATION</h1>
+                        <p className="text-xs text-gray-600 mt-1">Official Terms of Service, Privacy Charter & Native AI Governance</p>
+                    </div>
+                    <div className="text-right text-xs font-mono text-gray-500">
+                        <p>Document Ref: VX-LEGAL-2026</p>
+                        <p>Effective Date: September 2026</p>
+                        <p>Status: Production Certified</p>
+                    </div>
+                </div>
+            </div>
 
-                <div className="grid lg:grid-cols-4 gap-12 items-start">
-                    {/* Sticky Sidebar Navigation */}
-                    <aside className="hidden lg:block sticky top-32 space-y-6 print:hidden">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="glass-card p-2 rounded-3xl border-white/5 backdrop-blur-xl bg-white/[0.02]"
+            {/* SCREEN NAVIGATION HEADER (Hidden on Print) */}
+            <header className="sticky top-0 z-50 backdrop-blur-2xl bg-[#050507]/80 print:hidden">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 flex items-center justify-between">
+                    <Link to="/" className="flex items-center gap-3 group">
+                        <BrandLogo size="md" className="group-hover:scale-105 transition-transform duration-300" />
+                        <span className="font-display font-bold text-xl tracking-tight text-white">
+                            Vixora
+                        </span>
+                        <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-muted-foreground ml-1">
+                            Legal Center
+                        </span>
+                    </Link>
+
+                    <div className="flex items-center gap-3">
+                        <Button
+                            onClick={handlePrint}
+                            className="bg-white/10 hover:bg-white/15 text-white border border-white/10 rounded-full px-4 py-2 text-xs font-medium flex items-center gap-2 transition-all hover:scale-[1.02] shadow-sm"
                         >
-                            <div className="px-4 pt-4 pb-2">
-                                <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mb-4 opacity-50">Legal Framework</h3>
+                            <Download className="w-3.5 h-3.5 text-primary" />
+                            Download PDF / Print
+                        </Button>
+                        <Link to="/">
+                            <Button
+                                variant="outline"
+                                className="border-white/10 hover:border-white/20 bg-transparent text-white rounded-full px-4 py-2 text-xs font-medium"
+                            >
+                                Back to Vixora
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+            </header>
+
+            {/* MAIN CONTENT WRAPPER */}
+            <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-24 print:p-0 print:m-0">
+                {/* HERO BANNER (Hidden on Print) */}
+                <div className="text-center max-w-3xl mx-auto mb-12 print:hidden">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-xs font-semibold text-primary mb-4">
+                        <Shield className="w-3.5 h-3.5" />
+                        Updated for 2026 Production Standards
+                    </div>
+                    <h1 className="text-4xl sm:text-5xl font-display font-bold tracking-tight text-white leading-tight">
+                        Terms, Privacy & <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-400 to-rose-300">
+                            AI Intelligence Governance
+                        </span>
+                    </h1>
+                    <p className="text-sm sm:text-base text-[#8a8f98] mt-4 leading-relaxed">
+                        Clear, transparent, and developer-grade legal principles governing Vixora streaming, native AI models, creator ownership, and user data rights.
+                    </p>
+
+                    {/* Quick Search */}
+                    <div className="mt-6 relative max-w-md mx-auto">
+                        <Search className="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search policies (e.g. AI, copyright, trash, privacy)..."
+                            className="w-full h-10 pl-10 pr-4 rounded-full bg-white/[0.03] border border-white/10 text-xs text-white placeholder:text-zinc-500 focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                        />
+                    </div>
+                </div>
+
+                {/* TWO-COLUMN LAYOUT: TABS / SIDEBAR (LEFT) + ACTIVE POLICY DOCUMENT (RIGHT) */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* LEFT SIDEBAR: SECTIONS LIST (Screen only) */}
+                    <aside className="lg:col-span-4 space-y-2 print:hidden sticky top-24">
+                        <div className="p-2 rounded-2xl bg-[#0b0c0e] border border-white/10 shadow-xl space-y-1">
+                            <div className="px-3 py-2 text-[10px] font-mono uppercase tracking-widest text-[#8a8f98] font-semibold flex items-center justify-between">
+                                <span>Policy Modules</span>
+                                <span>{filteredSections.length} Articles</span>
                             </div>
-                            <nav className="space-y-1">
-                                {SECTIONS.map((section) => (
+
+                            {filteredSections.map((sec) => {
+                                const Icon = sec.icon
+                                const isActive = activeTab === sec.id
+                                return (
                                     <button
-                                        key={section.id}
-                                        onClick={() => scrollToSection(section.id)}
+                                        key={sec.id}
+                                        onClick={() => setActiveTab(sec.id)}
                                         className={cn(
-                                            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm transition-all duration-500 group relative overflow-hidden",
-                                            activeSection === section.id
-                                                ? "text-foreground"
-                                                : "text-muted-foreground hover:text-foreground hover:bg-white/[0.03]"
+                                            "w-full text-left px-3.5 py-3 rounded-xl text-xs transition-all flex items-center gap-3 relative group",
+                                            isActive
+                                                ? "bg-white/10 text-white font-semibold shadow-inner border border-white/10"
+                                                : "text-[#8a8f98] hover:text-white hover:bg-white/[0.04] border border-transparent"
                                         )}
                                     >
-                                        {activeSection === section.id && (
-                                            <motion.div
-                                                layoutId="activeTab"
-                                                className="absolute inset-0 bg-gradient-to-r from-white/[0.08] to-transparent border-l-2 border-primary z-0"
-                                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                            />
-                                        )}
-                                        <section.icon className={cn("w-4 h-4 relative z-10 transition-colors duration-500",
-                                            activeSection === section.id ? section.color : "opacity-40"
-                                        )} />
-                                        <span className="font-medium relative z-10">{section.title}</span>
-                                        {activeSection === section.id && (
-                                            <motion.div
-                                                initial={{ opacity: 0, x: -5 }}
-                                                animate={{ opacity: 1, x: 0 }}
-                                                className="ml-auto relative z-10"
-                                            >
-                                                <ChevronRight className="w-4 h-4 text-primary" />
-                                            </motion.div>
-                                        )}
+                                        <div className={cn(
+                                            "w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors",
+                                            isActive ? "bg-primary/20 text-primary" : "bg-white/5 text-zinc-400 group-hover:text-white"
+                                        )}>
+                                            <Icon className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center justify-between">
+                                                <span className="truncate">{sec.title}</span>
+                                                <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/5 text-zinc-400 border border-white/5">
+                                                    {sec.badge}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-zinc-500 truncate mt-0.5">{sec.subtitle}</p>
+                                        </div>
                                     </button>
-                                ))}
-                            </nav>
-                        </motion.div>
+                                )
+                            })}
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                            className="p-6 rounded-3xl bg-gradient-to-br from-primary/5 to-transparent border border-white/5 backdrop-blur-md"
-                        >
-                            <h4 className="text-xs font-bold mb-2">Need clarification?</h4>
-                            <p className="text-[11px] text-muted-foreground leading-relaxed">
-                                Join our community for live support regarding these alpha terms and development roadmap.
+                        {/* PDF Quick Download Box */}
+                        <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 via-[#0b0c0e] to-[#0b0c0e] border border-primary/20 space-y-3">
+                            <div className="flex items-center gap-2 text-white text-xs font-semibold">
+                                <Printer className="w-4 h-4 text-primary" />
+                                <span>Official Legal Copy</span>
+                            </div>
+                            <p className="text-[11px] text-[#8a8f98] leading-relaxed">
+                                Need an offline PDF for compliance or legal review? Export the entire authenticated document bundle formatted for printing.
                             </p>
-                            <Button size="sm" variant="link" className="h-auto p-0 mt-3 text-primary text-[11px] hover:translate-x-1 transition-transform">
-                                Contact Support →
+                            <Button
+                                onClick={handlePrint}
+                                size="sm"
+                                className="w-full bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg shadow-primary/20"
+                            >
+                                <Download className="w-3.5 h-3.5" />
+                                Export Legal PDF
                             </Button>
-                        </motion.div>
+                        </div>
                     </aside>
 
-                    {/* Content Area */}
-                    <div className="lg:col-span-3 space-y-24 pb-20">
-                        {/* Hero Section */}
-                        <motion.section
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="space-y-6"
-                        >
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-[10px] font-bold uppercase tracking-wider text-primary">
-                                <span className="relative flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                                </span>
-                                System Protocol v1.0-alpha
-                            </div>
-                            <h1 className="text-5xl sm:text-7xl font-display font-bold tracking-tight leading-[1.1]">
-                                Engineering <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-400 to-orange-400">
-                                    Trust & Protocol
-                                </span>
-                            </h1>
-                            <p className="max-w-2xl text-lg text-muted-foreground leading-relaxed">
-                                Our community is built on transparency. These terms outline our experimental framework, data handling, and user standards during the alpha testing phase.
-                            </p>
-                            <div className="flex items-center gap-6 pt-4 text-xs font-medium text-muted-foreground">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-[1px] bg-white/10" />
-                                    Last updated: March 11, 2026
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-[1px] bg-white/10" />
-                                    Read time: 4 mins
-                                </div>
-                            </div>
-                        </motion.section>
-
-                        {/* Sections List */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.3 }}
-                            className="space-y-20"
-                        >
-                            <section id="status" className="scroll-mt-32 group">
-                                <div className="glass-card p-8 sm:p-12 rounded-[2.5rem] border-white/5 hover:border-white/10 transition-all duration-700 shadow-glass-heavy relative overflow-hidden bg-white/[0.01]">
-                                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-yellow-500/10 blur-[100px] rounded-full group-hover:bg-yellow-500/15 transition-colors duration-700" />
-
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
-                                        <div className="w-14 h-14 rounded-xl bg-yellow-500/10 flex items-center justify-center border border-yellow-500/20 group-hover:scale-110 transition-transform duration-500">
-                                            <AlertTriangle className="w-7 h-7 text-yellow-500" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-3xl font-bold font-display tracking-tight text-foreground group-hover:translate-x-1 transition-transform duration-500">Experimental Status</h2>
-                                            <p className="text-yellow-500/60 text-sm font-medium">Important Development Disclosure</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid md:grid-cols-5 gap-8">
-                                        <div className="md:col-span-3 space-y-6 text-muted-foreground leading-relaxed text-lg font-light">
-                                            <p>
-                                                Vixora is currently in <span className="text-foreground font-semibold px-2 py-0.5 rounded-md bg-white/5 border border-white/5 shadow-sm">Development Mode</span>.
-                                                This platform is a high-performance prototype designed for architectural validation.
-                                            </p>
-                                            <p>
-                                                By interacting with Vixora, you acknowledge that the system is experimental, subject to frequent breaking changes, and may experience periods of instability. We do not provide an uptime SLA during this alpha phase.
-                                            </p>
-                                        </div>
-                                        <div className="md:col-span-2 space-y-4">
-                                            {[
-                                                'Frequent breaking changes',
-                                                'No uptime guarantees',
-                                                'Architectural validation',
-                                                'API endpoint mutations'
-                                            ].map((text, i) => (
-                                                <div key={i} className="flex items-center gap-3 text-sm text-foreground/80 font-medium p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
-                                                    {text}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            </section>
-
-                            <section id="privacy" className="scroll-mt-32 group">
-                                <div className="glass-card p-8 sm:p-12 rounded-[2.5rem] border-white/5 hover:border-white/10 transition-all duration-700 shadow-glass-heavy relative overflow-hidden bg-white/[0.01]">
-                                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 blur-[100px] rounded-full group-hover:bg-primary/15 transition-colors duration-700" />
-
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
-                                        <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 group-hover:scale-110 transition-transform duration-500">
-                                            <Shield className="w-7 h-7 text-primary" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-3xl font-bold font-display tracking-tight text-foreground group-hover:translate-x-1 transition-transform duration-500">Data & Privacy</h2>
-                                            <p className="text-primary/60 text-sm font-medium">Digital Identity & Asset Governance</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="grid sm:grid-cols-2 gap-6">
-                                        {[
-                                            { title: 'Transient Storage', desc: 'Content uploaded (videos, posts, transcripts) is considered temporary and may be deleted during maintenance windows.' },
-                                            { title: 'Secure Identity', desc: 'Authentication data is stored using industry-standard encryption, but currently exists within a sandbox environment.' },
-                                            { title: 'Account Governance', desc: 'We reserve the right to prune inactive or testing accounts to optimize resource allocation during the alpha phase.' },
-                                            { title: 'Beta Analytics', desc: 'System usage is monitored strictly to improve AI transcript accuracy and streaming performance benchmarks.' }
-                                        ].map((item, idx) => (
-                                            <div key={idx} className="p-6 rounded-3xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all duration-500 group/item">
-                                                <h4 className="font-bold text-foreground mb-3 flex items-center gap-2">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                                                    {item.title}
-                                                </h4>
-                                                <p className="text-sm text-muted-foreground leading-relaxed font-light">{item.desc}</p>
+                    {/* RIGHT CONTENT AREA: DOCUMENT READER (Screen + Print) */}
+                    <div className="lg:col-span-8 space-y-8">
+                        {/* Print Mode: Render ALL sections sequentially */}
+                        <div className="hidden print:block space-y-8 text-black font-serif">
+                            {LEGAL_SECTIONS.map((sec, idx) => (
+                                <div key={sec.id} className="pb-6 border-b border-gray-300 page-break-inside-avoid">
+                                    <h2 className="text-xl font-bold tracking-tight mb-1 text-black font-sans">
+                                        Section {idx + 1}: {sec.title}
+                                    </h2>
+                                    <p className="text-xs text-gray-500 mb-4 font-sans uppercase tracking-wider">{sec.subtitle}</p>
+                                    <div className="space-y-4 text-sm leading-relaxed text-gray-800">
+                                        {sec.content.map((item, cIdx) => (
+                                            <div key={cIdx}>
+                                                <h3 className="font-semibold text-gray-900 font-sans text-sm mb-1">{item.heading}</h3>
+                                                <p className="text-xs text-gray-700 leading-normal">{item.body}</p>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
-                            </section>
+                            ))}
+                        </div>
 
-                            <section id="responsibility" className="scroll-mt-32 group">
-                                <div className="glass-card p-8 sm:p-12 rounded-[2.5rem] border-white/5 hover:border-white/10 transition-all duration-700 shadow-glass-heavy relative overflow-hidden bg-white/[0.01]">
-                                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500/10 blur-[100px] rounded-full group-hover:bg-blue-500/15 transition-colors duration-700" />
+                        {/* Screen Mode: Render Active Policy Module with rich dark glass styling */}
+                        <div className="print:hidden">
+                            <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={currentSection.id}
+                                    initial={{ opacity: 0, y: 12 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -12 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="rounded-3xl bg-[#0b0c0e] border border-white/10 p-6 sm:p-10 shadow-2xl relative overflow-hidden"
+                                >
+                                    {/* Top ambient highlight */}
+                                    <div className="absolute top-0 right-0 w-72 h-72 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
-                                    <div className="flex flex-col sm:flex-row sm:items-center gap-6 mb-10">
-                                        <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
-                                            <Lock className="w-7 h-7 text-blue-500" />
+                                    {/* Section Header */}
+                                    <div className="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-white/5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-inner">
+                                                <currentSection.icon className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <h2 className="text-2xl font-bold font-display tracking-tight text-white">
+                                                        {currentSection.title}
+                                                    </h2>
+                                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-primary border border-primary/20">
+                                                        {currentSection.badge}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-[#8a8f98] mt-0.5">{currentSection.subtitle}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h2 className="text-3xl font-bold font-display tracking-tight text-foreground group-hover:translate-x-1 transition-transform duration-500">User Responsibility</h2>
-                                            <p className="text-blue-500/60 text-sm font-medium">Protocol Compliance & Stewardship</p>
+
+                                        <div className="flex items-center gap-2 text-xs font-mono text-[#8a8f98]">
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                            <span>Active Governance</span>
                                         </div>
                                     </div>
 
-                                    <div className="space-y-10">
-                                        <div className="relative">
-                                            <div className="absolute -left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-blue-500/20 to-transparent" />
-                                            <p className="text-title sm:text-title-lg font-display font-medium text-foreground/90 leading-tight tracking-tight italic">
-                                                "You are the sole custodian of your cryptographic identity and all content broadcasted through your account."
-                                            </p>
-                                        </div>
+                                    {/* Clauses / Content Body */}
+                                    <div className="mt-8 space-y-6">
+                                        {currentSection.content.map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-colors"
+                                            >
+                                                <h3 className="text-sm font-bold text-white tracking-wide mb-2 flex items-center gap-2">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                                                    {item.heading}
+                                                </h3>
+                                                <p className="text-xs sm:text-sm text-[#d0d6e0] leading-relaxed font-light">
+                                                    {item.body}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
 
-                                        <div className="grid md:grid-cols-2 gap-10 text-muted-foreground font-light leading-relaxed">
-                                            <p>
-                                                Users are responsible for ensuring their content complies with international safety standards and intellectual property protocols. Vixora acts as a conduit for experimental distribution.
-                                            </p>
-                                            <p>
-                                                Vixora is not liable for systemic outputs, including but not limited to AI-generated transcript inaccuracies, rendering failures, or algorithmic routing errors during this phase.
-                                            </p>
+                                    {/* Key Highlight Banner */}
+                                    <div className="mt-8 p-4 rounded-2xl bg-gradient-to-r from-primary/15 via-primary/5 to-transparent border border-primary/20 flex items-start gap-3">
+                                        <AlertCircle className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+                                        <div className="text-xs text-[#d0d6e0] leading-relaxed">
+                                            <strong className="text-white">Continuous Compliance Guarantee:</strong> Vixora undergoes periodic security and privacy audits. Any material updates to this policy are notified via in-app broadcast alerts 14 days prior to implementation.
                                         </div>
                                     </div>
-                                </div>
-                            </section>
-                        </motion.div>
 
-                        <footer className="pt-20 border-t border-white/5 print:pt-10 print:mt-10">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                whileInView={{ opacity: 1, scale: 1 }}
-                                viewport={{ once: true }}
-                                className="glass-card p-12 rounded-[3rem] text-center space-y-8 bg-gradient-to-b from-white/[0.02] to-transparent border-white/5 print:border-none print:shadow-none print:bg-transparent print:p-0"
-                            >
-                                <div className="space-y-4 max-w-xl mx-auto">
-                                    <h3 className="text-3xl font-bold font-display print:text-xl">Ready to Proceed?</h3>
-                                    <p className="text-muted-foreground leading-relaxed print:text-sm">
-                                        By continuing to use Vixora, you acknowledge and accept these experimental protocols in their entirety.
-                                    </p>
-                                </div>
-                                <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4 print:hidden">
-                                    <Link to="/register?accepted=true">
-                                        <Button size="lg" className="h-16 px-12 bg-primary hover:shadow-[0_0_40px_rgba(239,68,68,0.3)] rounded-xl text-lg font-bold group transition-all duration-500">
-                                            I Accept Protocol
-                                            < ChevronRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                        </Button>
-                                    </Link>
-                                    <Button
-                                        size="lg"
-                                        variant="ghost"
-                                        className="h-16 px-12 rounded-xl text-lg hover:bg-white/5 border border-white/5"
-                                        onClick={() => window.print()}
-                                    >
-                                        Print PDF
-                                    </Button>
-                                </div>
-                                <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.3em] print:block">
-                                    Digital Signature Required for Node Access
-                                </p>
-                            </motion.div>
-                        </footer>
+                                    {/* Footer / Navigation Next Section */}
+                                    <div className="mt-10 pt-6 border-t border-white/5 flex items-center justify-between text-xs text-[#8a8f98]">
+                                        <span>Last revised: September 2026</span>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={handlePrint}
+                                                className="hover:text-white flex items-center gap-1.5 transition-colors"
+                                            >
+                                                <Printer className="w-3.5 h-3.5" /> Print Article
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </main>
+
+            {/* PRINT MEDIA STYLES */}
+            <style>{`
+                @media print {
+                    body {
+                        background: white !important;
+                        color: black !important;
+                    }
+                    .print\\:hidden {
+                        display: none !important;
+                    }
+                    .print\\:block {
+                        display: block !important;
+                    }
+                    .page-break-inside-avoid {
+                        page-break-inside: avoid;
+                    }
+                }
+            `}</style>
         </div>
     )
 }

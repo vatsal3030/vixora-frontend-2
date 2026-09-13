@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useParams, Link, useSearchParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient, useInfiniteQuery } from '@tanstack/react-query'
-import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Bell, Loader2, Flag, FileText, Save, Play, Heart, Clock } from 'lucide-react'
+import { ThumbsUp, ThumbsDown, Share2, Download, MoreHorizontal, Bell, Loader2, Flag, FileText, Save, Play, Heart, Clock, Sparkles } from 'lucide-react'
 import { watchService, videoService, likeService, subscriptionService, commentService, playlistService, feedService, transcriptService } from '../services/api'
 import { ShareDialog } from '../components/common/ShareDialog'
 import { ReportDialog } from '../components/common/ReportDialog'
 import AISummaryCard from '../components/ai/AISummaryCard'
+import WatchAiChatPanel from '../components/video/WatchAiChatPanel'
 import { AddToPlaylistDialog } from '../components/playlist/AddToPlaylistDialog'
 import {
     DropdownMenu,
@@ -347,7 +348,15 @@ export default function WatchPage() {
             "min-h-screen relative transition-colors duration-500 selection:bg-primary/30",
             isTheaterMode ? "bg-black" : "bg-background container mx-auto px-4 py-6 max-w-[1800px]"
         )}>
-            <SEO title={video.title} description={video.description} image={video.thumbnail} url={window.location.href} type="video.other" />
+            <SEO 
+                title={video.title} 
+                description={video.description} 
+                image={video.thumbnail} 
+                url={window.location.href} 
+                type="video.other" 
+                video={video} 
+                publishedTime={video.createdAt} 
+            />
             
             {/* Cinematic Background Glow for Theater Mode */}
             {isTheaterMode && (
@@ -654,7 +663,7 @@ export default function WatchPage() {
                     )}
 
                     {/* AI Summary Card */}
-                    <AISummaryCard videoId={videoId} />
+                    <AISummaryCard videoId={videoId} onOpenAiChat={() => setActiveTab('ai')} />
 
                     {/* Sidebar Tabs */}
                     <div className="flex bg-white/4 rounded-xl p-1 mb-2">
@@ -666,6 +675,16 @@ export default function WatchPage() {
                             )}
                         >
                             Next
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('ai')}
+                            className={cn(
+                                "flex-1 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-1",
+                                activeTab === 'ai' ? "bg-primary/20 text-primary border border-primary/30 shadow-sm" : "text-muted-foreground hover:text-primary"
+                            )}
+                        >
+                            <Sparkles className="w-3 h-3 text-primary animate-pulse" />
+                            AI Chat
                         </button>
                         <button
                             onClick={() => setActiveTab('transcript')}
@@ -690,6 +709,14 @@ export default function WatchPage() {
                     </div>
 
                     <div className="flex flex-col gap-3 min-h-[300px]">
+                        {activeTab === 'ai' && (
+                            <WatchAiChatPanel
+                                videoId={videoId}
+                                videoTitle={video?.title}
+                                currentTime={currentTime}
+                                onSeek={(s) => seekToRef.current?.(s)}
+                            />
+                        )}
                         {activeTab === 'next' && (
                             <>
                                 <div className="flex items-center justify-between px-1 mb-1">

@@ -1,8 +1,29 @@
+# Vixora Production Robots Configuration
 User-agent: *
 Allow: /
-Disallow: /admin
-Disallow: /settings
-Disallow: /studio
+Allow: /landing
+Allow: /terms
+Allow: /shorts
+Allow: /trending
+Allow: /search
+Allow: /watch/
+Allow: /shorts/
+Allow: /@*
+
+# Private / Authenticated User Paths
+Disallow: /admin/
+Disallow: /settings/
+Disallow: /my-videos
+Disallow: /history
+Disallow: /liked
+Disallow: /watch-later
+Disallow: /playlists/trash
+Disallow: /restore-account
+Disallow: /verify-email
+Disallow: /forgot-password
+
+# Friendly crawling rates
+Crawl-delay: 1
 
 # Sitemaps
 Sitemap: https://app.vixora.co.in/sitemap.xml

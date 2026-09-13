@@ -4,7 +4,7 @@ import { aiService } from '../../services/api'
 import MarkdownRenderer from '../common/MarkdownRenderer'
 import { cn } from '../../lib/utils'
 
-export default function AISummaryCard({ videoId }) {
+export default function AISummaryCard({ videoId, onOpenAiChat }) {
     const [summary, setSummary] = useState(null)
     const [loading, setLoading] = useState(true)
     const [generating, setGenerating] = useState(false)
@@ -46,8 +46,12 @@ export default function AISummaryCard({ videoId }) {
 
     const openChat = (e) => {
         e?.stopPropagation()
-        const btn = document.querySelector('[aria-label="Open Vixora AI"]')
-        btn?.click()
+        if (onOpenAiChat) {
+            onOpenAiChat()
+        } else {
+            const btn = document.querySelector('[aria-label="Open Vixora AI"]')
+            btn?.click()
+        }
     }
 
     const handleCopy = (e) => {
@@ -84,7 +88,7 @@ export default function AISummaryCard({ videoId }) {
                     )}
                     <button
                         onClick={openChat}
-                        title="Open AI Chat"
+                        title="Open AI Chat beside video"
                         className="flex items-center gap-1 text-[10px] font-bold text-primary hover:text-primary/80 px-2 py-0.5 rounded-full bg-primary/10 hover:bg-primary/20 transition-colors"
                     >
                         <MessageSquare className="w-3 h-3" />
@@ -107,7 +111,7 @@ export default function AISummaryCard({ videoId }) {
                     <div className="space-y-2.5">
                         <div className={cn(
                             "text-xs text-zinc-300 leading-relaxed",
-                            !isExpanded && "line-clamp-3"
+                            !isExpanded ? "line-clamp-3" : "max-h-[500px] overflow-y-auto custom-scrollbar pr-1"
                         )}>
                             <MarkdownRenderer content={summary} compact className="text-xs text-zinc-300" />
                         </div>
@@ -126,7 +130,7 @@ export default function AISummaryCard({ videoId }) {
                                 onClick={() => setIsExpanded(!isExpanded)}
                                 className="text-primary font-semibold hover:underline"
                             >
-                                {isExpanded ? 'Show less' : 'Read more'}
+                                {isExpanded ? 'Show less' : 'Read full summary'}
                             </button>
                         </div>
                     </div>
