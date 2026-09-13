@@ -79,37 +79,42 @@ export function PlaylistCard({ playlist, onEdit, onDelete, onShare }) {
     const thumbnailSrc = rawThumb ? getMediaUrl(rawThumb) : null
 
     return (
-        <div className="group flex flex-col gap-2.5 w-full cursor-pointer h-full select-none">
-            {/* Thumbnail Wrapper (YouTube Style) */}
-            <div
-                onClick={(e) => handlePlayAll(e, false)}
-                className="relative aspect-video rounded-xl overflow-hidden bg-muted/20 z-0 border border-white/5 group-hover:border-white/20 transition-all duration-slow"
-            >
-                {thumbnailSrc ? (
-                    <img
-                        src={thumbnailSrc}
-                        alt={name}
-                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                        loading="lazy"
-                    />
-                ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-zinc-600">
-                        <ListVideo className="w-10 h-10 mb-1" />
-                        <span className="text-xs">Empty playlist</span>
+        <div className="group flex flex-col gap-2 w-full cursor-pointer h-full select-none">
+            {/* YouTube Stacked Card Visuals */}
+            <div className="w-full flex flex-col">
+                <div className="w-[90%] mx-auto h-1 bg-white/10 rounded-t-lg" />
+                <div className="w-[95%] mx-auto h-1 bg-white/15 rounded-t-lg" />
+                {/* Main Thumbnail Container */}
+                <div
+                    onClick={(e) => handlePlayAll(e, false)}
+                    className="relative aspect-video rounded-xl overflow-hidden bg-muted/20 z-0 border border-white/10 group-hover:border-primary/40 shadow-md group-hover:shadow-xl transition-all duration-slow"
+                >
+                    {thumbnailSrc ? (
+                        <img
+                            src={thumbnailSrc}
+                            alt={name}
+                            className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-zinc-900 text-zinc-600">
+                            <ListVideo className="w-10 h-10 mb-1" />
+                            <span className="text-xs">Empty playlist</span>
+                        </div>
+                    )}
+
+                    {/* YouTube Bottom-Right Badge: Video Count & Stack Icon */}
+                    <div className="absolute bottom-2 right-2 bg-black/85 backdrop-blur-md text-white px-2.5 py-1 rounded-md text-xs font-semibold flex items-center gap-1.5 shadow-lg border border-white/10 z-10 group-hover:opacity-0 transition-opacity">
+                        <ListVideo className="w-3.5 h-3.5 text-primary" />
+                        <span>{count} {count === 1 ? 'video' : 'videos'}</span>
                     </div>
-                )}
 
-                {/* YouTube Right Overlay Bar: Video Count & Stack Icon */}
-                <div className="absolute right-0 top-0 bottom-0 w-[38%] bg-black/60 backdrop-blur-md flex flex-col items-center justify-center gap-1 text-white border-l border-white/10 z-10 transition-opacity duration-slow group-hover:opacity-0">
-                    <span className="text-sm font-bold">{count}</span>
-                    <ListVideo className="w-5 h-5 opacity-90" />
-                </div>
-
-                {/* YouTube Hover Play All Overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-slow flex items-center justify-center z-20 backdrop-blur-[2px]">
-                    <div className="flex items-center gap-2 text-white font-bold uppercase tracking-wider text-xs bg-black/80 border border-white/20 px-4 py-2 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-transform duration-150">
-                        <Play className="w-4 h-4 fill-white" />
-                        Play All
+                    {/* YouTube Hover Play All Overlay */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all duration-slow flex items-center justify-center z-20 backdrop-blur-[2px]">
+                        <div className="flex items-center gap-2 text-white font-bold uppercase tracking-wider text-xs bg-primary/90 hover:bg-primary border border-white/20 px-4 py-2 rounded-full shadow-2xl hover:scale-105 active:scale-95 transition-transform duration-150">
+                            <Play className="w-4 h-4 fill-white" />
+                            Play All
+                        </div>
                     </div>
                 </div>
             </div>

@@ -31,7 +31,7 @@ export function AuthLayout() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8, ease: "easeOut" }}
                     >
-                        <Link to="/" className="inline-flex items-center gap-3 group mb-6">
+                        <Link to="/landing" className="inline-flex items-center gap-3 group mb-6" title="Explore Vixora">
                             <BrandLogo size="xl" className="group-hover:scale-110 transition-transform duration-500 shadow-glow" />
                         </Link>
 

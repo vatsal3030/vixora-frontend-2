@@ -10,7 +10,8 @@ import {
     Video,
     Plus,
     ArrowLeft,
-    Shield
+    Shield,
+    Sparkles
 } from 'lucide-react'
 import {
     DropdownMenu,
@@ -199,6 +200,12 @@ export function Navbar({ onMenuClick, user }) {
                                             <span>My Channel</span>
                                         </Link>
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem className="cursor-pointer rounded-lg focus:bg-white/10 px-3" asChild>
+                                        <Link to="/landing" className="flex items-center gap-3 w-full py-2.5 text-primary">
+                                            <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                                            <span className="font-medium">Explore Vixora</span>
+                                        </Link>
+                                    </DropdownMenuItem>
 
                                     {availableAccounts?.filter(acc => acc.id !== (user?.id || user?._id)).length > 0 && (
                                         <>
@@ -257,12 +264,20 @@ export function Navbar({ onMenuClick, user }) {
                             </DropdownMenu>
                         </>
                     ) : (
-                        <Link to="/login">
-                            <Button variant="outline" size="sm" className="gap-2 glass-btn border-white/10 hover:bg-white/10 rounded-full">
-                                <User className="w-4 h-4" />
-                                <span className="hidden sm:inline">Sign In</span>
-                            </Button>
-                        </Link>
+                        <div className="flex items-center gap-2">
+                            <Link to="/landing">
+                                <Button variant="ghost" size="sm" className="gap-1.5 text-primary hover:bg-primary/10 rounded-full hidden sm:flex">
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    <span>Explore</span>
+                                </Button>
+                            </Link>
+                            <Link to="/login">
+                                <Button variant="outline" size="sm" className="gap-2 glass-btn border-white/10 hover:bg-white/10 rounded-full">
+                                    <User className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Sign In</span>
+                                </Button>
+                            </Link>
+                        </div>
                     )}
                 </div>
             </div>

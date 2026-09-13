@@ -11,11 +11,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { ImageCropModal } from '../components/common/ImageCropModal'
 import { getMediaUrl } from '../lib/media'
 import { PresetSelectorModal } from '../components/settings/PresetSelectorModal'
+import { useTabQuery } from '../hooks/useTabQuery'
 
 export default function ProfilePage() {
     const { user, checkAuth } = useAuth()
     const [loading, setLoading] = useState(false)
-    const [activeTab, setActiveTab] = useState('details') // details, branding, links
+    const [activeTab, setActiveTab] = useTabQuery('details', 'tab') // details, branding, links
     const [isDirty, setIsDirty] = useState(false)
 
     // Account details

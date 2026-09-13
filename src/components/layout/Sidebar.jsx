@@ -17,7 +17,8 @@ import {
     ChevronRight,
     MessageCircle,
     SquareUser,
-    ShieldAlert
+    ShieldAlert,
+    Sparkles
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '../../lib/utils'
@@ -171,6 +172,30 @@ export function Sidebar({ isOpen, onClose, isCollapsed }) {
                                     )}
                                 </Link>
                             )}
+
+                            <Link
+                                to="/landing"
+                                className={cn(
+                                    "flex items-center gap-3 px-3.5 py-2.5 rounded-lg transition-all duration-base group relative overflow-hidden text-primary hover:bg-primary/10",
+                                    isActive('/landing')
+                                        ? "bg-primary/15 font-semibold text-primary shadow-inner"
+                                        : "opacity-90",
+                                    isCollapsed && "justify-center px-2"
+                                )}
+                                title={isCollapsed ? "Explore Vixora" : undefined}
+                                onClick={() => window.innerWidth < 1024 && onClose()}
+                            >
+                                <Sparkles className="w-4 h-4 flex-shrink-0 text-primary animate-pulse" />
+                                {!isCollapsed && (
+                                    <div className="flex items-center justify-between w-full">
+                                        <span className="text-sm font-semibold">Explore Vixora</span>
+                                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-primary/20 text-primary uppercase">New</span>
+                                    </div>
+                                )}
+                                {isActive('/landing') && !isCollapsed && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-primary rounded-r-full shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+                                )}
+                            </Link>
                         </nav>
                     </div>
                 </div>

@@ -11,6 +11,8 @@ import { Checkbox } from '../components/ui/Checkbox'
 import { cn } from '../lib/utils'
 import { TrashSkeleton } from './TrashSkeleton'
 
+import { useTabQuery } from '../hooks/useTabQuery'
+
 // --- Render Helpers ---
 const EmptyState = ({ label, icon: Icon }) => (
     <div
@@ -50,6 +52,7 @@ export default function TrashPage() {
     const queryClient = useQueryClient()
     const [selectedIds, setSelectedIds] = useState(new Set())
     const [searchQuery, setSearchQuery] = useState('')
+    const [activeTab, setActiveTab] = useTabQuery('videos', 'tab')
 
     // --- Queries ---
     const { data: videos = [], isLoading: videosLoading } = useQuery({
@@ -230,7 +233,7 @@ export default function TrashPage() {
                 </div>
             </div>
 
-            <Tabs defaultValue="videos" className="w-full">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsList className="bg-transparent border-b border-white/10 w-full justify-start h-auto gap-6 p-0 mb-6">
                     <TabsTrigger value="videos" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-red-500 rounded-none px-0 pb-3 text-muted-foreground data-[state=active]:text-red-500 gap-2 transition-all">
                         <Film className="w-4 h-4" /> Videos ({deletedVideos.length})

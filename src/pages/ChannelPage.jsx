@@ -14,6 +14,7 @@ import { Button } from '../components/ui/Button'
 import { TweetCard } from '../components/tweet/TweetCard'
 import { formatViews } from '../lib/utils'
 import SEO from '../components/common/SEO'
+import { useTabQuery } from '../hooks/useTabQuery'
 
 // Helper to sanitize username from URL params
 const sanitizeUsername = (raw) => {
@@ -24,7 +25,7 @@ const sanitizeUsername = (raw) => {
 export default function ChannelPage() {
     const { username: rawUsername } = useParams()
     const username = sanitizeUsername(rawUsername)
-    const [activeTab, setActiveTab] = useState('Videos')
+    const [activeTab, setActiveTab] = useTabQuery('Videos', 'tab')
 
     // Handle case where username is 'null' (e.g. incomplete profile) 
     const isInvalidProfile = username === 'null' || !username

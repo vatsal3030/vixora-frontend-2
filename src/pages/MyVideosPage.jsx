@@ -27,6 +27,8 @@ import {
     DropdownMenuSeparator,
 } from "../components/ui/DropdownMenu"
 
+import { useTabQuery } from '../hooks/useTabQuery'
+
 const TABS = [
     { id: 'videos', label: 'Videos', icon: Film },
     { id: 'shorts', label: 'Shorts', icon: Smartphone },
@@ -40,7 +42,7 @@ export default function YoursPage() {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
 
-    const [activeTab, setActiveTab] = useState('videos')
+    const [activeTab, setActiveTab] = useTabQuery('videos', 'tab')
 
     // --- Video State ---
     const [viewMode, setViewMode] = useState('grid')

@@ -53,6 +53,7 @@ const ShortsPage = lazy(() => import('./pages/ShortsPage'))
 const ChannelPage = lazy(() => import('./pages/ChannelPage'))
 const TagFeedPage = lazy(() => import('./pages/TagFeedPage'))
 const LibraryPage = lazy(() => import('./pages/LibraryPage'))
+const LandingPage = lazy(() => import('./pages/LandingPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
 // Lazy load admin pages
@@ -90,6 +91,7 @@ function App() {
                     <Route path="/verify-email" element={<VerifyEmailPage />} />
                     <Route path="/restore-account" element={<RestoreAccountPage />} />
                   </Route>
+                  <Route path="/landing" element={<LandingPage />} />
                   <Route path="/terms" element={<TermsPage />} />
 
                   {/* Admin Routes - Wrapped in AdminLayout and AdminRoute */}

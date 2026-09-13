@@ -27,7 +27,7 @@ function AdminSidebar({ isOpen, isMobile, onClose }) {
         { name: 'Comments', href: '/admin/comments', icon: MessageSquare },
         { name: 'Tweets', href: '/admin/tweets', icon: MessageCircle },
         { name: 'Playlists', href: '/admin/playlists', icon: ListVideo },
-        { name: 'Audit Logs', href: '/admin/audit-logs', icon: Activity }
+        ...(userRole === 'SUPER_ADMIN' ? [{ name: 'Audit Logs', href: '/admin/audit-logs', icon: Activity }] : [])
     ]
 
     return (

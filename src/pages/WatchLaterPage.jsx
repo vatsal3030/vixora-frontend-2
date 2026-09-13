@@ -173,10 +173,9 @@ export default function WatchLaterPage() {
             <div className="container mx-auto px-4">
                 {(isLoading && rawVideos.length === 0) && (
                     <div className={cn(
-                        "grid gap-6",
                         viewMode === 'grid'
-                            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-                            : "grid-cols-1"
+                            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-5 gap-y-8"
+                            : "flex flex-col gap-4"
                     )}>
                         {Array.from({ length: 8 }).map((_, i) => (
                             <VideoCardSkeleton key={i} />
@@ -201,16 +200,15 @@ export default function WatchLaterPage() {
 
                 {filteredVideos.length > 0 && (
                     <div className={cn(
-                        "grid gap-6",
                         viewMode === 'grid'
-                            ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-                            : "grid-cols-1"
+                            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-x-5 gap-y-8"
+                            : "flex flex-col gap-4"
                     )}>
                         {filteredVideos.map((item, index) => {
                             const actualVideo = item.video || item
                             return (
                                 <div key={actualVideo._id || actualVideo.id || index} className="relative group animate-in fade-in slide-in-from-bottom-4 duration-slow" style={{ animationDelay: `${(index % 20) * 30}ms`, animationFillMode: 'backwards' }}>
-                                    <VideoCard video={actualVideo} />
+                                    <VideoCard video={actualVideo} type={viewMode === 'list' ? 'horizontal' : 'default'} />
                                     <button
                                         onClick={(e) => {
                                             e.preventDefault()

@@ -36,12 +36,14 @@ import {
     AccountManagementSection
 } from '../components/settings/sections'
 
+import { useTabQuery } from '../hooks/useTabQuery'
+
 export default function SettingsPage() {
     useDocumentTitle('Settings - Vixora')
     const queryClient = useQueryClient()
 
     // State
-    const [activeSection, setActiveSection] = useState('account')
+    const [activeSection, setActiveSection] = useTabQuery('account', 'tab')
     const [searchQuery, setSearchQuery] = useState('')
     const [saveStatus, setSaveStatus] = useState('idle')
 

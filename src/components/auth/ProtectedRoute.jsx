@@ -11,6 +11,10 @@ export default function ProtectedRoute({ children }) {
     }
 
     if (!user) {
+        // If visiting root unauthenticated, show the marketing landing page
+        if (location.pathname === '/') {
+            return <Navigate to="/landing" replace />
+        }
         // Redirect to login but save the attempted url
         return <Navigate to="/login" state={{ from: location }} replace />
     }

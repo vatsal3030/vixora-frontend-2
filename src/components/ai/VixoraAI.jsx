@@ -22,6 +22,14 @@ const VIDEO_CHIPS = [
     'Are there any important timestamps?',
 ]
 
+const GENERAL_CHIPS = [
+    'What is Vixora?',
+    'How do I upload a Short or Video?',
+    'How many times should one shower a day?',
+    'Suggest 5 creative video ideas',
+    'Tips for growing a Vixora channel',
+]
+
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
 function TypingDots() {
@@ -710,22 +718,22 @@ export default function VixoraAI() {
                                                     Explore video insights, ask complex questions, or simply start a fresh conversation.
                                                 </p>
 
-                                                {currentVideoId && (
-                                                    <div className="w-full space-y-2">
-                                                        <p className="text-[10px] text-primary font-bold uppercase tracking-widest text-left mb-3 px-1">Video Deep Dive</p>
-                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                            {VIDEO_CHIPS.map(chip => (
-                                                                <button
-                                                                    key={chip}
-                                                                    onClick={() => handleQuickAsk(chip)}
-                                                                    className="text-left text-[11px] p-3 rounded-xl bg-white/5 border border-white/8 text-gray-300 hover:bg-white/10 hover:border-primary/40 hover:text-white transition-all"
-                                                                >
-                                                                    {chip}
-                                                                </button>
-                                                            ))}
-                                                        </div>
+                                                <div className="w-full space-y-2">
+                                                    <p className="text-[10px] text-primary font-bold uppercase tracking-widest text-left mb-3 px-1">
+                                                        {currentVideoId ? 'Video Deep Dive' : 'Suggested Inquiries'}
+                                                    </p>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        {(currentVideoId ? VIDEO_CHIPS : GENERAL_CHIPS).map(chip => (
+                                                            <button
+                                                                key={chip}
+                                                                onClick={() => handleQuickAsk(chip)}
+                                                                className="text-left text-[11px] p-3 rounded-xl bg-white/5 border border-white/8 text-gray-300 hover:bg-white/10 hover:border-primary/40 hover:text-white transition-all"
+                                                            >
+                                                                {chip}
+                                                            </button>
+                                                        ))}
                                                     </div>
-                                                )}
+                                                </div>
                                             </div>
                                         )}
                                         {messages.map(msg => (

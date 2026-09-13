@@ -1,14 +1,24 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { adminService } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 import { toast } from 'sonner'
 import { formatTimeAgo } from '../../lib/utils'
 import { AdminTableSkeleton } from '../../components/skeletons/AdminTableSkeleton'
+import { ShieldAlert } from 'lucide-react'
 
 export default function AdminAuditLogs() {
+    const { user } = useAuth()
+    const navigate = useNavigate()
     const [logs, setLogs] = useState([])
     const [loading, setLoading] = useState(true)
+    const isSuperAdmin = user?.role === 'SUPER_ADMIN'
 
     const fetchLogs = async () => {
+        if (!isSuperAdmin) {
+            setLoading(false)
+            return
+        }
         try {
             setLoading(true)
             const res = await adminService.getAuditLogs({ limit: 50 })
@@ -22,8 +32,12 @@ export default function AdminAuditLogs() {
     }
 
     useEffect(() => {
+        if (!isSuperAdmin) {
+            navigate('/admin/dashboard', { replace: true })
+            return
+        }
         fetchLogs()
-    }, [])
+    }, [isSuperAdmin])
 
     return (
         <div className="space-y-6">

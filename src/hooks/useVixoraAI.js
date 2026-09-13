@@ -173,11 +173,16 @@ export function useVixoraAI() {
                 aiMsg,
             ])
 
-            // Update session's updatedAt locally for sorting
+            // Update session's title and updatedAt locally for sorting
+            const newTitle = data?.sessionTitle || data?.title
             setSessions(prev => {
-                const updated = prev.find(s => s.id === sessionId)
-                if (updated) {
-                    updated.updatedAt = new Date().toISOString()
+                const target = prev.find(s => s.id === sessionId)
+                if (target) {
+                    const updated = {
+                        ...target,
+                        ...(newTitle ? { title: newTitle } : {}),
+                        updatedAt: new Date().toISOString()
+                    }
                     return [updated, ...prev.filter(s => s.id !== sessionId)]
                 }
                 return prev
